@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.34';
+const VERSION='v1.35';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -674,8 +674,8 @@ async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.
 function requestLandscape(){try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}
 
 function fmtClock(){
-  const n=new Date(),h=n.getHours(),m=n.getMinutes();
-  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
+  const n=new Date(),h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
+  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
 
 function render(){
