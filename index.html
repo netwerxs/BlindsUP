@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.36';
+const VERSION='v1.37';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -574,15 +574,24 @@ async function nativeInstall(e){
   }
 })();
 
-// Round up to the next :00 or :30 wall-clock mark so multiple devices stay in sync.
+// Always rounds UP to next :00 — used for auto-advance and level swipes.
+// Guarantees countdown seconds stay locked to RTC (never goes backwards).
 function clockSnap(baseSec){
   if(baseSec===0)return 0;
   const pad=(60-new Date().getSeconds())%60;
   return baseSec+pad;
 }
 
+// Rounds to NEAREST minute — used only for the initial manual start from the menu.
+// Keeps the starting countdown within ±30s of the nominal level duration.
+function snapNearest(baseSec){
+  if(baseSec===0)return 0;
+  const ss=new Date().getSeconds();
+  return baseSec+(ss<30?-ss:60-ss);
+}
+
 function selectBlind(i){
-  level=i; remSec=clockSnap(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
+  level=i; remSec=snapNearest(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
   beginCountdown();
 }
 
@@ -723,6 +732,13 @@ function beginCountdown(){
 }
 
 function resumeGame(){
+  // Re-snap seconds to RTC: keep the minutes, lock seconds to next :00 mark.
+  if(level!==5){
+    const ss=new Date().getSeconds();
+    const targetSec=(60-ss)%60;
+    pausedRemSec=Math.floor(pausedRemSec/60)*60+targetSec;
+    remSec=pausedRemSec;
+  }
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
   paused=false;running=true;
@@ -770,7 +786,7 @@ function togglePause(){
   elBlindZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);});
 })();
 
-// Swipe countdown: left=+30s, right=-30s
+// Swipe countdown: left=+1min, right=-1min (re-snaps seconds to RTC)
 (function(){
   let sx=0,edgeTouch=false;
   const EDGE=30;
@@ -785,7 +801,7 @@ function adjustLevel(dir){
   if(nv===level)return;
   level=nv;
   const ms=maxSec(level);
-  remSec=ms>0?ms:0;pausedRemSec=remSec;
+  remSec=ms>0?clockSnap(ms):0;pausedRemSec=remSec;
   launchWall=Date.now();lastTickSec=-1;render();
 }
 
