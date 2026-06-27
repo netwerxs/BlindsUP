@@ -46,6 +46,19 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   letter-spacing:0.5em;text-transform:uppercase;
   color:var(--dim);flex-shrink:0;
 }
+.menu-corner-btn{
+  position:absolute;top:2vh;
+  background:transparent;border:1px solid rgba(255,255,255,0.2);
+  color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;
+  font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;
+  padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;
+}
+#btn-help{right:2vw;}
+#btn-install{left:2vw;}
+#version-label{
+  position:absolute;bottom:1.5vh;right:2vw;
+  font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);
+}
 #blind-grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
@@ -112,7 +125,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   cursor:pointer;transition:all 0.2s;white-space:nowrap;
 }
 .pill-btn:hover,.pill-btn:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.5);}
-.pill-btn.lit{border-color:var(--white);color:var(--white);background:rgba(255,255,255,0.08);}
+#winding .pill-btn{margin-top:1vh;}
 
 /* CENTER */
 #col-center{display:flex;flex-direction:column;}
@@ -166,6 +179,10 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:flex;flex-direction:column;align-items:center;
   border-left:1px solid var(--border);padding:2vh 0.5vw;
 }
+#version-label-app{
+  font-size:2vh;font-weight:400;letter-spacing:0.15em;
+  color:rgba(255,255,255,0.7);padding-bottom:1vh;
+}
 #tod{
   font-size:7vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
   padding:2vh 0 2.5vh;flex-shrink:0;text-align:center;
@@ -180,25 +197,25 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   width:4rem;height:28vh;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-input[type="range"]#vol-slider{
+#vol-slider{
   -webkit-appearance:none;appearance:none;
   width:28vh;height:4rem;flex-shrink:0;
   transform:rotate(-90deg);
   cursor:pointer;background:transparent;
 }
-input[type="range"]#vol-slider::-webkit-slider-runnable-track{
+#vol-slider::-webkit-slider-runnable-track{
   background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
 }
-input[type="range"]#vol-slider::-webkit-slider-thumb{
+#vol-slider::-webkit-slider-thumb{
   -webkit-appearance:none;
   width:3rem;height:3rem;border-radius:50%;
   background:var(--white);cursor:pointer;
   margin-top:calc(-1.5rem + 2px);
 }
-input[type="range"]#vol-slider::-moz-range-track{
+#vol-slider::-moz-range-track{
   background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
 }
-input[type="range"]#vol-slider::-moz-range-thumb{
+#vol-slider::-moz-range-thumb{
   width:3rem;height:3rem;border-radius:50%;
   background:var(--white);cursor:pointer;border:none;
 }
@@ -218,53 +235,52 @@ input[type="range"]#vol-slider::-moz-range-thumb{
 .ann-tap{font-size:1.3vh;font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:var(--dimmer);animation:fadein 0.5s 0.3s both ease;}
 @keyframes pop{from{opacity:0;transform:scale(0.75);}to{opacity:1;transform:scale(1);}}
 @keyframes fadein{from{opacity:0;}to{opacity:1;}}
-/* ── HELP OVERLAY ── */
-#help-overlay{
+
+/* ── OVERLAYS (shared) ── */
+.overlay{
   display:none;position:fixed;inset:0;background:rgba(8,8,8,0.97);
   z-index:60;flex-direction:column;align-items:center;justify-content:center;
-  padding:4vh 6vw;gap:3vh;cursor:pointer;
+  padding:4vh 6vw;cursor:pointer;
 }
-#help-overlay.visible{display:flex;}
+.overlay.visible{display:flex;}
 .help-title{
   font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;
   color:var(--dim);
 }
+
+/* ── HELP OVERLAY ── */
+#help-overlay{gap:3vh;}
 .help-sections{
   display:grid;grid-template-columns:1fr 1fr;gap:2.5vh 4vw;
   width:100%;max-width:900px;
 }
-.help-section{
-  display:flex;flex-direction:column;gap:0.8vh;
-}
+.help-section{display:flex;flex-direction:column;gap:0.8vh;}
 .help-heading{
   font-size:1.6vh;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
   color:var(--white);
 }
-.help-body{
-  font-size:1.5vh;font-weight:300;line-height:1.7;
-  color:var(--dim);
-}
+.help-body{font-size:1.5vh;font-weight:300;line-height:1.7;color:var(--dim);}
 .help-body b{color:var(--white);font-weight:600;}
 
 /* ── CLICK ZONES ── */
-.zone-half {
+.zone-half{
   position:absolute;top:0;bottom:0;width:50%;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
 }
-.zone-left  { left:0; }
-.zone-right { right:0; }
-.zone-sign {
+.zone-left{left:0;}
+.zone-right{right:0;}
+.zone-sign{
   font-size:8vh;font-weight:200;
   color:rgba(255,255,255,0.1);
   pointer-events:none;
   transition:color 0.15s;
   user-select:none;
 }
-.zone-half:hover .zone-sign { color:rgba(255,255,255,0.25); }
-.zone-half:active .zone-sign { color:rgba(255,255,255,0.5); }
-.no-touch-only { display:none; }
-body.no-touch .no-touch-only { display:flex; }
+.zone-half:hover .zone-sign{color:rgba(255,255,255,0.25);}
+.zone-half:active .zone-sign{color:rgba(255,255,255,0.5);}
+.no-touch-only{display:none;}
+body.no-touch .no-touch-only{display:flex;}
 
 .help-tap{
   font-size:1.2vh;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;
@@ -277,19 +293,16 @@ body.no-touch .no-touch-only { display:flex; }
   z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:3vh;
 }
 @media(orientation:portrait){#rotate-prompt{display:flex;}}
-@media(orientation:landscape){#rotate-prompt{display:none;}}
+#rotate-icon{font-size:15vw;line-height:1;}
+#rotate-text{
+  font-size:4vw;font-weight:200;letter-spacing:0.4em;
+  text-transform:uppercase;color:var(--dim);
+}
 
 /* ── INSTALL OVERLAY ── */
-#install-overlay{
-  display:none;position:fixed;inset:0;background:rgba(8,8,8,0.97);
-  z-index:60;flex-direction:column;align-items:center;justify-content:center;
-  padding:4vh 6vw;gap:2.5vh;cursor:pointer;
-}
-#install-overlay.visible{display:flex;}
-#install-title{
-  font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;color:var(--dim);
-}
+#install-overlay{gap:2.5vh;}
 #install-body{display:flex;flex-direction:column;align-items:center;gap:2vh;max-width:520px;width:100%;}
+#install-body .pill-btn{margin-top:1vh;}
 .install-steps{
   list-style:none;padding:0;margin:0;
   display:flex;flex-direction:column;gap:1.6vh;width:100%;
@@ -312,26 +325,25 @@ body.no-touch .no-touch-only { display:flex; }
   font-size:1.5vh;font-weight:300;line-height:1.7;
   color:var(--dim);text-align:center;
 }
-
 </style>
 </head>
 <body>
 
 <!-- ROTATE PROMPT -->
 <div id="rotate-prompt">
-  <div style="font-size:15vw;line-height:1;">&#8635;</div>
-  <div style="font-size:4vw;font-weight:200;letter-spacing:0.4em;text-transform:uppercase;color:var(--dim);">Rotate to landscape</div>
+  <div id="rotate-icon">&#8635;</div>
+  <div id="rotate-text">Rotate to landscape</div>
 </div>
 
 <!-- MENU -->
 <div id="menu-screen">
-  <button onclick="openHelp()" style="position:absolute;top:2vh;right:2vw;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;">Help</button>
-  <button onclick="openInstall()" style="position:absolute;top:2vh;left:2vw;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;">Install</button>
-<div id="resume-wrap">
+  <button id="btn-install" class="menu-corner-btn" onclick="openInstall()">Install</button>
+  <button id="btn-help" class="menu-corner-btn" onclick="openHelp()">Help</button>
+  <div id="resume-wrap">
     <button id="btn-resume" onclick="resumeGame()">Resume</button>
   </div>
   <div class="menu-title">Select Starting Blind</div>
-  <div id="version-label" style="position:absolute;bottom:1.5vh;right:2vw;font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);"></div>
+  <div id="version-label"></div>
   <div id="blind-grid"></div>
 </div>
 
@@ -363,7 +375,7 @@ body.no-touch .no-touch-only { display:flex; }
       <div id="winding">
         <div id="winding-text">Winding Down to Break</div>
         <div id="winding-sub">After break and the last buy-in</div>
-        <button class="pill-btn" style="margin-top:1vh;" onclick="selectBlind(6)">Begin Freezeout</button>
+        <button class="pill-btn" onclick="selectBlind(6)">Begin Freezeout</button>
       </div>
       <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-30)"><span class="zone-sign">↓</span></div>
       <div class="zone-half zone-right no-touch-only" onclick="adjustTime(30)"><span class="zone-sign">↑</span></div>
@@ -380,15 +392,14 @@ body.no-touch .no-touch-only { display:flex; }
       </div>
       <div id="vol-pct">50%</div>
     </div>
-    <div id="version-label-app" style="font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);padding-bottom:1vh;"></div>
+    <div id="version-label-app"></div>
   </div>
 
 </div>
 </div>
 
-
 <!-- HELP -->
-<div id="help-overlay" onclick="closeHelp()">
+<div id="help-overlay" class="overlay" onclick="closeHelp()">
   <div class="help-title">How to Play</div>
   <div class="help-sections">
     <div class="help-section">
@@ -405,7 +416,7 @@ body.no-touch .no-touch-only { display:flex; }
     </div>
     <div class="help-section">
       <div class="help-heading">Blind Schedule</div>
-      <div class="help-body"><b>Levels 1–4</b> (1&2 through 4&8) run for <b>15 minutes</b> each. <b>Level 5</b> (5&10) shows Winding Down to Break — no countdown. <b>Levels 6 and up</b> (Freezeout, starting at 6&12) run for <b>10 minutes</b> each.</div>
+      <div class="help-body"><b>Levels 1–4</b> (1&amp;2 through 4&amp;8) run for <b>15 minutes</b> each. <b>Level 5</b> (5&amp;10) shows Winding Down to Break — no countdown. <b>Levels 6 and up</b> (Freezeout, starting at 6&amp;12) run for <b>10 minutes</b> each.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Full Screen</div>
@@ -416,8 +427,8 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <!-- INSTALL -->
-<div id="install-overlay" onclick="closeInstall()">
-  <div id="install-title">Install as App</div>
+<div id="install-overlay" class="overlay" onclick="closeInstall()">
+  <div id="install-title" class="help-title">Install as App</div>
   <div id="install-body"></div>
   <div class="help-tap">Tap anywhere to close</div>
 </div>
@@ -434,7 +445,28 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <script>
-const VERSION='v1.24';
+const VERSION='v1.25';
+
+// ── DOM cache ─────────────────────────────────────────────────────
+const elBSB=document.getElementById('bSB');
+const elBBB=document.getElementById('bBB');
+const elCdMin=document.getElementById('cdMin');
+const elCdSec=document.getElementById('cdSec');
+const elCdInner=document.getElementById('cd-inner');
+const elWinding=document.getElementById('winding');
+const elCdZone=document.getElementById('cd-zone');
+const elBlindZone=document.getElementById('blind-zone');
+const elBlindInner=document.getElementById('blind-inner');
+const elTod=document.getElementById('tod');
+const elAnnSB=document.getElementById('annSB');
+const elAnnBB=document.getElementById('annBB');
+const elBtnPause=document.getElementById('btn-pause');
+const elApp=document.getElementById('app');
+const elMenuScreen=document.getElementById('menu-screen');
+const elVolPct=document.getElementById('vol-pct');
+const elAnnounce=document.getElementById('announce');
+const elBtnResume=document.getElementById('btn-resume');
+
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
@@ -447,14 +479,12 @@ let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
 let lastTickSec=-1,tickHandle=null,announceTO=null;
 let volume=0.5,audioCtx=null,alarmNodes=[];
-let volHornNode=null,volHornGain=null,hornStopTO=null;
-
-
+let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
 // ── Touch detection ───────────────────────────────────────────────
 (function(){
-  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  if (!isTouch) document.body.classList.add('no-touch');
+  const isTouch=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
+  if(!isTouch) document.body.classList.add('no-touch');
 })();
 
 // ── Help ──────────────────────────────────────────────────────────
@@ -471,7 +501,7 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredIns
 
 function openInstall(){
   const isPWA=window.matchMedia('(display-mode: standalone)').matches||!!navigator.standalone;
-  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid=/Android/.test(navigator.userAgent);
   const title=document.getElementById('install-title');
   const body=document.getElementById('install-body');
@@ -488,7 +518,7 @@ function openInstall(){
       <li>Tap <b>Add</b> in the top-right corner</li>
     </ol>
     <div class="install-note">Open from your home screen for full screen and automatic landscape lock.</div>
-    <div class="install-note" style="margin-top:0;">To prevent accidental app-switching at the table, enable <b>Guided Access</b>: Settings → Accessibility → Guided Access. Triple-click the side button to lock the iPad to this app.</div>`;
+    <div class="install-note">To prevent accidental app-switching at the table, enable <b>Guided Access</b>: Settings → Accessibility → Guided Access. Triple-click the side button to lock the iPad to this app.</div>`;
   } else if(isAndroid){
     title.textContent='Install on Android';
     html=`<ol class="install-steps">
@@ -496,11 +526,11 @@ function openInstall(){
       <li>Tap <b>Add to Home screen</b></li>
       <li>Tap <b>Add</b></li>
     </ol>`;
-    if(deferredInstallPrompt) html+='<button class="pill-btn" onclick="nativeInstall(event)" style="margin-top:1vh;">Install Now</button>';
+    if(deferredInstallPrompt) html+='<button class="pill-btn" onclick="nativeInstall(event)">Install Now</button>';
   } else {
     title.textContent='Install on Windows or Mac';
     html='<div class="install-note">Click the <b>install icon</b> (⊕) in your browser\'s address bar, or open the browser menu and choose <b>Install Blinds UP</b>.</div>';
-    if(deferredInstallPrompt) html+='<button class="pill-btn" onclick="nativeInstall(event)" style="margin-top:1vh;">Install Now</button>';
+    if(deferredInstallPrompt) html+='<button class="pill-btn" onclick="nativeInstall(event)">Install Now</button>';
   }
   body.innerHTML=html;
   document.getElementById('install-overlay').classList.add('visible');
@@ -583,7 +613,7 @@ function playTick(sec){
 
 function onVolSlider(val){
   volume=val/100;
-  document.getElementById('vol-pct').textContent=Math.round(volume*100)+'%';
+  elVolPct.textContent=Math.round(volume*100)+'%';
   const ctx=getCtx();
   if(!volHornNode){
     const saw=ctx.createOscillator(),sawG=ctx.createGain();
@@ -595,18 +625,21 @@ function onVolSlider(val){
     sawG.gain.value=volume*0.5;sinG.gain.value=volume*0.35;
     saw.start();sin.start();
     volHornNode=saw;volHornGain=sawG;
-    volHornNode._sin=sin;volHornNode._sinG=sinG;
+    volSinNode=sin;volSinGain=sinG;
   } else {
     volHornGain.gain.setTargetAtTime(volume*0.5,ctx.currentTime,0.02);
-    volHornNode._sinG.gain.setTargetAtTime(volume*0.35,ctx.currentTime,0.02);
+    volSinGain.gain.setTargetAtTime(volume*0.35,ctx.currentTime,0.02);
   }
   if(hornStopTO)clearTimeout(hornStopTO);
   hornStopTO=setTimeout(()=>{
     if(volHornNode){
       const c=getCtx();
       volHornGain.gain.setTargetAtTime(0,c.currentTime,0.05);
-      volHornNode._sinG.gain.setTargetAtTime(0,c.currentTime,0.05);
-      setTimeout(()=>{try{volHornNode.stop();volHornNode._sin.stop();}catch(e){}volHornNode=null;volHornGain=null;},300);
+      volSinGain.gain.setTargetAtTime(0,c.currentTime,0.05);
+      setTimeout(()=>{
+        try{volHornNode.stop();volSinNode.stop();}catch(e){}
+        volHornNode=null;volHornGain=null;volSinNode=null;volSinGain=null;
+      },300);
     }
   },600);
 }
@@ -614,58 +647,49 @@ function onVolSlider(val){
 async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
 function requestLandscape(){try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}
 
-function fmtClock(secs){
-  const n=new Date(),h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
-  const ap=h>=12?'PM':'AM',h12=h>12?h-12:(h===0?12:h);
-  let str=h12+':'+String(m).padStart(2,'0');
-  if(secs) str+=':'+String(s).padStart(2,'0');
-  return str;
+function fmtClock(){
+  const n=new Date(),h=n.getHours(),m=n.getMinutes();
+  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
 }
 
 function render(){
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-  document.getElementById('bSB').textContent=bl.sb;
-  document.getElementById('bBB').textContent=bl.bb;
+  elBSB.textContent=bl.sb;
+  elBBB.textContent=bl.bb;
   const isWinding=(level===5);
-  const cdInner=document.getElementById('cd-inner');
-  const winding=document.getElementById('winding');
-  const cdZone=document.getElementById('cd-zone');
-  const blindZone=document.getElementById('blind-zone');
   if(isWinding){
-    cdInner.style.display='none';winding.style.display='flex';
-    cdZone.className='winding';blindZone.className='';
+    elCdInner.style.display='none';elWinding.style.display='flex';
+    elCdZone.className='winding';elBlindZone.className='';
   } else {
-    cdInner.style.display='flex';winding.style.display='none';
+    elCdInner.style.display='flex';elWinding.style.display='none';
     const mm=Math.floor(remSec/60),ss=remSec%60;
-    document.getElementById('cdMin').textContent=String(mm).padStart(2,'0');
-    document.getElementById('cdSec').textContent=String(ss).padStart(2,'0');
-    if(remSec<=12){cdZone.className='urgent';blindZone.className='';}
-    else if(remSec<=30){cdZone.className='warn';blindZone.className='warn';}
-    else{cdZone.className='';blindZone.className='';}
+    elCdMin.textContent=String(mm).padStart(2,'0');
+    elCdSec.textContent=String(ss).padStart(2,'0');
+    if(remSec<=12){elCdZone.className='urgent';elBlindZone.className='';}
+    else if(remSec<=30){elCdZone.className='warn';elBlindZone.className='warn';}
+    else{elCdZone.className='';elBlindZone.className='';}
   }
 }
 
 function fmtCD(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
 
 function showMenu(showResume){
-  document.getElementById('app').classList.remove('visible');
-  const btn=document.getElementById('btn-resume');
+  elApp.classList.remove('visible');
   if(showResume){
     const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-    btn.textContent='Resume '+bl.sb+' & '+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
-    btn.style.display='block';
+    elBtnResume.textContent='Resume '+bl.sb+' & '+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
+    elBtnResume.style.display='block';
   } else {
-    btn.style.display='none';
+    elBtnResume.style.display='none';
   }
-  document.getElementById('menu-screen').style.display='flex';
+  elMenuScreen.style.display='flex';
 }
 
 function beginCountdown(){
-  document.getElementById('menu-screen').style.display='none';
-  document.getElementById('app').classList.add('visible');
+  elMenuScreen.style.display='none';
+  elApp.classList.add('visible');
   running=true;paused=false;
-  document.getElementById('btn-pause').textContent='Pause';
-  document.getElementById('btn-pause').classList.remove('lit');
+  elBtnPause.textContent='Pause';
   pausedRemSec=remSec;launchWall=Date.now();lastTickSec=-1;
   render();requestWakeLock();requestLandscape();
   if(tickHandle)clearInterval(tickHandle);
@@ -673,11 +697,10 @@ function beginCountdown(){
 }
 
 function resumeGame(){
-  document.getElementById('menu-screen').style.display='none';
-  document.getElementById('app').classList.add('visible');
+  elMenuScreen.style.display='none';
+  elApp.classList.add('visible');
   paused=false;running=true;
-  document.getElementById('btn-pause').textContent='Pause';
-  document.getElementById('btn-pause').classList.remove('lit');
+  elBtnPause.textContent='Pause';
   launchWall=Date.now();
   requestWakeLock();requestLandscape();
   if(tickHandle)clearInterval(tickHandle);
@@ -685,7 +708,7 @@ function resumeGame(){
 }
 
 function tick(){
-  document.getElementById('tod').textContent=fmtClock(false);
+  elTod.textContent=fmtClock();
   if(!running||paused||level===5)return;
   const elapsed=(Date.now()-launchWall)/1000;
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
@@ -715,22 +738,20 @@ function togglePause(){
 (function(){
   let sx=0,edgeTouch=false;
   const EDGE=30;
-  const el=document.getElementById('blind-zone');
-  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
-  el.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);},{passive:true});
-  el.addEventListener('mousedown',e=>{sx=e.clientX;});
-  el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);});
+  elBlindZone.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
+  elBlindZone.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);},{passive:true});
+  elBlindZone.addEventListener('mousedown',e=>{sx=e.clientX;});
+  elBlindZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);});
 })();
 
 // Swipe countdown: left=+30s, right=-30s
 (function(){
   let sx=0,edgeTouch=false;
   const EDGE=30;
-  const el=document.getElementById('cd-zone');
-  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
-  el.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);},{passive:true});
-  el.addEventListener('mousedown',e=>{sx=e.clientX;});
-  el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);});
+  elCdZone.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
+  elCdZone.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);},{passive:true});
+  elCdZone.addEventListener('mousedown',e=>{sx=e.clientX;});
+  elCdZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);});
 })();
 
 function adjustLevel(dir){
@@ -753,26 +774,25 @@ function adjustTime(delta){
 
 function showAnnounce(){
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-  document.getElementById('annSB').textContent=bl.sb;
-  document.getElementById('annBB').textContent=bl.bb;
-  document.getElementById('announce').classList.add('visible');
+  elAnnSB.textContent=bl.sb;
+  elAnnBB.textContent=bl.bb;
+  elAnnounce.classList.add('visible');
   stopAlarm();playAlarm();
   if(announceTO)clearTimeout(announceTO);
   announceTO=setTimeout(dismissAnnounce,6500);
-  const bi=document.getElementById('blind-inner');
-  bi.classList.add('flash');
-  setTimeout(()=>bi.classList.remove('flash'),300);
+  elBlindInner.classList.add('flash');
+  setTimeout(()=>elBlindInner.classList.remove('flash'),300);
 }
 
 function dismissAnnounce(){
   stopAlarm();
-  document.getElementById('announce').classList.remove('visible');
+  elAnnounce.classList.remove('visible');
   if(announceTO)clearTimeout(announceTO);
 }
 
 // Clock
-setInterval(()=>document.getElementById('tod').textContent=fmtClock(false),1000);
-document.getElementById('tod').textContent=fmtClock(false);
+setInterval(()=>elTod.textContent=fmtClock(),1000);
+elTod.textContent=fmtClock();
 
 // Hold Esc 3 seconds to return to menu
 (function(){
@@ -784,15 +804,14 @@ document.getElementById('tod').textContent=fmtClock(false);
         if(tickHandle)clearInterval(tickHandle);
         running=false;paused=true;
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
-        document.getElementById('btn-pause').textContent='Pause';
-        document.getElementById('btn-pause').classList.remove('lit');
-        document.getElementById('app').classList.remove('visible');
+        elBtnPause.textContent='Pause';
+        elApp.classList.remove('visible');
         showMenu(false);render();
       },3000);
     }
   });
   document.addEventListener('keyup',e=>{
-    if(e.key==='Escape'){ clearTimeout(escTO); escTO=null; }
+    if(e.key==='Escape'){clearTimeout(escTO);escTO=null;}
   });
 })();
 
@@ -800,31 +819,33 @@ document.getElementById('tod').textContent=fmtClock(false);
 showMenu(false);
 render();
 
-if ('serviceWorker' in navigator) {
+if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js');
 }
 
-// iOS touch coordinates desync after orientation change — force a reflow once layout settles.
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    document.body.style.display = 'none';
-    void document.body.offsetHeight;
-    document.body.style.display = '';
-  }, 300);
+// iOS touch coordinates desync after rotation — reflow fires after layout settles.
+// Width guard avoids false triggers from soft keyboard show/hide (height-only change).
+let lastW=window.innerWidth;
+window.addEventListener('resize',()=>{
+  if(window.innerWidth===lastW)return;
+  lastW=window.innerWidth;
+  document.body.style.display='none';
+  void document.body.offsetHeight;
+  document.body.style.display='';
 });
 
 // On iOS PWA, app resumes from suspension rather than reloading — check for
 // a new version whenever the app comes to the foreground and reload if found.
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
-  if (running && !paused && !tickHandle) tickHandle = setInterval(tick, 500);
-  fetch('./index.html', {cache: 'no-store'})
-    .then(r => r.text())
-    .then(html => {
-      const match = html.match(/const VERSION='([^']+)'/);
-      if (match && match[1] !== VERSION) window.location.reload();
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible')return;
+  if(running&&!paused&&!tickHandle)tickHandle=setInterval(tick,500);
+  fetch('./index.html',{cache:'no-store'})
+    .then(r=>r.text())
+    .then(html=>{
+      const match=html.match(/const VERSION='([^']+)'/);
+      if(match&&match[1]!==VERSION)window.location.reload();
     })
-    .catch(() => {});
+    .catch(()=>{});
 });
 </script>
 </body>
