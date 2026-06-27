@@ -445,7 +445,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.25';
+const VERSION='v1.26';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -823,12 +823,20 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js');
 }
 
-// iOS touch coordinates desync after rotation — reflow fires after layout settles.
-// Width guard avoids false triggers from soft keyboard show/hide (height-only change).
+// iOS touch coordinates desync after rotation. The only reliable fix is a fresh
+// page load. If no game is running and we rotate to landscape, reload instantly
+// (cached files, black bg = no visible flash). During an active game we can't
+// reload so fall back to a forced reflow, which at least re-renders correctly
+// even if touch targets remain slightly off until the next natural interaction.
 let lastW=window.innerWidth;
 window.addEventListener('resize',()=>{
-  if(window.innerWidth===lastW)return;
-  lastW=window.innerWidth;
+  const w=window.innerWidth;
+  if(w===lastW)return;
+  lastW=w;
+  if(w>window.innerHeight&&!running){
+    window.location.reload();
+    return;
+  }
   document.body.style.display='none';
   void document.body.offsetHeight;
   document.body.style.display='';
