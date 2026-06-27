@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Poker Blinds</title>
+<title>Blinds UP!</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;700;900&display=swap');
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
@@ -135,7 +135,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .cd-colon{font-size:13vh;font-weight:200;color:var(--dim);align-self:center;margin:0 0.05em;padding-bottom:1vh;}
 
 #winding{display:none;flex-direction:column;align-items:center;gap:2vh;padding:2vh;}
-#winding-text{font-size:3.5vh;font-weight:200;letter-spacing:0.25em;text-transform:uppercase;color:var(--dim);text-align:center;}
+#winding-text{font-size:6vh;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--white);text-align:center;}
+#cd-zone.winding{align-items:flex-start;padding-top:6vh;}
+#cd-zone.winding .zone-half,#cd-zone.winding .swipe-hint{display:none;}
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
@@ -487,7 +489,7 @@ function render(){
   const blindZone=document.getElementById('blind-zone');
   if(isWinding){
     cdInner.style.display='none';winding.style.display='flex';
-    cdZone.className='';blindZone.className='';
+    cdZone.className='winding';blindZone.className='';
   } else {
     cdInner.style.display='flex';winding.style.display='none';
     const mm=Math.floor(remSec/60),ss=remSec%60;
