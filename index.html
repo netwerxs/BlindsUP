@@ -157,6 +157,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #winding-sub{font-size:2vh;font-weight:300;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim);text-align:center;margin-top:1vh;}
 #cd-zone.winding{align-items:flex-start;padding-top:6vh;}
 #cd-zone.winding .zone-half,#cd-zone.winding .swipe-hint{display:none;}
+#slogan-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;}
+#slogan-text{font-size:4vh;font-weight:300;font-style:italic;letter-spacing:0.05em;color:var(--dim);text-align:center;padding:0 4vw;}
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
@@ -384,6 +386,7 @@ body.no-touch .no-touch-only{display:flex;}
       <div id="winding-sub">After break and the last buy-in</div>
       <button class="pill-btn" onclick="selectBlind(6)">Begin Freezeout</button>
     </div>
+    <div id="slogan-wrap"><div id="slogan-text"></div></div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"><span class="zone-sign">↓</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"><span class="zone-sign">↑</span></div>
     <span class="swipe-hint">← +1m &nbsp; −1m →</span>
@@ -454,7 +457,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.42';
+const VERSION='v1.43';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -463,6 +466,8 @@ const elCdMin=document.getElementById('cdMin');
 const elCdSec=document.getElementById('cdSec');
 const elCdInner=document.getElementById('cd-inner');
 const elWinding=document.getElementById('winding');
+const elSloganWrap=document.getElementById('slogan-wrap');
+const elSloganText=document.getElementById('slogan-text');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
 const elBlindInner=document.getElementById('blind-inner');
@@ -478,6 +483,13 @@ const elBtnResume=document.getElementById('btn-resume');
 
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
+
+let slogans=['What, me worry?'];
+fetch('./slogans.txt').then(r=>r.text()).then(t=>{
+  const lines=t.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(lines.length)slogans=lines;
+}).catch(()=>{});
+function randomSlogan(){return slogans[Math.floor(Math.random()*slogans.length)];}
 
 const BLINDS=[];
 for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
@@ -698,12 +710,15 @@ function render(){
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
   elBSB.textContent=bl.sb;
   elBBB.textContent=bl.bb;
-  const isWinding=(level===5);
+  const isWinding=(level===5),isSnapping=!!snapTO;
+  elWinding.style.display=isWinding?'flex':'none';
+  elSloganWrap.style.display=isSnapping?'flex':'none';
+  elCdInner.style.display=(!isWinding&&!isSnapping)?'flex':'none';
   if(isWinding){
-    elCdInner.style.display='none';elWinding.style.display='flex';
     elCdZone.className='winding';elBlindZone.className='';
+  } else if(isSnapping){
+    elCdZone.className='';elBlindZone.className='';
   } else {
-    elCdInner.style.display='flex';elWinding.style.display='none';
     const mm=Math.floor(remSec/60),ss=remSec%60;
     elCdMin.textContent=String(mm).padStart(2,'0');
     elCdSec.textContent=String(ss).padStart(2,'0');
@@ -763,14 +778,15 @@ function tick(){
     showAnnounce();render();
     const ms=maxSec(level);
     if(ms===0){remSec=0;pausedRemSec=0;return;} // level 5 break — no countdown
+    elSloganText.textContent=randomSlogan();
     const ss=new Date().getSeconds();
     // Wait until RTC hits :20 so all devices snap at the same second.
-    // snapToRTC(ms+20) at ss=20 gives exactly ms — the +20 and -20 cancel.
-    // Self-stabilising: expiry fires at ss=20 every subsequent level too.
+    // snapToRTC(ms) at ss=20 gives ms-20; the 20s gap makes up the rest.
+    // Self-stabilising: ms%60=0 so expiry always fires at ss=0 → waits 20s again.
     snapTO=setTimeout(()=>{
       snapTO=null;
       if(!running||paused)return;
-      remSec=snapToRTC(ms+20);pausedRemSec=remSec;
+      remSec=snapToRTC(ms);pausedRemSec=remSec;
       launchWall=Date.now();lastTickSec=-1;render();
     },((20-ss+60)%60)*1000);
   }
