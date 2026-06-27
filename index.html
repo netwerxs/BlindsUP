@@ -457,7 +457,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.43';
+const VERSION='v1.44';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -484,12 +484,8 @@ const elBtnResume=document.getElementById('btn-resume');
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
-let slogans=['What, me worry?'];
-fetch('./slogans.txt').then(r=>r.text()).then(t=>{
-  const lines=t.split('\n').map(l=>l.trim()).filter(Boolean);
-  if(lines.length)slogans=lines;
-}).catch(()=>{});
-function randomSlogan(){return slogans[Math.floor(Math.random()*slogans.length)];}
+const SLOGANS=['What, me worry?'];
+function randomSlogan(){return SLOGANS[Math.floor(Math.random()*SLOGANS.length)];}
 
 const BLINDS=[];
 for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
