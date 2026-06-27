@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.33';
+const VERSION='v1.34';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -577,7 +577,7 @@ async function nativeInstall(e){
 // Round up to the next :00 or :30 wall-clock mark so multiple devices stay in sync.
 function clockSnap(baseSec){
   if(baseSec===0)return 0;
-  const pad=(30-new Date().getSeconds()%30)%30;
+  const pad=(60-new Date().getSeconds())%60;
   return baseSec+pad;
 }
 
