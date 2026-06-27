@@ -133,7 +133,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   height:50%;display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;
 }
-#cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
+#cd-inner{display:flex;align-items:flex-start;padding-top:3vh;justify-content:center;height:100%;width:100%;}
 .cd-num{font-size:30vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
 .cd-colon{font-size:16vh;font-weight:200;color:var(--dim);align-self:center;margin:0 0.05em;padding-bottom:1vh;}
 
@@ -434,7 +434,7 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <script>
-const VERSION='v1.22';
+const VERSION='v1.23';
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
@@ -803,6 +803,15 @@ render();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js');
 }
+
+// iOS touch coordinates desync after orientation change — force a reflow once layout settles.
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    document.body.style.display = 'none';
+    void document.body.offsetHeight;
+    document.body.style.display = '';
+  }, 300);
+});
 
 // On iOS PWA, app resumes from suspension rather than reloading — check for
 // a new version whenever the app comes to the foreground and reload if found.
