@@ -380,9 +380,9 @@ body.no-touch .no-touch-only{display:flex;}
       <div id="winding-sub">After break and the last buy-in</div>
       <button class="pill-btn" onclick="selectBlind(6)">Begin Freezeout</button>
     </div>
-    <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-30)"><span class="zone-sign">↓</span></div>
-    <div class="zone-half zone-right no-touch-only" onclick="adjustTime(30)"><span class="zone-sign">↑</span></div>
-    <span class="swipe-hint">← +30s &nbsp; −30s →</span>
+    <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"><span class="zone-sign">↓</span></div>
+    <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"><span class="zone-sign">↑</span></div>
+    <span class="swipe-hint">← +1m &nbsp; −1m →</span>
   </div>
 
   <div id="col-right">
@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.35';
+const VERSION='v1.36';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -775,9 +775,9 @@ function togglePause(){
   let sx=0,edgeTouch=false;
   const EDGE=30;
   elCdZone.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
-  elCdZone.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);},{passive:true});
+  elCdZone.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-1:1);},{passive:true});
   elCdZone.addEventListener('mousedown',e=>{sx=e.clientX;});
-  elCdZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);});
+  elCdZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-1:1);});
 })();
 
 function adjustLevel(dir){
@@ -789,12 +789,15 @@ function adjustLevel(dir){
   launchWall=Date.now();lastTickSec=-1;render();
 }
 
-function adjustTime(delta){
+function adjustTime(dir){ // +1 = up one minute, -1 = down one minute
   if(level===5)return;
-  const ms=maxSec(level);
-  const nr=remSec+delta;
-  if(nr<=0||nr>ms)return;
-  remSec=nr;pausedRemSec=nr;
+  const ss=new Date().getSeconds();
+  const targetSec=(60-ss)%60; // keeps countdown seconds locked to RTC
+  const curMin=Math.floor(remSec/60);
+  const newMin=curMin+dir;
+  const newRem=newMin*60+targetSec;
+  if(newRem<=0||newRem>maxSec(level)+59)return;
+  remSec=newRem;pausedRemSec=newRem;
   launchWall=Date.now();lastTickSec=-1;render();
 }
 
