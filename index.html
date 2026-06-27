@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Poker Blinds</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;700;900&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080808;--border:rgba(255,255,255,0.07);
+  --white:#fff;--dim:rgba(255,255,255,0.22);--dimmer:rgba(255,255,255,0.08);
+  --accent:#e8c84a;--danger:#e84a4a;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
+  font-family:'Inter','Helvetica Neue',sans-serif;overflow:hidden;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+
+/* ── MENU SCREEN ── */
+#menu-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;
+  gap:3vh;padding:3vh 3vw;z-index:40;overflow:hidden;
+}
+#resume-wrap{
+  width:100%;display:flex;justify-content:center;
+  flex-shrink:0;
+}
+#btn-resume{
+  display:none;
+  background:var(--white);color:var(--bg);
+  border:none;border-radius:100px;
+  font-family:'Inter',sans-serif;font-size:3vh;font-weight:700;
+  letter-spacing:0.15em;text-transform:uppercase;
+  padding:1.8vh 8vw;cursor:pointer;
+  transition:opacity 0.2s;
+}
+#btn-resume:hover{opacity:0.85;}
+.menu-title{
+  font-size:2vh;font-weight:200;
+  letter-spacing:0.5em;text-transform:uppercase;
+  color:var(--dim);flex-shrink:0;
+}
+#blind-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:1.2vh 1.5vw;
+  width:100%;flex:1;
+  align-content:center;
+}
+.blind-card{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:1.2rem;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;padding:1.5vh 0;
+  transition:background 0.18s,border-color 0.18s;
+  gap:0.4vh;
+}
+.blind-card:hover,.blind-card:active{
+  background:rgba(255,255,255,0.12);
+  border-color:rgba(255,255,255,0.35);
+}
+.blind-card.special-break{border-color:rgba(232,200,74,0.35);}
+.blind-card.special-break:hover{background:rgba(232,200,74,0.1);border-color:var(--accent);}
+.blind-card.special-freeze{border-color:rgba(100,180,255,0.3);}
+.blind-card.special-freeze:hover{background:rgba(100,180,255,0.08);border-color:rgba(100,180,255,0.7);}
+.card-label{
+  font-size:1.2vh;font-weight:300;
+  letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--dim);
+}
+.card-blinds{
+  font-size:3.5vh;font-weight:900;
+  letter-spacing:-0.02em;color:var(--white);
+}
+.card-blinds.accent{color:var(--accent);}
+.card-blinds.freeze{color:rgba(100,180,255,0.9);}
+.card-time{
+  font-size:1.1vh;font-weight:300;
+  letter-spacing:0.15em;color:var(--dim);
+}
+
+/* ── APP ── */
+#app{display:none;width:100vw;height:100vh;}
+#app.visible{display:block;}
+#layout{
+  width:100%;height:100%;
+  display:grid;
+  grid-template-columns:12% 73% 15%;
+}
+
+/* LEFT */
+#col-left{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  border-right:1px solid var(--border);
+  padding:2vh 0;
+}
+.pill-btn{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.25);color:var(--white);
+  font-family:'Inter',sans-serif;font-size:1.5vh;font-weight:500;
+  letter-spacing:0.2em;text-transform:uppercase;
+  padding:1.2vh 2vw;border-radius:100px;
+  cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.pill-btn:hover,.pill-btn:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.5);}
+.pill-btn.lit{border-color:var(--white);color:var(--white);background:rgba(255,255,255,0.08);}
+
+/* CENTER */
+#col-center{display:flex;flex-direction:column;}
+
+#blind-zone{
+  height:50%;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);overflow:hidden;
+  cursor:ew-resize;position:relative;
+}
+#blind-inner{
+  display:flex;align-items:center;justify-content:center;
+  height:100%;width:100%;
+}
+.b-num{font-size:34vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
+.b-amp{font-size:13vh;font-weight:200;color:var(--dim);align-self:center;margin:0 0.15em;}
+
+#cd-zone{
+  height:50%;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;cursor:ew-resize;position:relative;
+}
+#cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
+.cd-num{font-size:24vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
+.cd-colon{font-size:13vh;font-weight:200;color:var(--dim);align-self:center;margin:0 0.05em;padding-bottom:1vh;}
+
+#winding{display:none;flex-direction:column;align-items:center;gap:2vh;padding:2vh;}
+#winding-text{font-size:3.5vh;font-weight:200;letter-spacing:0.25em;text-transform:uppercase;color:var(--dim);text-align:center;}
+
+/* warn/urgent */
+#blind-zone.warn .b-num{color:var(--accent);}
+#blind-zone.warn .b-amp{color:rgba(232,200,74,0.35);}
+#blind-zone.warn,#cd-zone.warn{animation:warnpulse 1.2s ease-in-out infinite;}
+@keyframes warnpulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
+#cd-zone.urgent .cd-num{color:var(--danger);}
+#cd-zone.urgent .cd-colon{color:rgba(232,74,74,0.35);}
+#cd-zone.urgent{animation:urgentpulse 0.75s ease-in-out infinite;}
+@keyframes urgentpulse{0%,100%{opacity:1;}50%{opacity:0.15;}}
+#blind-inner.flash{animation:bigflash 0.28s ease;}
+@keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
+
+.swipe-hint{
+  position:absolute;bottom:1.2vh;
+  font-size:1vh;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--dimmer);pointer-events:none;
+}
+
+/* RIGHT */
+#col-right{
+  display:flex;flex-direction:column;align-items:center;
+  border-left:1px solid var(--border);padding:2vh 0.5vw;
+}
+#tod{
+  font-size:5vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
+  padding:2vh 0 2.5vh;flex-shrink:0;text-align:center;
+  border-bottom:1px solid var(--border);width:100%;
+}
+#vol-wrap{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1.5vh;width:100%;
+}
+#vol-icon{font-size:2.2vh;color:var(--dim);}
+input[type="range"]#vol-slider{
+  -webkit-appearance:slider-vertical;appearance:slider-vertical;
+  width:2.5rem;height:28vh;cursor:pointer;accent-color:var(--white);
+}
+#vol-pct{font-size:1.4vh;font-weight:300;color:var(--dim);letter-spacing:0.1em;}
+
+/* ANNOUNCE */
+#announce{
+  display:none;position:fixed;inset:0;background:var(--bg);z-index:50;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:1vh;cursor:pointer;
+}
+#announce.visible{display:flex;}
+.ann-label{font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;color:var(--dim);animation:fadein 0.4s ease;}
+#ann-wrap{display:flex;align-items:center;justify-content:center;animation:pop 0.38s cubic-bezier(0.34,1.56,0.64,1);}
+.ann-num{font-size:40vh;font-weight:900;color:var(--white);letter-spacing:-0.04em;line-height:0.85;}
+.ann-amp{font-size:17vh;font-weight:200;color:var(--dim);margin:0 0.18em;align-self:center;}
+.ann-tap{font-size:1.3vh;font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:var(--dimmer);animation:fadein 0.5s 0.3s both ease;}
+@keyframes pop{from{opacity:0;transform:scale(0.75);}to{opacity:1;transform:scale(1);}}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
+/* ── HELP OVERLAY ── */
+#help-overlay{
+  display:none;position:fixed;inset:0;background:rgba(8,8,8,0.97);
+  z-index:60;flex-direction:column;align-items:center;justify-content:center;
+  padding:4vh 6vw;gap:3vh;cursor:pointer;
+}
+#help-overlay.visible{display:flex;}
+.help-title{
+  font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;
+  color:var(--dim);
+}
+.help-sections{
+  display:grid;grid-template-columns:1fr 1fr;gap:2.5vh 4vw;
+  width:100%;max-width:900px;
+}
+.help-section{
+  display:flex;flex-direction:column;gap:0.8vh;
+}
+.help-heading{
+  font-size:1.6vh;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--white);
+}
+.help-body{
+  font-size:1.5vh;font-weight:300;line-height:1.7;
+  color:var(--dim);
+}
+.help-body b{color:var(--white);font-weight:600;}
+
+/* ── CLICK ZONES ── */
+.zone-half {
+  position:absolute;top:0;bottom:0;width:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.zone-left  { left:0; }
+.zone-right { right:0; }
+.zone-sign {
+  font-size:8vh;font-weight:200;
+  color:rgba(255,255,255,0.1);
+  pointer-events:none;
+  transition:color 0.15s;
+  user-select:none;
+}
+.zone-half:hover .zone-sign { color:rgba(255,255,255,0.25); }
+.zone-half:active .zone-sign { color:rgba(255,255,255,0.5); }
+.no-touch-only { display:none; }
+body.no-touch .no-touch-only { display:flex; }
+
+.help-tap{
+  font-size:1.2vh;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--dimmer);margin-top:1vh;
+}
+
+</style>
+</head>
+<body>
+
+<!-- MENU -->
+<div id="menu-screen">
+  <button onclick="openHelp()" style="position:absolute;top:2vh;right:2vw;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;">Help</button>
+<div id="resume-wrap">
+    <button id="btn-resume" onclick="resumeGame()">Resume</button>
+  </div>
+  <div class="menu-title">Select Starting Blind</div>
+  <div id="blind-grid"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<div id="layout">
+
+  <div id="col-left">
+    <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
+  </div>
+
+  <div id="col-center">
+    <div id="blind-zone">
+      <div id="blind-inner">
+        <span class="b-num" id="bSB">1</span>
+        <span class="b-amp">&amp;</span>
+        <span class="b-num" id="bBB">2</span>
+      </div>
+      <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
+      <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"><span class="zone-sign">+</span></div>
+      <span class="swipe-hint">← down &nbsp; up →</span>
+    </div>
+    <div id="cd-zone">
+      <div id="cd-inner">
+        <span class="cd-num" id="cdMin">15</span>
+        <span class="cd-colon">:</span>
+        <span class="cd-num" id="cdSec">00</span>
+      </div>
+      <div id="winding">
+        <div id="winding-text">Winding Down to Break</div>
+        <button class="pill-btn" style="margin-top:1vh;" onclick="selectBlind(6)">Begin Freezeout</button>
+      </div>
+      <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-30)"><span class="zone-sign">↓</span></div>
+      <div class="zone-half zone-right no-touch-only" onclick="adjustTime(30)"><span class="zone-sign">↑</span></div>
+      <span class="swipe-hint">← +30s &nbsp; −30s →</span>
+    </div>
+  </div>
+
+  <div id="col-right">
+    <div id="tod">—</div>
+    <div id="vol-wrap">
+      <div id="vol-icon">&#9835;</div>
+      <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="onVolSlider(this.value)">
+      <div id="vol-pct">50%</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<!-- HELP -->
+<div id="help-overlay" onclick="closeHelp()">
+  <div class="help-title">How to Play</div>
+  <div class="help-sections">
+    <div class="help-section">
+      <div class="help-heading">Volume</div>
+      <div class="help-body">Use the <b>in-app slider</b> on the right side to set the alarm volume. Set your <b>device volume to full blast</b> first — the slider then controls the alarm level relative to that.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-heading">Changing Blinds</div>
+      <div class="help-body"><b>Touch:</b> Swipe right to go up one level, swipe left to go down.<br><b>PC:</b> Click the <b>right half</b> of the blinds to go up, <b>left half</b> to go down. Look for the dim <b>+</b> and <b>−</b> signs as guides.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-heading">Adjusting the Timer</div>
+      <div class="help-body"><b>Touch:</b> Swipe left to add 30 seconds, swipe right to subtract 30 seconds.<br><b>PC:</b> Click the <b>right half</b> of the countdown to add 30s, <b>left half</b> to subtract. Won't go below zero or above the level maximum.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-heading">Blind Schedule</div>
+      <div class="help-body"><b>Levels 1–4</b> (1&2 through 4&8) run for <b>15 minutes</b> each. <b>Level 5</b> (5&10) shows Winding Down to Break — no countdown. <b>Levels 6 and up</b> (Freezeout, starting at 6&12) run for <b>10 minutes</b> each.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-heading">Full Screen</div>
+      <div class="help-body">Press <b>F11</b> to enter full screen. Press <b>F11</b> again to exit. On a tablet or phone, hold <b>Esc for 3 seconds</b> to return to the menu.</div>
+    </div>
+  </div>
+  <div class="help-tap">Tap anywhere to close</div>
+</div>
+
+<!-- ANNOUNCE -->
+<div id="announce" onclick="dismissAnnounce()">
+  <div class="ann-label">Blinds Up</div>
+  <div id="ann-wrap">
+    <span class="ann-num" id="annSB">2</span>
+    <span class="ann-amp">&amp;</span>
+    <span class="ann-num" id="annBB">4</span>
+  </div>
+  <div class="ann-tap">tap to dismiss</div>
+</div>
+
+<script>
+const BLINDS=[];
+for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
+
+function maxSec(lv){if(lv<=4)return 15*60;if(lv===5)return 0;return 10*60;}
+
+let level=1,remSec=15*60,pausedRemSec=15*60;
+let paused=true,running=false,launchWall=0;
+let lastTickSec=-1,tickHandle=null,announceTO=null;
+let volume=0.5,audioCtx=null,alarmNodes=[];
+let volHornNode=null,volHornGain=null,hornStopTO=null;
+
+
+
+// ── Touch detection ───────────────────────────────────────────────
+(function(){
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (!isTouch) document.body.classList.add('no-touch');
+})();
+
+// ── Help ──────────────────────────────────────────────────────────
+function openHelp(){
+  document.getElementById('help-overlay').classList.add('visible');
+}
+function closeHelp(){
+  document.getElementById('help-overlay').classList.remove('visible');
+}
+
+// ── Build menu grid ───────────────────────────────────────────────
+(function(){
+  const grid=document.getElementById('blind-grid');
+  for(let i=1;i<=25;i++){
+    const card=document.createElement('div');
+    if(i===5){
+      card.className='blind-card special-break';
+      card.innerHTML='<div class="card-label">Level 5</div><div class="card-blinds accent">Break</div><div class="card-time">Winding down</div>';
+    } else if(i===6){
+      card.className='blind-card special-freeze';
+      card.innerHTML='<div class="card-label">Level 6</div><div class="card-blinds freeze">Freezeout</div><div class="card-time">6 &amp; 12 · 10 min</div>';
+    } else {
+      const sb=i,bb=i*2;
+      const mins=i<=4?15:10;
+      card.className='blind-card';
+      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${sb} &amp; ${bb}</div><div class="card-time">${mins} min</div>`;
+    }
+    card.addEventListener('click',()=>selectBlind(i));
+    grid.appendChild(card);
+  }
+})();
+
+function selectBlind(i){
+  level=i; remSec=maxSec(i); pausedRemSec=remSec; lastTickSec=-1;
+  beginCountdown();
+}
+
+// ── Audio ─────────────────────────────────────────────────────────
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+
+function playAlarm(){
+  stopAlarm();
+  const ctx=getCtx();let t=ctx.currentTime;
+  function blast(start,dur){
+    [{f:220,type:'sawtooth',g:0.5},{f:440,type:'sine',g:0.35}].forEach(l=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type=l.type;o.frequency.value=l.f;
+      g.gain.setValueAtTime(0,start);
+      g.gain.linearRampToValueAtTime(volume*l.g,start+0.02);
+      g.gain.setValueAtTime(volume*l.g,start+dur-0.03);
+      g.gain.linearRampToValueAtTime(0,start+dur);
+      o.start(start);o.stop(start+dur);alarmNodes.push(o);
+    });
+  }
+  for(let i=0;i<7;i++)blast(t+i*0.45,0.3);
+  blast(t+6*0.45+0.3+0.4,2.0);
+}
+
+function stopAlarm(){alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];}
+
+function playTick(sec){
+  const ctx=getCtx();
+  const freq=500+(12-sec)*55;
+  const vol2=volume*(0.2+(12-sec)*0.07);
+  const dur=Math.max(0.04,0.1-(12-sec)*0.006);
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);
+  o.type='square';o.frequency.value=freq;
+  g.gain.setValueAtTime(vol2,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+  o.start();o.stop(ctx.currentTime+dur);
+}
+
+function onVolSlider(val){
+  volume=val/100;
+  document.getElementById('vol-pct').textContent=Math.round(volume*100)+'%';
+  const ctx=getCtx();
+  if(!volHornNode){
+    const saw=ctx.createOscillator(),sawG=ctx.createGain();
+    const sin=ctx.createOscillator(),sinG=ctx.createGain();
+    saw.connect(sawG);sawG.connect(ctx.destination);
+    sin.connect(sinG);sinG.connect(ctx.destination);
+    saw.type='sawtooth';saw.frequency.value=220;
+    sin.type='sine';sin.frequency.value=440;
+    sawG.gain.value=volume*0.5;sinG.gain.value=volume*0.35;
+    saw.start();sin.start();
+    volHornNode=saw;volHornGain=sawG;
+    volHornNode._sin=sin;volHornNode._sinG=sinG;
+  } else {
+    volHornGain.gain.setTargetAtTime(volume*0.5,ctx.currentTime,0.02);
+    volHornNode._sinG.gain.setTargetAtTime(volume*0.35,ctx.currentTime,0.02);
+  }
+  if(hornStopTO)clearTimeout(hornStopTO);
+  hornStopTO=setTimeout(()=>{
+    if(volHornNode){
+      const c=getCtx();
+      volHornGain.gain.setTargetAtTime(0,c.currentTime,0.05);
+      volHornNode._sinG.gain.setTargetAtTime(0,c.currentTime,0.05);
+      setTimeout(()=>{try{volHornNode.stop();volHornNode._sin.stop();}catch(e){}volHornNode=null;volHornGain=null;},300);
+    }
+  },600);
+}
+
+async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
+
+function fmtClock(secs){
+  const n=new Date(),h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
+  const ap=h>=12?'PM':'AM',h12=h>12?h-12:(h===0?12:h);
+  let str=h12+':'+String(m).padStart(2,'0');
+  if(secs) str+=':'+String(s).padStart(2,'0');
+  return str;
+}
+
+function render(){
+  const bl=BLINDS[Math.min(level,BLINDS.length)-1];
+  document.getElementById('bSB').textContent=bl.sb;
+  document.getElementById('bBB').textContent=bl.bb;
+  const isWinding=(level===5);
+  const cdInner=document.getElementById('cd-inner');
+  const winding=document.getElementById('winding');
+  const cdZone=document.getElementById('cd-zone');
+  const blindZone=document.getElementById('blind-zone');
+  if(isWinding){
+    cdInner.style.display='none';winding.style.display='flex';
+    cdZone.className='';blindZone.className='';
+  } else {
+    cdInner.style.display='flex';winding.style.display='none';
+    const mm=Math.floor(remSec/60),ss=remSec%60;
+    document.getElementById('cdMin').textContent=String(mm).padStart(2,'0');
+    document.getElementById('cdSec').textContent=String(ss).padStart(2,'0');
+    if(remSec<=12){cdZone.className='urgent';blindZone.className='';}
+    else if(remSec<=30){cdZone.className='warn';blindZone.className='warn';}
+    else{cdZone.className='';blindZone.className='';}
+  }
+}
+
+function fmtCD(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+
+function showMenu(showResume){
+  document.getElementById('app').classList.remove('visible');
+  const btn=document.getElementById('btn-resume');
+  if(showResume){
+    const bl=BLINDS[Math.min(level,BLINDS.length)-1];
+    btn.textContent='Resume '+bl.sb+' & '+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
+    btn.style.display='block';
+  } else {
+    btn.style.display='none';
+  }
+  document.getElementById('menu-screen').style.display='flex';
+}
+
+function beginCountdown(){
+  document.getElementById('menu-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  running=true;paused=false;
+  document.getElementById('btn-pause').textContent='Pause';
+  document.getElementById('btn-pause').classList.remove('lit');
+  pausedRemSec=remSec;launchWall=Date.now();lastTickSec=-1;
+  render();requestWakeLock();
+  if(tickHandle)clearInterval(tickHandle);
+  tickHandle=setInterval(tick,500);
+}
+
+function resumeGame(){
+  document.getElementById('menu-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  paused=false;running=true;
+  document.getElementById('btn-pause').textContent='Pause';
+  document.getElementById('btn-pause').classList.remove('lit');
+  launchWall=Date.now();
+  requestWakeLock();
+  if(tickHandle)clearInterval(tickHandle);
+  tickHandle=setInterval(tick,500);
+}
+
+function tick(){
+  document.getElementById('tod').textContent=fmtClock(false);
+  if(!running||paused||level===5)return;
+  const elapsed=(Date.now()-launchWall)/1000;
+  const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
+  if(cur!==remSec){remSec=cur;render();}
+  if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
+  else if(remSec>12)lastTickSec=-1;
+  if(remSec<=0){
+    level=Math.min(level+1,BLINDS.length);
+    remSec=maxSec(level);pausedRemSec=remSec;
+    launchWall=Date.now();lastTickSec=-1;
+    showAnnounce();render();
+  }
+}
+
+function togglePause(){
+  if(!running)return;
+  if(!paused){
+    paused=true;pausedRemSec=remSec;
+    if(tickHandle)clearInterval(tickHandle);
+    showMenu(true);
+  } else {
+    resumeGame();
+  }
+}
+
+// Swipe blinds: right=up, left=down
+(function(){
+  let sx=0;
+  const el=document.getElementById('blind-zone');
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
+  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);},{passive:true});
+  el.addEventListener('mousedown',e=>{sx=e.clientX;});
+  el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);});
+})();
+
+// Swipe countdown: left=+30s, right=-30s
+(function(){
+  let sx=0;
+  const el=document.getElementById('cd-zone');
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
+  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);},{passive:true});
+  el.addEventListener('mousedown',e=>{sx=e.clientX;});
+  el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);});
+})();
+
+function adjustLevel(dir){
+  const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
+  if(nv===level)return;
+  level=nv;
+  const ms=maxSec(level);
+  remSec=ms>0?ms:0;pausedRemSec=remSec;
+  launchWall=Date.now();lastTickSec=-1;render();
+}
+
+function adjustTime(delta){
+  if(level===5)return;
+  const ms=maxSec(level);
+  const nr=remSec+delta;
+  if(nr<=0||nr>ms)return;
+  remSec=nr;pausedRemSec=nr;
+  launchWall=Date.now();lastTickSec=-1;render();
+}
+
+function showAnnounce(){
+  const bl=BLINDS[Math.min(level,BLINDS.length)-1];
+  document.getElementById('annSB').textContent=bl.sb;
+  document.getElementById('annBB').textContent=bl.bb;
+  document.getElementById('announce').classList.add('visible');
+  stopAlarm();playAlarm();
+  if(announceTO)clearTimeout(announceTO);
+  announceTO=setTimeout(dismissAnnounce,6500);
+  const bi=document.getElementById('blind-inner');
+  bi.classList.add('flash');
+  setTimeout(()=>bi.classList.remove('flash'),300);
+}
+
+function dismissAnnounce(){
+  stopAlarm();
+  document.getElementById('announce').classList.remove('visible');
+  if(announceTO)clearTimeout(announceTO);
+}
+
+// Clock
+setInterval(()=>document.getElementById('tod').textContent=fmtClock(false),1000);
+document.getElementById('tod').textContent=fmtClock(false);
+
+// Hold Esc 3 seconds to return to menu
+(function(){
+  let escTO=null;
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&!escTO){
+      escTO=setTimeout(()=>{
+        stopAlarm();dismissAnnounce();
+        if(tickHandle)clearInterval(tickHandle);
+        running=false;paused=true;
+        level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
+        document.getElementById('btn-pause').textContent='Pause';
+        document.getElementById('btn-pause').classList.remove('lit');
+        document.getElementById('app').classList.remove('visible');
+        showMenu(false);render();
+      },3000);
+    }
+  });
+  document.addEventListener('keyup',e=>{
+    if(e.key==='Escape'){ clearTimeout(escTO); escTO=null; }
+  });
+})();
+
+// Show menu on load
+showMenu(false);
+render();
+</script>
+</body>
+</html>
