@@ -243,14 +243,16 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 
 /* ── OVERLAYS (shared) ── */
 .overlay{
-  display:none;position:fixed;inset:0;background:rgba(8,8,8,0.97);
+  display:none;position:fixed;inset:0;background:#fff;
   z-index:60;flex-direction:column;align-items:center;justify-content:center;
   padding:4vh 6vw;cursor:pointer;
 }
 .overlay.visible{display:flex;}
+.overlay .pill-btn{color:#111;border-color:rgba(0,0,0,0.25);}
+.overlay .pill-btn:hover,.overlay .pill-btn:active{background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.5);}
 .help-title{
-  font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;
-  color:var(--dim);
+  font-size:2vh;font-weight:600;letter-spacing:0.5em;text-transform:uppercase;
+  color:#111;
 }
 
 /* ── HELP OVERLAY ── */
@@ -261,11 +263,11 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 }
 .help-section{display:flex;flex-direction:column;gap:0.8vh;}
 .help-heading{
-  font-size:1.6vh;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;
-  color:var(--white);
+  font-size:1.6vh;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;
+  color:#000;
 }
-.help-body{font-size:1.5vh;font-weight:300;line-height:1.7;color:var(--dim);}
-.help-body b{color:var(--white);font-weight:600;}
+.help-body{font-size:1.5vh;font-weight:400;line-height:1.7;color:rgba(0,0,0,0.6);}
+.help-body b{color:#000;font-weight:700;}
 
 /* ── CLICK ZONES ── */
 .zone-half{
@@ -288,8 +290,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 body.no-touch .no-touch-only{display:flex;}
 
 .help-tap{
-  font-size:1.2vh;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;
-  color:var(--dimmer);margin-top:1vh;
+  font-size:1.2vh;font-weight:400;letter-spacing:0.25em;text-transform:uppercase;
+  color:rgba(0,0,0,0.35);margin-top:1vh;
 }
 
 /* ── ROTATE PROMPT ── */
@@ -316,19 +318,19 @@ body.no-touch .no-touch-only{display:flex;}
 .install-steps li{
   counter-increment:step;
   display:flex;align-items:flex-start;gap:1.2em;
-  font-size:1.9vh;font-weight:300;line-height:1.6;color:rgba(255,255,255,0.7);
+  font-size:1.9vh;font-weight:400;line-height:1.6;color:rgba(0,0,0,0.7);
 }
 .install-steps li::before{
   content:counter(step);
   min-width:1.8em;height:1.8em;
-  background:rgba(255,255,255,0.1);border-radius:50%;
+  background:rgba(0,0,0,0.1);border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:1.1vh;font-weight:600;color:var(--white);flex-shrink:0;margin-top:0.15em;
+  font-size:1.1vh;font-weight:700;color:#000;flex-shrink:0;margin-top:0.15em;
 }
-.install-steps li b{color:var(--white);font-weight:600;}
+.install-steps li b{color:#000;font-weight:700;}
 .install-note{
-  font-size:1.5vh;font-weight:300;line-height:1.7;
-  color:var(--dim);text-align:center;
+  font-size:1.5vh;font-weight:400;line-height:1.7;
+  color:rgba(0,0,0,0.45);text-align:center;
 }
 </style>
 </head>
@@ -448,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.31';
+const VERSION='v1.32';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
