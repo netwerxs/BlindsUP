@@ -106,16 +106,10 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #layout{
   width:100%;height:100%;
   display:grid;
-  grid-template-columns:12% 73% 15%;
+  grid-template-columns:78% 22%;
+  grid-template-rows:50% 50%;
 }
 
-/* LEFT */
-#col-left{
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  border-right:1px solid var(--border);
-  padding:2vh 0;
-}
 .pill-btn{
   background:transparent;
   border:1px solid rgba(255,255,255,0.25);color:var(--white);
@@ -127,13 +121,11 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .pill-btn:hover,.pill-btn:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.5);}
 #winding .pill-btn{margin-top:1vh;}
 
-/* CENTER */
-#col-center{display:flex;flex-direction:column;}
-
 #blind-zone{
-  height:50%;display:flex;align-items:center;justify-content:center;
-  border-bottom:1px solid var(--border);overflow:hidden;
-  cursor:ew-resize;position:relative;
+  grid-column:1;grid-row:1;
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+  overflow:hidden;cursor:ew-resize;position:relative;
 }
 #blind-inner{
   display:flex;align-items:center;justify-content:center;
@@ -143,7 +135,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .b-amp{font-size:13vh;font-weight:200;color:rgba(255,255,255,0.55);align-self:center;margin:0 0.35em;}
 
 #cd-zone{
-  height:50%;display:flex;align-items:center;justify-content:center;
+  grid-column:1;grid-row:2;
+  display:flex;align-items:center;justify-content:center;
+  border-right:1px solid var(--border);
   overflow:hidden;cursor:ew-resize;position:relative;
 }
 #cd-inner{display:flex;align-items:flex-start;padding-top:3vh;justify-content:center;height:100%;width:100%;}
@@ -176,30 +170,28 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 
 /* RIGHT */
 #col-right{
+  grid-column:2;grid-row:1/span 2;
   display:flex;flex-direction:column;align-items:center;
-  border-left:1px solid var(--border);padding:2vh 0.5vw;
-}
-#version-label-app{
-  font-size:2vh;font-weight:400;letter-spacing:0.15em;
-  color:rgba(255,255,255,0.7);padding-bottom:1vh;
 }
 #tod{
-  font-size:7vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
-  padding:2vh 0 2.5vh;flex-shrink:0;text-align:center;
-  border-bottom:1px solid var(--border);width:100%;
+  flex:1;width:100%;
+  font-size:5.5vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);text-align:center;
 }
 #vol-wrap{
   flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:1.5vh;width:100%;
+  align-items:center;justify-content:center;gap:1vh;width:100%;
+  border-bottom:1px solid var(--border);
 }
-#vol-icon{font-size:2.2vh;color:var(--dim);}
+#vol-icon{font-size:2vh;color:var(--dim);}
 #vol-slider-wrap{
-  width:4rem;height:28vh;
+  width:3rem;height:18vh;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
 #vol-slider{
   -webkit-appearance:none;appearance:none;
-  width:28vh;height:4rem;flex-shrink:0;
+  width:18vh;height:3rem;flex-shrink:0;
   transform:rotate(-90deg);
   cursor:pointer;background:transparent;
 }
@@ -208,18 +200,29 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 }
 #vol-slider::-webkit-slider-thumb{
   -webkit-appearance:none;
-  width:3rem;height:3rem;border-radius:50%;
+  width:2.5rem;height:2.5rem;border-radius:50%;
   background:var(--white);cursor:pointer;
-  margin-top:calc(-1.5rem + 2px);
+  margin-top:calc(-1.25rem + 2px);
 }
 #vol-slider::-moz-range-track{
   background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
 }
 #vol-slider::-moz-range-thumb{
-  width:3rem;height:3rem;border-radius:50%;
+  width:2.5rem;height:2.5rem;border-radius:50%;
   background:var(--white);cursor:pointer;border:none;
 }
-#vol-pct{font-size:1.4vh;font-weight:300;color:var(--dim);letter-spacing:0.1em;}
+#vol-pct{font-size:1.2vh;font-weight:300;color:var(--dim);letter-spacing:0.1em;}
+#pause-cell{
+  flex:1;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);
+}
+#version-label-app{
+  flex:1;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
+  color:rgba(255,255,255,0.7);
+}
 
 /* ANNOUNCE */
 #announce{
@@ -351,36 +354,31 @@ body.no-touch .no-touch-only{display:flex;}
 <div id="app">
 <div id="layout">
 
-  <div id="col-left">
-    <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
+  <div id="blind-zone">
+    <div id="blind-inner">
+      <span class="b-num" id="bSB">1</span>
+      <span class="b-amp">&amp;</span>
+      <span class="b-num" id="bBB">2</span>
+    </div>
+    <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
+    <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"><span class="zone-sign">+</span></div>
+    <span class="swipe-hint">← down &nbsp; up →</span>
   </div>
 
-  <div id="col-center">
-    <div id="blind-zone">
-      <div id="blind-inner">
-        <span class="b-num" id="bSB">1</span>
-        <span class="b-amp">&amp;</span>
-        <span class="b-num" id="bBB">2</span>
-      </div>
-      <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
-      <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"><span class="zone-sign">+</span></div>
-      <span class="swipe-hint">← down &nbsp; up →</span>
+  <div id="cd-zone">
+    <div id="cd-inner">
+      <span class="cd-num" id="cdMin">15</span>
+      <span class="cd-colon">:</span>
+      <span class="cd-num" id="cdSec">00</span>
     </div>
-    <div id="cd-zone">
-      <div id="cd-inner">
-        <span class="cd-num" id="cdMin">15</span>
-        <span class="cd-colon">:</span>
-        <span class="cd-num" id="cdSec">00</span>
-      </div>
-      <div id="winding">
-        <div id="winding-text">Winding Down to Break</div>
-        <div id="winding-sub">After break and the last buy-in</div>
-        <button class="pill-btn" onclick="selectBlind(6)">Begin Freezeout</button>
-      </div>
-      <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-30)"><span class="zone-sign">↓</span></div>
-      <div class="zone-half zone-right no-touch-only" onclick="adjustTime(30)"><span class="zone-sign">↑</span></div>
-      <span class="swipe-hint">← +30s &nbsp; −30s →</span>
+    <div id="winding">
+      <div id="winding-text">Winding Down to Break</div>
+      <div id="winding-sub">After break and the last buy-in</div>
+      <button class="pill-btn" onclick="selectBlind(6)">Begin Freezeout</button>
     </div>
+    <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-30)"><span class="zone-sign">↓</span></div>
+    <div class="zone-half zone-right no-touch-only" onclick="adjustTime(30)"><span class="zone-sign">↑</span></div>
+    <span class="swipe-hint">← +30s &nbsp; −30s →</span>
   </div>
 
   <div id="col-right">
@@ -391,6 +389,9 @@ body.no-touch .no-touch-only{display:flex;}
         <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="onVolSlider(this.value)">
       </div>
       <div id="vol-pct">50%</div>
+    </div>
+    <div id="pause-cell">
+      <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
     </div>
     <div id="version-label-app"></div>
   </div>
@@ -445,7 +446,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.26';
+const VERSION='v1.27';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
