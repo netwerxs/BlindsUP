@@ -249,6 +249,14 @@ body.no-touch .no-touch-only { display:flex; }
   color:var(--dimmer);margin-top:1vh;
 }
 
+/* ── ROTATE PROMPT ── */
+#rotate-prompt{
+  display:none;position:fixed;inset:0;background:var(--bg);
+  z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:3vh;
+}
+@media(orientation:portrait){#rotate-prompt{display:flex;}}
+@media(orientation:landscape){#rotate-prompt{display:none;}}
+
 /* ── INSTALL OVERLAY ── */
 #install-overlay{
   display:none;position:fixed;inset:0;background:rgba(8,8,8,0.97);
@@ -286,6 +294,12 @@ body.no-touch .no-touch-only { display:flex; }
 </style>
 </head>
 <body>
+
+<!-- ROTATE PROMPT -->
+<div id="rotate-prompt">
+  <div style="font-size:15vw;line-height:1;">&#8635;</div>
+  <div style="font-size:4vw;font-weight:200;letter-spacing:0.4em;text-transform:uppercase;color:var(--dim);">Rotate to landscape</div>
+</div>
 
 <!-- MENU -->
 <div id="menu-screen">
@@ -396,7 +410,7 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <script>
-const VERSION='v1.18';
+const VERSION='v1.19';
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
