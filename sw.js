@@ -1,8 +1,8 @@
-const CACHE = 'blindsup-v1.15';
-const ASSETS = ['.', './index.html', './manifest.json', './icons/icon.svg'];
+const CACHE = 'blindsup-static-v1';
+const STATIC = ['./manifest.json', './icons/icon.svg'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
   self.skipWaiting();
 });
 
@@ -17,7 +17,8 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    // Always fetch index.html from network; fall back to cache only if offline
+    e.respondWith(fetch(e.request).catch(() => caches.match('./index.html')));
   } else {
     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
   }
