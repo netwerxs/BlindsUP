@@ -1,4 +1,4 @@
-const CACHE = 'blindsup-v1';
+const CACHE = 'blindsup-v1.15';
 const ASSETS = ['.', './index.html', './manifest.json', './icons/icon.svg'];
 
 self.addEventListener('install', e => {
@@ -16,5 +16,9 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  if (e.request.mode === 'navigate') {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  } else {
+    e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  }
 });
