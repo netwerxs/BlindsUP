@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.38';
+const VERSION='v1.39';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -574,12 +574,13 @@ async function nativeInstall(e){
   }
 })();
 
-// Always rounds UP to next :00 — used for auto-advance and level swipes.
-// Guarantees countdown seconds stay locked to RTC (never goes backwards).
+// Used for auto-advance and level swipes.
+// If within 15s of the next minute (ss > 45), snap forward to it.
+// Otherwise use the exact level duration — avoids inflating the countdown.
 function clockSnap(baseSec){
   if(baseSec===0)return 0;
-  const pad=(60-new Date().getSeconds())%60;
-  return baseSec+pad;
+  const ss=new Date().getSeconds();
+  return ss>45?baseSec+(60-ss):baseSec;
 }
 
 // Rounds to NEAREST minute — used only for the initial manual start from the menu.
