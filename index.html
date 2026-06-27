@@ -157,8 +157,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #winding-sub{font-size:2vh;font-weight:300;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim);text-align:center;margin-top:1vh;}
 #cd-zone.winding{align-items:flex-start;padding-top:6vh;}
 #cd-zone.winding .zone-half,#cd-zone.winding .swipe-hint{display:none;}
-#slogan-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;}
-#slogan-text{font-size:4vh;font-weight:300;font-style:italic;letter-spacing:0.05em;color:var(--dim);text-align:center;padding:0 4vw;}
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
@@ -386,7 +384,6 @@ body.no-touch .no-touch-only{display:flex;}
       <div id="winding-sub">After break and the last buy-in</div>
       <button class="pill-btn" onclick="selectBlind(6)">Begin Freezeout</button>
     </div>
-    <div id="slogan-wrap"><div id="slogan-text"></div></div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"><span class="zone-sign">↓</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"><span class="zone-sign">↑</span></div>
     <span class="swipe-hint">← +1m &nbsp; −1m →</span>
@@ -457,7 +454,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.44';
+const VERSION='v1.45';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -466,8 +463,6 @@ const elCdMin=document.getElementById('cdMin');
 const elCdSec=document.getElementById('cdSec');
 const elCdInner=document.getElementById('cd-inner');
 const elWinding=document.getElementById('winding');
-const elSloganWrap=document.getElementById('slogan-wrap');
-const elSloganText=document.getElementById('slogan-text');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
 const elBlindInner=document.getElementById('blind-inner');
@@ -484,9 +479,6 @@ const elBtnResume=document.getElementById('btn-resume');
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
-const SLOGANS=['What, me worry?'];
-function randomSlogan(){return SLOGANS[Math.floor(Math.random()*SLOGANS.length)];}
-
 const BLINDS=[];
 for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
 
@@ -494,7 +486,7 @@ function maxSec(lv){if(lv<=4)return 15*60;if(lv===5)return 0;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
-let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null;
+let lastTickSec=-1,tickHandle=null,announceTO=null;
 let volume=0.5,audioCtx=null,alarmNodes=[];
 let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
@@ -603,8 +595,6 @@ function reSnapSec(curSec){
   return Math.floor(curSec/60)*60+(60-ss)%60;
 }
 
-function cancelSnap(){if(snapTO){clearTimeout(snapTO);snapTO=null;}}
-
 function selectBlind(i){
   level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
   beginCountdown();
@@ -706,15 +696,12 @@ function render(){
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
   elBSB.textContent=bl.sb;
   elBBB.textContent=bl.bb;
-  const isWinding=(level===5),isSnapping=!!snapTO;
-  elWinding.style.display=isWinding?'flex':'none';
-  elSloganWrap.style.display=isSnapping?'flex':'none';
-  elCdInner.style.display=(!isWinding&&!isSnapping)?'flex':'none';
+  const isWinding=(level===5);
   if(isWinding){
+    elCdInner.style.display='none';elWinding.style.display='flex';
     elCdZone.className='winding';elBlindZone.className='';
-  } else if(isSnapping){
-    elCdZone.className='';elBlindZone.className='';
   } else {
+    elCdInner.style.display='flex';elWinding.style.display='none';
     const mm=Math.floor(remSec/60),ss=remSec%60;
     elCdMin.textContent=String(mm).padStart(2,'0');
     elCdSec.textContent=String(ss).padStart(2,'0');
@@ -769,29 +756,18 @@ function tick(){
   if(cur!==remSec){remSec=cur;render();}
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
   else if(remSec>12)lastTickSec=-1;
-  if(remSec<=0&&!snapTO){
+  if(remSec<=0){
     level=Math.min(level+1,BLINDS.length);
+    remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;
+    launchWall=Date.now();lastTickSec=-1;
     showAnnounce();render();
-    const ms=maxSec(level);
-    if(ms===0){remSec=0;pausedRemSec=0;return;} // level 5 break — no countdown
-    elSloganText.textContent=randomSlogan();
-    const ss=new Date().getSeconds();
-    // Wait until RTC hits :20 so all devices snap at the same second.
-    // snapToRTC(ms) at ss=20 gives ms-20; the 20s gap makes up the rest.
-    // Self-stabilising: ms%60=0 so expiry always fires at ss=0 → waits 20s again.
-    snapTO=setTimeout(()=>{
-      snapTO=null;
-      if(!running||paused)return;
-      remSec=snapToRTC(ms);pausedRemSec=remSec;
-      launchWall=Date.now();lastTickSec=-1;render();
-    },((20-ss+60)%60)*1000);
   }
 }
 
 function togglePause(){
   if(!running)return;
   if(!paused){
-    paused=true;pausedRemSec=remSec;cancelSnap();
+    paused=true;pausedRemSec=remSec;
     if(tickHandle)clearInterval(tickHandle);
     showMenu(true);
   } else {
@@ -820,7 +796,6 @@ function togglePause(){
 })();
 
 function adjustLevel(dir){
-  cancelSnap();
   const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
   if(nv===level)return;
   level=nv;
@@ -867,7 +842,7 @@ elTod.textContent=fmtClock();
       escTO=setTimeout(()=>{
         stopAlarm();dismissAnnounce();
         if(tickHandle)clearInterval(tickHandle);
-        running=false;paused=true;cancelSnap();
+        running=false;paused=true;
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
         elBtnPause.textContent='Pause';
         elApp.classList.remove('visible');
