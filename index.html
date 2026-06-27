@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.37';
+const VERSION='v1.38';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -482,7 +482,7 @@ function maxSec(lv){if(lv<=4)return 15*60;if(lv===5)return 0;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
-let lastTickSec=-1,tickHandle=null,announceTO=null;
+let lastTickSec=-1,tickHandle=null,announceTO=null,pendingAdvance=false;
 let volume=0.5,audioCtx=null,alarmNodes=[];
 let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
@@ -757,18 +757,26 @@ function tick(){
   if(cur!==remSec){remSec=cur;render();}
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
   else if(remSec>12)lastTickSec=-1;
-  if(remSec<=0){
+  if(remSec<=0&&!pendingAdvance){
+    pendingAdvance=true;
     level=Math.min(level+1,BLINDS.length);
-    remSec=clockSnap(maxSec(level));pausedRemSec=remSec;
-    launchWall=Date.now();lastTickSec=-1;
     showAnnounce();render();
+    (function trySnap(){
+      const ss=new Date().getSeconds();
+      const pad=(60-ss)%60;
+      if(pad>55){setTimeout(trySnap,200);return;} // too close to minute boundary — retry
+      if(!running||paused){pendingAdvance=false;return;}
+      remSec=clockSnap(maxSec(level));pausedRemSec=remSec;
+      launchWall=Date.now();lastTickSec=-1;
+      pendingAdvance=false;render();
+    })();
   }
 }
 
 function togglePause(){
   if(!running)return;
   if(!paused){
-    paused=true;pausedRemSec=remSec;
+    paused=true;pausedRemSec=remSec;pendingAdvance=false;
     if(tickHandle)clearInterval(tickHandle);
     showMenu(true);
   } else {
@@ -847,7 +855,7 @@ elTod.textContent=fmtClock();
       escTO=setTimeout(()=>{
         stopAlarm();dismissAnnounce();
         if(tickHandle)clearInterval(tickHandle);
-        running=false;paused=true;
+        running=false;paused=true;pendingAdvance=false;
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
         elBtnPause.textContent='Pause';
         elApp.classList.remove('visible');
