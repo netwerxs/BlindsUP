@@ -473,6 +473,7 @@ function onVolSlider(val){
 }
 
 async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
+function requestLandscape(){try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}
 
 function fmtClock(secs){
   const n=new Date(),h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
@@ -527,7 +528,7 @@ function beginCountdown(){
   document.getElementById('btn-pause').textContent='Pause';
   document.getElementById('btn-pause').classList.remove('lit');
   pausedRemSec=remSec;launchWall=Date.now();lastTickSec=-1;
-  render();requestWakeLock();
+  render();requestWakeLock();requestLandscape();
   if(tickHandle)clearInterval(tickHandle);
   tickHandle=setInterval(tick,500);
 }
@@ -539,7 +540,7 @@ function resumeGame(){
   document.getElementById('btn-pause').textContent='Pause';
   document.getElementById('btn-pause').classList.remove('lit');
   launchWall=Date.now();
-  requestWakeLock();
+  requestWakeLock();requestLandscape();
   if(tickHandle)clearInterval(tickHandle);
   tickHandle=setInterval(tick,500);
 }
