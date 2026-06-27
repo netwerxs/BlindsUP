@@ -18,9 +18,39 @@ A free, no-install poker blinds timer that runs in any browser. Works on phones,
 - **Volume slider** — live preview; set device volume to max, then dial in with the slider
 - **Wall clock** — always visible so you're not hunting for your phone
 - **Touch and mouse** — swipe on phones/tablets; click ±zones on desktop
-- **Full screen** — press F11 (desktop) or add to home screen (mobile)
+- **Full screen + landscape lock** — press F11 on desktop; install to home screen on mobile for true full screen and automatic landscape orientation
 - **Works offline** — installable PWA with service worker
 - **Zero dependencies** — one HTML file, no build step, no backend
+
+## Install as an app (recommended for iPad)
+
+Blinds UP works best when installed to your home screen. You get:
+
+- **Landscape lock** — screen stays horizontal automatically
+- **Full screen** — no browser chrome in the way
+- **Works offline** — no Wi-Fi needed at the table
+
+**iPad / iPhone — Safari:**
+
+1. Open **[https://netwerxs.github.io/BlindsUP/](https://netwerxs.github.io/BlindsUP/)** in Safari
+2. Tap the **Share** button (box with arrow pointing up) in the toolbar
+3. Scroll down and tap **Add to Home Screen**
+4. Tap **Add** in the top-right corner
+5. Open the app from your home screen — it launches full screen in landscape
+
+> Safari is required on iOS/iPadOS. Chrome and Firefox on iPhone/iPad do not support PWA installation.
+
+**Android — Chrome:**
+
+1. Open the site in Chrome
+2. Tap the three-dot menu → **Add to Home screen**
+3. Tap **Add**
+
+**Windows / Mac — Chrome or Edge:**
+
+Click the install icon (⊕) in the address bar, or go to the browser menu → **Install Blinds UP**.
+
+---
 
 ## Blind Schedule
 
