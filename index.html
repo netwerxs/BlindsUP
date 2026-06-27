@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#080808">
+<link rel="manifest" href="manifest.json">
 <title>Blinds UP!</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;600;700;900&display=swap');
@@ -136,6 +138,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 
 #winding{display:none;flex-direction:column;align-items:center;gap:2vh;padding:2vh;}
 #winding-text{font-size:6vh;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--white);text-align:center;}
+#winding-sub{font-size:2vh;font-weight:300;letter-spacing:0.15em;text-transform:uppercase;color:var(--dim);text-align:center;margin-top:1vh;}
 #cd-zone.winding{align-items:flex-start;padding-top:6vh;}
 #cd-zone.winding .zone-half,#cd-zone.winding .swipe-hint{display:none;}
 
@@ -286,6 +289,7 @@ body.no-touch .no-touch-only { display:flex; }
       </div>
       <div id="winding">
         <div id="winding-text">Winding Down to Break</div>
+        <div id="winding-sub">After break and the last buy-in, begin</div>
         <button class="pill-btn" style="margin-top:1vh;" onclick="selectBlind(6)">Begin Freezeout</button>
       </div>
       <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-30)"><span class="zone-sign">↓</span></div>
@@ -653,6 +657,10 @@ document.getElementById('tod').textContent=fmtClock(false);
 // Show menu on load
 showMenu(false);
 render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
 </script>
 </body>
 </html>
