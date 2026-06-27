@@ -169,12 +169,12 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 /* RIGHT */
 #col-right{
   grid-column:2;grid-row:1/span 2;
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;flex-direction:column;align-items:stretch;
   padding:0 1.5vw;
 }
 #tod{
   flex:1;
-  font-size:5.5vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
+  font-size:7vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
 }
@@ -212,11 +212,12 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #vol-pct{font-size:1.2vh;font-weight:300;color:var(--dim);letter-spacing:0.1em;}
 #bottom-cell{
   flex:1;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:1.5vh;
 }
+#btn-pause{font-size:2.2vh;padding:1.8vh 0;text-align:center;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
-  color:rgba(255,255,255,0.7);white-space:nowrap;
+  color:rgba(255,255,255,0.7);white-space:nowrap;text-align:center;
 }
 
 /* ANNOUNCE */
@@ -441,7 +442,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.28';
+const VERSION='v1.29';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -571,7 +572,21 @@ function selectBlind(i){
 }
 
 // ── Audio ─────────────────────────────────────────────────────────
-function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function getCtx(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  return audioCtx;
+}
+
+// iOS requires AudioContext to be created AND a sound played within a user gesture.
+// Play a silent 1-frame buffer on first touch to unlock the context permanently.
+document.addEventListener('touchstart',function unlockAudio(){
+  const ctx=getCtx();
+  const buf=ctx.createBuffer(1,1,22050);
+  const src=ctx.createBufferSource();
+  src.buffer=buf;src.connect(ctx.destination);src.start(0);
+  document.removeEventListener('touchstart',unlockAudio);
+},{once:true,passive:true});
 
 function playAlarm(){
   stopAlarm();
