@@ -396,7 +396,7 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <script>
-const VERSION='v1.17';
+const VERSION='v1.18';
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
@@ -765,6 +765,19 @@ render();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js');
 }
+
+// On iOS PWA, app resumes from suspension rather than reloading — check for
+// a new version whenever the app comes to the foreground and reload if found.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  fetch('./index.html', {cache: 'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const match = html.match(/const VERSION='([^']+)'/);
+      if (match && match[1] !== VERSION) window.location.reload();
+    })
+    .catch(() => {});
+});
 </script>
 </body>
 </html>
