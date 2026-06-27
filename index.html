@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.32';
+const VERSION='v1.33';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -574,8 +574,15 @@ async function nativeInstall(e){
   }
 })();
 
+// Round up to the next :00 or :30 wall-clock mark so multiple devices stay in sync.
+function clockSnap(baseSec){
+  if(baseSec===0)return 0;
+  const pad=(30-new Date().getSeconds()%30)%30;
+  return baseSec+pad;
+}
+
 function selectBlind(i){
-  level=i; remSec=maxSec(i); pausedRemSec=remSec; lastTickSec=-1;
+  level=i; remSec=clockSnap(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
   beginCountdown();
 }
 
@@ -736,7 +743,7 @@ function tick(){
   else if(remSec>12)lastTickSec=-1;
   if(remSec<=0){
     level=Math.min(level+1,BLINDS.length);
-    remSec=maxSec(level);pausedRemSec=remSec;
+    remSec=clockSnap(maxSec(level));pausedRemSec=remSec;
     launchWall=Date.now();lastTickSec=-1;
     showAnnounce();render();
   }
