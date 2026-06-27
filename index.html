@@ -18,7 +18,8 @@
 }
 html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   font-family:'Inter','Helvetica Neue',sans-serif;overflow:hidden;
-  user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  overscroll-behavior:none;}
 
 /* ── MENU SCREEN ── */
 #menu-screen{
@@ -442,7 +443,8 @@ function openInstall(){
       <li>Scroll down and tap <b>Add to Home Screen</b></li>
       <li>Tap <b>Add</b> in the top-right corner</li>
     </ol>
-    <div class="install-note">Open from your home screen for full screen and automatic landscape lock.</div>`;
+    <div class="install-note">Open from your home screen for full screen and automatic landscape lock.</div>
+    <div class="install-note" style="margin-top:0;">To prevent accidental app-switching at the table, enable <b>Guided Access</b>: Settings → Accessibility → Guided Access. Triple-click the side button to lock the iPad to this app.</div>`;
   } else if(isAndroid){
     title.textContent='Install on Android';
     html=`<ol class="install-steps">
@@ -667,20 +669,22 @@ function togglePause(){
 
 // Swipe blinds: right=up, left=down
 (function(){
-  let sx=0;
+  let sx=0,edgeTouch=false;
+  const EDGE=30;
   const el=document.getElementById('blind-zone');
-  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
-  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);},{passive:true});
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
+  el.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);},{passive:true});
   el.addEventListener('mousedown',e=>{sx=e.clientX;});
   el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);});
 })();
 
 // Swipe countdown: left=+30s, right=-30s
 (function(){
-  let sx=0;
+  let sx=0,edgeTouch=false;
+  const EDGE=30;
   const el=document.getElementById('cd-zone');
-  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
-  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);},{passive:true});
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
+  el.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);},{passive:true});
   el.addEventListener('mousedown',e=>{sx=e.clientX;});
   el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-30:30);});
 })();
