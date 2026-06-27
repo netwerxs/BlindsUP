@@ -450,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.39';
+const VERSION='v1.40';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -482,7 +482,7 @@ function maxSec(lv){if(lv<=4)return 15*60;if(lv===5)return 0;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
-let lastTickSec=-1,tickHandle=null,announceTO=null,pendingAdvance=false;
+let lastTickSec=-1,tickHandle=null,announceTO=null;
 let volume=0.5,audioCtx=null,alarmNodes=[];
 let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
@@ -574,25 +574,25 @@ async function nativeInstall(e){
   }
 })();
 
-// Used for auto-advance and level swipes.
-// If within 15s of the next minute (ss > 45), snap forward to it.
-// Otherwise use the exact level duration — avoids inflating the countdown.
-function clockSnap(baseSec){
-  if(baseSec===0)return 0;
-  const ss=new Date().getSeconds();
-  return ss>45?baseSec+(60-ss):baseSec;
-}
-
-// Rounds to NEAREST minute — used only for the initial manual start from the menu.
-// Keeps the starting countdown within ±30s of the nominal level duration.
-function snapNearest(baseSec){
+// Start a level fresh: rounds to nearest minute, locks seconds to RTC.
+// Both devices independently produce the same seconds digit, so countdowns
+// hit :00 together regardless of which minute they're on.
+function snapToRTC(baseSec){
   if(baseSec===0)return 0;
   const ss=new Date().getSeconds();
   return baseSec+(ss<30?-ss:60-ss);
 }
 
+// Preserve current minutes, re-lock seconds to RTC.
+// Used when resuming from pause or adjusting the minute count.
+function reSnapSec(curSec){
+  if(curSec===0)return 0;
+  const ss=new Date().getSeconds();
+  return Math.floor(curSec/60)*60+(60-ss)%60;
+}
+
 function selectBlind(i){
-  level=i; remSec=snapNearest(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
+  level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
   beginCountdown();
 }
 
@@ -733,13 +733,7 @@ function beginCountdown(){
 }
 
 function resumeGame(){
-  // Re-snap seconds to RTC: keep the minutes, lock seconds to next :00 mark.
-  if(level!==5){
-    const ss=new Date().getSeconds();
-    const targetSec=(60-ss)%60;
-    pausedRemSec=Math.floor(pausedRemSec/60)*60+targetSec;
-    remSec=pausedRemSec;
-  }
+  if(level!==5){pausedRemSec=reSnapSec(pausedRemSec);remSec=pausedRemSec;}
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
   paused=false;running=true;
@@ -758,26 +752,18 @@ function tick(){
   if(cur!==remSec){remSec=cur;render();}
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
   else if(remSec>12)lastTickSec=-1;
-  if(remSec<=0&&!pendingAdvance){
-    pendingAdvance=true;
+  if(remSec<=0){
     level=Math.min(level+1,BLINDS.length);
+    remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;
+    launchWall=Date.now();lastTickSec=-1;
     showAnnounce();render();
-    (function trySnap(){
-      const ss=new Date().getSeconds();
-      const pad=(60-ss)%60;
-      if(pad>55){setTimeout(trySnap,200);return;} // too close to minute boundary — retry
-      if(!running||paused){pendingAdvance=false;return;}
-      remSec=clockSnap(maxSec(level));pausedRemSec=remSec;
-      launchWall=Date.now();lastTickSec=-1;
-      pendingAdvance=false;render();
-    })();
   }
 }
 
 function togglePause(){
   if(!running)return;
   if(!paused){
-    paused=true;pausedRemSec=remSec;pendingAdvance=false;
+    paused=true;pausedRemSec=remSec;
     if(tickHandle)clearInterval(tickHandle);
     showMenu(true);
   } else {
@@ -810,17 +796,13 @@ function adjustLevel(dir){
   if(nv===level)return;
   level=nv;
   const ms=maxSec(level);
-  remSec=ms>0?clockSnap(ms):0;pausedRemSec=remSec;
+  remSec=snapToRTC(ms);pausedRemSec=remSec;
   launchWall=Date.now();lastTickSec=-1;render();
 }
 
-function adjustTime(dir){ // +1 = up one minute, -1 = down one minute
+function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   if(level===5)return;
-  const ss=new Date().getSeconds();
-  const targetSec=(60-ss)%60; // keeps countdown seconds locked to RTC
-  const curMin=Math.floor(remSec/60);
-  const newMin=curMin+dir;
-  const newRem=newMin*60+targetSec;
+  const newRem=reSnapSec((Math.floor(remSec/60)+dir)*60);
   if(newRem<=0||newRem>maxSec(level)+59)return;
   remSec=newRem;pausedRemSec=newRem;
   launchWall=Date.now();lastTickSec=-1;render();
@@ -856,7 +838,7 @@ elTod.textContent=fmtClock();
       escTO=setTimeout(()=>{
         stopAlarm();dismissAnnounce();
         if(tickHandle)clearInterval(tickHandle);
-        running=false;paused=true;pendingAdvance=false;
+        running=false;paused=true;
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
         elBtnPause.textContent='Pause';
         elApp.classList.remove('visible');
