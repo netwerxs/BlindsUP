@@ -248,6 +248,40 @@ body.no-touch .no-touch-only { display:flex; }
   color:var(--dimmer);margin-top:1vh;
 }
 
+/* ── INSTALL OVERLAY ── */
+#install-overlay{
+  display:none;position:fixed;inset:0;background:rgba(8,8,8,0.97);
+  z-index:60;flex-direction:column;align-items:center;justify-content:center;
+  padding:4vh 6vw;gap:2.5vh;cursor:pointer;
+}
+#install-overlay.visible{display:flex;}
+#install-title{
+  font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;color:var(--dim);
+}
+#install-body{display:flex;flex-direction:column;align-items:center;gap:2vh;max-width:520px;width:100%;}
+.install-steps{
+  list-style:none;padding:0;margin:0;
+  display:flex;flex-direction:column;gap:1.6vh;width:100%;
+  counter-reset:step;
+}
+.install-steps li{
+  counter-increment:step;
+  display:flex;align-items:flex-start;gap:1.2em;
+  font-size:1.9vh;font-weight:300;line-height:1.6;color:rgba(255,255,255,0.7);
+}
+.install-steps li::before{
+  content:counter(step);
+  min-width:1.8em;height:1.8em;
+  background:rgba(255,255,255,0.1);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1vh;font-weight:600;color:var(--white);flex-shrink:0;margin-top:0.15em;
+}
+.install-steps li b{color:var(--white);font-weight:600;}
+.install-note{
+  font-size:1.5vh;font-weight:300;line-height:1.7;
+  color:var(--dim);text-align:center;
+}
+
 </style>
 </head>
 <body>
@@ -255,6 +289,7 @@ body.no-touch .no-touch-only { display:flex; }
 <!-- MENU -->
 <div id="menu-screen">
   <button onclick="openHelp()" style="position:absolute;top:2vh;right:2vw;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;">Help</button>
+  <button onclick="openInstall()" style="position:absolute;top:2vh;left:2vw;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;">Install</button>
 <div id="resume-wrap">
     <button id="btn-resume" onclick="resumeGame()">Resume</button>
   </div>
@@ -339,6 +374,13 @@ body.no-touch .no-touch-only { display:flex; }
   <div class="help-tap">Tap anywhere to close</div>
 </div>
 
+<!-- INSTALL -->
+<div id="install-overlay" onclick="closeInstall()">
+  <div id="install-title">Install as App</div>
+  <div id="install-body"></div>
+  <div class="help-tap">Tap anywhere to close</div>
+</div>
+
 <!-- ANNOUNCE -->
 <div id="announce" onclick="dismissAnnounce()">
   <div class="ann-label">Blinds Up</div>
@@ -376,6 +418,57 @@ function openHelp(){
 }
 function closeHelp(){
   document.getElementById('help-overlay').classList.remove('visible');
+}
+
+// ── Install ───────────────────────────────────────────────────────
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;});
+
+function openInstall(){
+  const isPWA=window.matchMedia('(display-mode: standalone)').matches||!!navigator.standalone;
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  const isAndroid=/Android/.test(navigator.userAgent);
+  const title=document.getElementById('install-title');
+  const body=document.getElementById('install-body');
+  let html='';
+  if(isPWA){
+    title.textContent='Already Installed';
+    html='<div class="install-note">You\'re running Blinds UP as an installed app — landscape lock and offline mode are active.</div>';
+  } else if(isIOS){
+    title.textContent='Install on iPad or iPhone';
+    html=`<ol class="install-steps">
+      <li>Open this page in <b>Safari</b> — Chrome on iOS won't work</li>
+      <li>Tap the <b>Share</b> button (box with arrow ↑) in the toolbar</li>
+      <li>Scroll down and tap <b>Add to Home Screen</b></li>
+      <li>Tap <b>Add</b> in the top-right corner</li>
+    </ol>
+    <div class="install-note">Open from your home screen for full screen and automatic landscape lock.</div>`;
+  } else if(isAndroid){
+    title.textContent='Install on Android';
+    html=`<ol class="install-steps">
+      <li>Tap the <b>three-dot menu</b> in Chrome</li>
+      <li>Tap <b>Add to Home screen</b></li>
+      <li>Tap <b>Add</b></li>
+    </ol>`;
+    if(deferredInstallPrompt) html+='<button class="pill-btn" onclick="nativeInstall(event)" style="margin-top:1vh;">Install Now</button>';
+  } else {
+    title.textContent='Install on Windows or Mac';
+    html='<div class="install-note">Click the <b>install icon</b> (⊕) in your browser\'s address bar, or open the browser menu and choose <b>Install Blinds UP</b>.</div>';
+    if(deferredInstallPrompt) html+='<button class="pill-btn" onclick="nativeInstall(event)" style="margin-top:1vh;">Install Now</button>';
+  }
+  body.innerHTML=html;
+  document.getElementById('install-overlay').classList.add('visible');
+}
+function closeInstall(){
+  document.getElementById('install-overlay').classList.remove('visible');
+}
+async function nativeInstall(e){
+  e.stopPropagation();
+  if(!deferredInstallPrompt)return;
+  deferredInstallPrompt.prompt();
+  const{outcome}=await deferredInstallPrompt.userChoice;
+  if(outcome==='accepted')deferredInstallPrompt=null;
+  closeInstall();
 }
 
 // ── Build menu grid ───────────────────────────────────────────────
