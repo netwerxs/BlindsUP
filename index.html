@@ -410,7 +410,7 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <script>
-const VERSION='v1.19';
+const VERSION='v1.20';
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
@@ -784,6 +784,7 @@ if ('serviceWorker' in navigator) {
 // a new version whenever the app comes to the foreground and reload if found.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
+  if (running && !paused && !tickHandle) tickHandle = setInterval(tick, 500);
   fetch('./index.html', {cache: 'no-store'})
     .then(r => r.text())
     .then(html => {
