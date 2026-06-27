@@ -454,7 +454,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.46';
+const VERSION='v1.47';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -737,6 +737,7 @@ function beginCountdown(){
 }
 
 function resumeGame(){
+  getCtx(); // unlock AudioContext within this user-gesture handler (iOS requires it)
   if(level!==5){pausedRemSec=reSnapSec(pausedRemSec);remSec=pausedRemSec;}
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
