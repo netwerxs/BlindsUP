@@ -176,9 +176,31 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   align-items:center;justify-content:center;gap:1.5vh;width:100%;
 }
 #vol-icon{font-size:2.2vh;color:var(--dim);}
+#vol-slider-wrap{
+  width:4rem;height:28vh;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
 input[type="range"]#vol-slider{
-  -webkit-appearance:slider-vertical;appearance:slider-vertical;
-  width:4rem;height:28vh;cursor:pointer;accent-color:var(--white);
+  -webkit-appearance:none;appearance:none;
+  width:28vh;height:4rem;flex-shrink:0;
+  transform:rotate(-90deg);
+  cursor:pointer;background:transparent;
+}
+input[type="range"]#vol-slider::-webkit-slider-runnable-track{
+  background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
+}
+input[type="range"]#vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:3rem;height:3rem;border-radius:50%;
+  background:var(--white);cursor:pointer;
+  margin-top:calc(-1.5rem + 2px);
+}
+input[type="range"]#vol-slider::-moz-range-track{
+  background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
+}
+input[type="range"]#vol-slider::-moz-range-thumb{
+  width:3rem;height:3rem;border-radius:50%;
+  background:var(--white);cursor:pointer;border:none;
 }
 #vol-pct{font-size:1.4vh;font-weight:300;color:var(--dim);letter-spacing:0.1em;}
 
@@ -353,7 +375,9 @@ body.no-touch .no-touch-only { display:flex; }
     <div id="tod">—</div>
     <div id="vol-wrap">
       <div id="vol-icon">&#9835;</div>
-      <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="onVolSlider(this.value)">
+      <div id="vol-slider-wrap">
+        <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="onVolSlider(this.value)">
+      </div>
       <div id="vol-pct">50%</div>
     </div>
     <div id="version-label-app" style="font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);padding-bottom:1vh;"></div>
@@ -410,7 +434,7 @@ body.no-touch .no-touch-only { display:flex; }
 </div>
 
 <script>
-const VERSION='v1.20';
+const VERSION='v1.21';
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
