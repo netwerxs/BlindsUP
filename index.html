@@ -51,7 +51,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   100%{background:#f0c040;}
 }
 #btn-resume:hover{opacity:0.85;}
-#btn-resume.on-break{animation:none;background:rgba(255,255,255,0.1);cursor:default;}
+#btn-resume.on-break{pointer-events:none;}
 .menu-title{
   font-size:2vh;font-weight:200;
   letter-spacing:0.5em;text-transform:uppercase;
@@ -456,7 +456,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.57';
+const VERSION='v1.58';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -756,7 +756,7 @@ function tick(){
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
   else if(remSec>12)lastTickSec=-1;
   if(remSec<=0&&!advancing){
-    if(level===5){advancing=false;startBreak();return;}
+    if(level===5){advancing=false;level=6;startBreak();return;}
     advancing=true;
     level=Math.min(level+1,BLINDS.length);
     const ms=maxSec(level);
@@ -874,7 +874,7 @@ function tickBreak(){
   if(breakRemSec<=0){
     clearInterval(breakTO);breakTO=null;inBreak=false;
     elBtnResume.classList.remove('on-break');
-    elBtnResume.style.display='none';
+    elBtnResume.textContent="Let's play, good luck!";
   }
 }
 
