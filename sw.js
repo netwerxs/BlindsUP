@@ -1,5 +1,5 @@
-const CACHE = 'blindsup-static-v2';
-const STATIC = ['./manifest.json', './icons/icon.svg'];
+const CACHE = 'blindsup-static-v3';
+const STATIC = ['./index.html', './manifest.json', './icons/icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
