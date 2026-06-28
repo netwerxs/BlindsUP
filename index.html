@@ -51,6 +51,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   100%{background:#f0c040;}
 }
 #btn-resume:hover{opacity:0.85;}
+#btn-resume.on-break{animation:none;background:rgba(255,255,255,0.1);cursor:default;}
 .menu-title{
   font-size:2vh;font-weight:200;
   letter-spacing:0.5em;text-transform:uppercase;
@@ -156,7 +157,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .cd-num{font-size:30vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
 .cd-colon{font-size:16vh;font-weight:200;color:var(--dim);align-self:flex-start;margin:5vh 0.05em 0;}
 
-#break-label{display:none;font-size:10vh;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);text-align:center;}
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
@@ -371,7 +371,6 @@ body.no-touch .no-touch-only{display:flex;}
       <span class="b-amp">&amp;</span>
       <span class="b-num" id="bBB">2</span>
     </div>
-    <div id="break-label">Break</div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"><span class="zone-sign">+</span></div>
     <span class="swipe-hint">← down &nbsp; up →</span>
@@ -457,7 +456,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.56';
+const VERSION='v1.57';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -465,7 +464,6 @@ const elBBB=document.getElementById('bBB');
 const elCdMin=document.getElementById('cdMin');
 const elCdSec=document.getElementById('cdSec');
 const elCdInner=document.getElementById('cd-inner');
-const elBreakLabel=document.getElementById('break-label');
 const elBtnBreak=document.getElementById('btn-break');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
@@ -491,7 +489,7 @@ function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
 let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
-let inBreak=false,breakRemSec=0,breakPausedRemSec=0,breakLaunchWall=0,lastBreakTickSec=-1;
+let inBreak=false,breakRemSec=0,breakTO=null;
 let volume=0.5,audioCtx=null,alarmNodes=[];
 let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
@@ -599,6 +597,7 @@ function reSnapSec(curSec){
 function cancelSnap(){if(snapTO){clearTimeout(snapTO);snapTO=null;}}
 
 function selectBlind(i){
+  if(inBreak){clearInterval(breakTO);breakTO=null;inBreak=false;elBtnResume.classList.remove('on-break');}
   level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
   beginCountdown();
 }
@@ -696,19 +695,8 @@ function fmtClock(){
 }
 
 function render(){
-  if(inBreak){
-    elBlindInner.style.display='none';
-    elBreakLabel.style.display='flex';
-    elCdInner.style.display='flex';
-    const mm=Math.floor(breakRemSec/60),ss=breakRemSec%60;
-    elCdMin.textContent=String(mm).padStart(2,'0');
-    elCdSec.textContent=String(ss).padStart(2,'0');
-    elCdZone.className='';elBlindZone.className='';
-    return;
-  }
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
   elBlindInner.style.display='flex';
-  elBreakLabel.style.display='none';
   elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;
   elCdInner.style.display='flex';
   const mm=Math.floor(remSec/60),ss=remSec%60;
@@ -745,6 +733,7 @@ function beginCountdown(){
 }
 
 function resumeGame(){
+  if(inBreak)return;
   getCtx(); // unlock AudioContext within this user-gesture handler (iOS requires it)
   if(pausedRemSec===0){remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;advancing=false;}
   else{pausedRemSec=reSnapSec(pausedRemSec);remSec=pausedRemSec;}
@@ -764,15 +753,6 @@ function tick(){
   const elapsed=(Date.now()-launchWall)/1000;
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
-  if(inBreak){
-    const be=(Date.now()-breakLaunchWall)/1000;
-    const bc=Math.max(0,Math.ceil(breakPausedRemSec-be));
-    if(bc!==breakRemSec){breakRemSec=bc;render();}
-    if(breakRemSec===180&&lastBreakTickSec!==180){lastBreakTickSec=180;playAlarm();speak("Let's play poker!");}
-    else if(breakRemSec===60&&lastBreakTickSec!==60){lastBreakTickSec=60;playAlarm();speak("Let's play poker!");}
-    else if(breakRemSec===0&&lastBreakTickSec!==0){lastBreakTickSec=0;playAlarm();}
-    return;
-  }
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
   else if(remSec>12)lastTickSec=-1;
   if(remSec<=0&&!advancing){
@@ -795,7 +775,6 @@ function tick(){
 function togglePause(){
   if(!running)return;
   if(!paused){
-    if(inBreak)endBreak();
     paused=true;pausedRemSec=remSec;cancelSnap();
     if(tickHandle)clearInterval(tickHandle);
     showMenu(true);
@@ -869,24 +848,34 @@ function speak(text){
 }
 
 function toggleBreak(){
-  if(!running||paused)return;
-  inBreak?endBreak():startBreak();
+  if(!running||paused||inBreak)return;
+  startBreak();
 }
 
 function startBreak(){
   inBreak=true;
-  breakRemSec=snapToRTC(15*60);breakPausedRemSec=breakRemSec;
-  breakLaunchWall=Date.now();lastBreakTickSec=-1;
-  elBtnBreak.textContent='End Break';
-  render();
+  breakRemSec=15*60;
+  paused=true;pausedRemSec=remSec;cancelSnap();
+  if(tickHandle)clearInterval(tickHandle);
+  elApp.classList.remove('visible');
+  elBtnResume.classList.add('on-break');
+  elBtnResume.textContent='On Break '+fmtCD(breakRemSec);
+  elBtnResume.style.display='block';
+  elMenuScreen.style.display='flex';
+  if(breakTO)clearInterval(breakTO);
+  breakTO=setInterval(tickBreak,1000);
 }
 
-function endBreak(){
-  inBreak=false;
-  pausedRemSec=reSnapSec(remSec);remSec=pausedRemSec;
-  launchWall=Date.now();lastTickSec=-1;
-  elBtnBreak.textContent='Break';
-  render();
+function tickBreak(){
+  breakRemSec=Math.max(0,breakRemSec-1);
+  elBtnResume.textContent='On Break '+fmtCD(breakRemSec);
+  if(breakRemSec===180){playAlarm();speak("Let's play poker!");}
+  else if(breakRemSec===60){playAlarm();speak("Let's play poker!");}
+  if(breakRemSec<=0){
+    clearInterval(breakTO);breakTO=null;inBreak=false;
+    elBtnResume.classList.remove('on-break');
+    elBtnResume.style.display='none';
+  }
 }
 
 // Clock
