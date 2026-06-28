@@ -39,9 +39,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:none;
   color:var(--bg);
   border:none;border-radius:100px;
-  font-family:'Inter',sans-serif;font-size:3vh;font-weight:700;
-  letter-spacing:0.15em;text-transform:uppercase;
-  padding:1.8vh 8vw;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:3.5vh;font-weight:700;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:2vh 8vw;cursor:pointer;
   animation:resumepulse 3s ease-in-out infinite;
 }
 @keyframes resumepulse{
@@ -72,7 +72,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 }
 #menu-tod{
   position:absolute;top:6vh;right:2vw;
-  font-size:7vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
+  font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
   pointer-events:none;
 }
 #blind-grid{
@@ -128,68 +128,69 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 
 .pill-btn{
   background:transparent;
-  border:1px solid rgba(255,255,255,0.25);color:var(--white);
-  font-family:'Inter',sans-serif;font-size:1.5vh;font-weight:500;
-  letter-spacing:0.2em;text-transform:uppercase;
-  padding:1.2vh 2vw;border-radius:100px;
+  border:1px solid rgba(255,255,255,0.28);color:var(--white);
+  font-family:'Inter',sans-serif;font-size:1.8vh;font-weight:600;
+  letter-spacing:0.18em;text-transform:uppercase;
+  padding:1.4vh 2vw;border-radius:100px;
   cursor:pointer;transition:all 0.2s;white-space:nowrap;
 }
-.pill-btn:hover,.pill-btn:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.5);}
+.pill-btn:hover,.pill-btn:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 
 #blind-zone{
   grid-column:1;grid-row:1;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;
+  border-bottom:1px solid rgba(255,255,255,0.07);
 }
 #blind-inner{
   display:flex;align-items:center;justify-content:center;
   height:100%;width:100%;
 }
 .b-num{font-size:34vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
-.b-amp{font-size:13vh;font-weight:200;color:rgba(255,255,255,0.55);align-self:center;margin:0 0.35em;}
+.b-amp{font-size:13vh;font-weight:700;color:rgba(255,255,255,0.35);align-self:center;margin:0 0.25em;}
 
 #cd-zone{
   grid-column:1;grid-row:2;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;
 }
-#cd-inner{display:flex;align-items:flex-start;padding-top:3vh;justify-content:center;height:100%;width:100%;}
-.cd-num{font-size:30vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
-.cd-colon{font-size:16vh;font-weight:200;color:var(--dim);align-self:flex-start;margin:5vh 0.05em 0;}
+#cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
+.cd-num{font-size:32vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
+.cd-colon{font-size:22vh;font-weight:900;color:rgba(255,255,255,0.38);align-self:center;margin:0 0.05em;}
 
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
-#blind-zone.warn .b-amp{color:rgba(232,200,74,0.35);}
+#blind-zone.warn .b-amp{color:rgba(232,200,74,0.4);}
 #blind-zone.warn,#cd-zone.warn{animation:warnpulse 1.2s ease-in-out infinite;}
 @keyframes warnpulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
 #cd-zone.urgent .cd-num{color:var(--danger);}
-#cd-zone.urgent .cd-colon{color:rgba(232,74,74,0.35);}
+#cd-zone.urgent .cd-colon{color:rgba(232,74,74,0.45);}
 #cd-zone.urgent{animation:urgentpulse 0.75s ease-in-out infinite;}
 @keyframes urgentpulse{0%,100%{opacity:1;}50%{opacity:0.15;}}
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
 
-.swipe-hint{
-  position:absolute;bottom:1.2vh;
-  font-size:1vh;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;
-  color:var(--dimmer);pointer-events:none;
-}
+.swipe-hint{display:none;}
 
 /* RIGHT */
 #col-right{
   grid-column:2;grid-row:1/span 2;
   display:flex;flex-direction:column;align-items:stretch;
-  padding:0 1.5vw;
+  justify-content:space-between;
+  padding:2vh 1.5vw;
+  border-left:1px solid rgba(255,255,255,0.07);
 }
 #tod{
-  flex:1;
-  font-size:7vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
+  font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
 }
+#col-mid{
+  display:flex;flex-direction:column;align-items:stretch;gap:2.5vh;
+}
 #vol-wrap{
-  flex:2;display:flex;flex-direction:column;
+  display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:1vh;
 }
 #vol-icon{font-size:2vh;color:var(--dim);}
@@ -219,16 +220,11 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   width:2.5rem;height:2.5rem;border-radius:50%;
   background:var(--white);cursor:pointer;border:none;
 }
-#vol-pct{font-size:1.2vh;font-weight:300;color:var(--dim);letter-spacing:0.1em;}
-#bottom-cell{
-  flex:1;
-  display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:1.5vh;
-}
+#vol-pct{font-size:1.5vh;font-weight:400;color:rgba(255,255,255,0.4);letter-spacing:0.08em;}
 #btn-break,#btn-pause{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
-#break-cell{display:flex;align-items:center;justify-content:center;padding:0.5vh 0;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
-  color:rgba(255,255,255,0.7);white-space:nowrap;text-align:center;
+  color:rgba(255,255,255,0.45);white-space:nowrap;text-align:center;
 }
 
 /* ANNOUNCE */
@@ -241,7 +237,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .ann-label{font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;color:var(--dim);animation:fadein 0.4s ease;}
 #ann-wrap{display:flex;align-items:center;justify-content:center;animation:pop 0.38s cubic-bezier(0.34,1.56,0.64,1);}
 .ann-num{font-size:40vh;font-weight:900;color:var(--white);letter-spacing:-0.04em;line-height:0.85;}
-.ann-amp{font-size:17vh;font-weight:200;color:var(--dim);margin:0 0.18em;align-self:center;}
+.ann-amp{font-size:17vh;font-weight:700;color:rgba(255,255,255,0.3);margin:0 0.18em;align-self:center;}
 .ann-sub{font-size:1.8vh;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;color:var(--dim);animation:fadein 0.5s 0.5s both ease;margin-top:1vh;}
 .ann-tap{font-size:1.3vh;font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:var(--dimmer);animation:fadein 0.5s 0.3s both ease;}
 @keyframes pop{from{opacity:0;transform:scale(0.75);}to{opacity:1;transform:scale(1);}}
@@ -389,20 +385,18 @@ body.no-touch .no-touch-only{display:flex;}
 
   <div id="col-right">
     <div id="tod">—</div>
-    <div id="break-cell">
+    <div id="col-mid">
       <button class="pill-btn" id="btn-break" onclick="toggleBreak()">Break</button>
-    </div>
-    <div id="vol-wrap">
-      <div id="vol-icon">&#9835;</div>
-      <div id="vol-slider-wrap">
-        <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="onVolSlider(this.value)">
+      <div id="vol-wrap">
+        <div id="vol-icon">&#9835;</div>
+        <div id="vol-slider-wrap">
+          <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="onVolSlider(this.value)">
+        </div>
+        <div id="vol-pct">50%</div>
       </div>
-      <div id="vol-pct">50%</div>
-    </div>
-    <div id="bottom-cell">
       <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
-      <div id="version-label-app"></div>
     </div>
+    <div id="version-label-app"></div>
   </div>
 
 </div>
@@ -456,7 +450,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.59';
+const VERSION='v1.60';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
