@@ -69,6 +69,10 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   position:absolute;bottom:1.5vh;right:2vw;
   font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);
 }
+#menu-tod{
+  position:absolute;bottom:1.5vh;left:2vw;
+  font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);
+}
 #blind-grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
@@ -355,6 +359,7 @@ body.no-touch .no-touch-only{display:flex;}
   </div>
   <div class="menu-title">Select Starting Blind</div>
   <div id="version-label"></div>
+  <div id="menu-tod"></div>
   <div id="blind-grid"></div>
 </div>
 
@@ -454,7 +459,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.47';
+const VERSION='v1.48';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -688,8 +693,8 @@ async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.
 function requestLandscape(){try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}
 
 function fmtClock(){
-  const n=new Date(),h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
-  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const n=new Date(),h=n.getHours(),m=n.getMinutes();
+  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
 }
 
 function render(){
@@ -837,8 +842,10 @@ function dismissAnnounce(){
 }
 
 // Clock
-setInterval(()=>elTod.textContent=fmtClock(),1000);
-elTod.textContent=fmtClock();
+const elMenuTod=document.getElementById('menu-tod');
+function updateClocks(){const t=fmtClock();elTod.textContent=t;elMenuTod.textContent=t;}
+setInterval(updateClocks,1000);
+updateClocks();
 
 // Hold Esc 3 seconds to return to menu
 (function(){
