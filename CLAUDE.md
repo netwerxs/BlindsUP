@@ -40,9 +40,9 @@ All mutable state is global:
 
 `BLINDS` is a 25-entry array: `{sb: i, bb: i*2}`. Level semantics:
 
-- Levels 1–4: 15-minute countdown
-- Level 5: "Break / Winding Down" — no countdown (`maxSec` returns 0), no timer ticks
-- Levels 6–25: 10-minute countdown ("Freezeout")
+- Levels 1–5: 15-minute countdown
+- Level 6: "Winding Down to Break" — 15-minute countdown, no auto-advance. Horn + "Let's play poker!" speech at 3 min and 1 min; horn only at 0; timer holds at 0. Freezeout button visible on screen to manually advance.
+- Levels 7–26: 10-minute countdown ("Freezeout", sb:6–25)
 
 `maxSec(lv)` encodes this rule and is the single source of truth for level duration.
 
