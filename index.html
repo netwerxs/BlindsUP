@@ -156,8 +156,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .cd-num{font-size:30vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
 .cd-colon{font-size:16vh;font-weight:200;color:var(--dim);align-self:flex-start;margin:5vh 0.05em 0;}
 
-#winding{display:none;position:absolute;bottom:4vh;left:50%;transform:translateX(-50%);}
-#winding-label{display:none;font-size:7vh;font-weight:400;letter-spacing:0.15em;text-transform:uppercase;color:var(--white);text-align:center;max-width:90%;}
+#break-label{display:none;font-size:10vh;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);text-align:center;}
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
@@ -225,7 +224,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   flex:1;
   display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:1.5vh;
 }
-#btn-pause{font-size:2.2vh;padding:1.8vh 0;text-align:center;}
+#btn-break,#btn-pause{font-size:2.2vh;padding:1.8vh 0;text-align:center;}
+#break-cell{display:flex;align-items:center;justify-content:center;padding:0.5vh 0;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
   color:rgba(255,255,255,0.7);white-space:nowrap;text-align:center;
@@ -370,7 +370,7 @@ body.no-touch .no-touch-only{display:flex;}
       <span class="b-amp">&amp;</span>
       <span class="b-num" id="bBB">2</span>
     </div>
-    <div id="winding-label">Winding Down to Break</div>
+    <div id="break-label">Break</div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"><span class="zone-sign">+</span></div>
     <span class="swipe-hint">← down &nbsp; up →</span>
@@ -382,9 +382,6 @@ body.no-touch .no-touch-only{display:flex;}
       <span class="cd-colon">:</span>
       <span class="cd-num" id="cdSec">00</span>
     </div>
-    <div id="winding">
-      <button class="pill-btn" id="btn-freezeout" onclick="beginFreezeout()">Freezeout</button>
-    </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"><span class="zone-sign">↓</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"><span class="zone-sign">↑</span></div>
     <span class="swipe-hint">← +1m &nbsp; −1m →</span>
@@ -392,6 +389,9 @@ body.no-touch .no-touch-only{display:flex;}
 
   <div id="col-right">
     <div id="tod">—</div>
+    <div id="break-cell">
+      <button class="pill-btn" id="btn-break" onclick="toggleBreak()">Break</button>
+    </div>
     <div id="vol-wrap">
       <div id="vol-icon">&#9835;</div>
       <div id="vol-slider-wrap">
@@ -426,7 +426,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Blind Schedule</div>
-      <div class="help-body"><b>Levels 1–5</b> (1&amp;2 through 5&amp;10) run for <b>15 minutes</b> each. <b>Level 6</b> is Winding Down to Break — a 15-minute countdown with horn and voice announcement at 3 and 1 minutes, then holds at zero. Press <b>Freezeout</b> to begin elimination rounds. <b>Levels 7 and up</b> (Freezeout, starting at 6&amp;12) run for <b>10 minutes</b> each.</div>
+      <div class="help-body"><b>Levels 1–5</b> (1&amp;2 through 5&amp;10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (Freezeout, starting at 6&amp;12) run for <b>10 minutes</b> each. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Full Screen</div>
@@ -455,7 +455,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.53';
+const VERSION='v1.54';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -463,8 +463,8 @@ const elBBB=document.getElementById('bBB');
 const elCdMin=document.getElementById('cdMin');
 const elCdSec=document.getElementById('cdSec');
 const elCdInner=document.getElementById('cd-inner');
-const elWinding=document.getElementById('winding');
-const elWindingLabel=document.getElementById('winding-label');
+const elBreakLabel=document.getElementById('break-label');
+const elBtnBreak=document.getElementById('btn-break');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
 const elBlindInner=document.getElementById('blind-inner');
@@ -482,16 +482,14 @@ document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
 const BLINDS=[];
-for(let i=1;i<=5;i++) BLINDS.push({sb:i,bb:i*2});
-BLINDS.push({winding:true}); // level 6: winding down to break
-for(let i=6;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
+for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
 
-function isWinding(lv){return !!(BLINDS[lv-1]&&BLINDS[lv-1].winding);}
-function maxSec(lv){if(lv<=6)return 15*60;return 10*60;}
+function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
 let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
+let inBreak=false,breakRemSec=0,breakPausedRemSec=0,breakLaunchWall=0,lastBreakTickSec=-1;
 let volume=0.5,audioCtx=null,alarmNodes=[];
 let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
@@ -567,10 +565,7 @@ async function nativeInstall(e){
   for(let i=1;i<=BLINDS.length;i++){
     const bl=BLINDS[i-1];
     const card=document.createElement('div');
-    if(bl.winding){
-      card.className='blind-card special-break';
-      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds accent">Winding</div><div class="card-time">15 min</div>`;
-    } else if(i===7){
+    if(i===6){
       card.className='blind-card special-freeze';
       card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds freeze">Freezeout</div><div class="card-time">6 &amp; 12 · 10 min</div>`;
     } else {
@@ -699,12 +694,20 @@ function fmtClock(){
 }
 
 function render(){
+  if(inBreak){
+    elBlindInner.style.display='none';
+    elBreakLabel.style.display='flex';
+    elCdInner.style.display='flex';
+    const mm=Math.floor(breakRemSec/60),ss=breakRemSec%60;
+    elCdMin.textContent=String(mm).padStart(2,'0');
+    elCdSec.textContent=String(ss).padStart(2,'0');
+    elCdZone.className='';elBlindZone.className='';
+    return;
+  }
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-  const wind=isWinding(level);
-  elBlindInner.style.display=wind?'none':'flex';
-  elWindingLabel.style.display=wind?'flex':'none';
-  elWinding.style.display=wind?'block':'none';
-  if(!wind){elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;}
+  elBlindInner.style.display='flex';
+  elBreakLabel.style.display='none';
+  elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;
   elCdInner.style.display='flex';
   const mm=Math.floor(remSec/60),ss=remSec%60;
   elCdMin.textContent=String(mm).padStart(2,'0');
@@ -720,7 +723,7 @@ function showMenu(showResume){
   elApp.classList.remove('visible');
   if(showResume){
     const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-    elBtnResume.textContent=isWinding(level)?'Resume Winding Down · '+fmtCD(pausedRemSec)+' left':'Resume '+bl.sb+' & '+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
+    elBtnResume.textContent='Resume '+bl.sb+' & '+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
     elBtnResume.style.display='block';
   } else {
     elBtnResume.style.display='none';
@@ -759,10 +762,13 @@ function tick(){
   const elapsed=(Date.now()-launchWall)/1000;
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
-  if(isWinding(level)){
-    if(remSec===180&&lastTickSec!==180){lastTickSec=180;playAlarm();speak("Let's play poker!");}
-    else if(remSec===60&&lastTickSec!==60){lastTickSec=60;playAlarm();speak("Let's play poker!");}
-    else if(remSec===0&&lastTickSec!==0){lastTickSec=0;playAlarm();}
+  if(inBreak){
+    const be=(Date.now()-breakLaunchWall)/1000;
+    const bc=Math.max(0,Math.ceil(breakPausedRemSec-be));
+    if(bc!==breakRemSec){breakRemSec=bc;render();}
+    if(breakRemSec===180&&lastBreakTickSec!==180){lastBreakTickSec=180;playAlarm();speak("Let's play poker!");}
+    else if(breakRemSec===60&&lastBreakTickSec!==60){lastBreakTickSec=60;playAlarm();speak("Let's play poker!");}
+    else if(breakRemSec===0&&lastBreakTickSec!==0){lastBreakTickSec=0;playAlarm();}
     return;
   }
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
@@ -786,6 +792,7 @@ function tick(){
 function togglePause(){
   if(!running)return;
   if(!paused){
+    if(inBreak)endBreak();
     paused=true;pausedRemSec=remSec;cancelSnap();
     if(tickHandle)clearInterval(tickHandle);
     showMenu(true);
@@ -833,7 +840,6 @@ function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
 }
 
 function showAnnounce(){
-  if(isWinding(level))return;
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
   elAnnSB.textContent=bl.sb;
   elAnnBB.textContent=bl.bb;
@@ -859,10 +865,24 @@ function speak(text){
   window.speechSynthesis.speak(u);
 }
 
-function beginFreezeout(){
-  cancelSnap();advancing=false;
-  level=7; // first freezeout level (6&12)
-  remSec=snapToRTC(maxSec(7));pausedRemSec=remSec;lastTickSec=-1;
+function toggleBreak(){
+  if(!running||paused)return;
+  inBreak?endBreak():startBreak();
+}
+
+function startBreak(){
+  inBreak=true;
+  breakRemSec=snapToRTC(15*60);breakPausedRemSec=breakRemSec;
+  breakLaunchWall=Date.now();lastBreakTickSec=-1;
+  elBtnBreak.textContent='End Break';
+  render();
+}
+
+function endBreak(){
+  inBreak=false;
+  pausedRemSec=reSnapSec(remSec);remSec=pausedRemSec;
+  launchWall=Date.now();lastTickSec=-1;
+  elBtnBreak.textContent='Break';
   render();
 }
 

@@ -41,8 +41,9 @@ All mutable state is global:
 `BLINDS` is a 25-entry array: `{sb: i, bb: i*2}`. Level semantics:
 
 - Levels 1–5: 15-minute countdown
-- Level 6: "Winding Down to Break" — 15-minute countdown, no auto-advance. Horn + "Let's play poker!" speech at 3 min and 1 min; horn only at 0; timer holds at 0. Freezeout button visible on screen to manually advance.
-- Levels 7–26: 10-minute countdown ("Freezeout", sb:6–25)
+- Levels 6–25: 10-minute countdown ("Freezeout" begins at level 6, sb:6–25)
+
+Break is not a level. A **Break button** (above the volume slider in col-right) starts a separate 15-minute break countdown (`inBreak` flag). During break, the level timer is frozen and the break screen shows "Break" in the blind zone. Horn + "Let's play poker!" speech fires at 3 min and 1 min; horn only at 0; break holds at 0. "End Break" / "Break" label toggles on the button. Pressing Pause during break ends break and shows the menu.
 
 `maxSec(lv)` encodes this rule and is the single source of truth for level duration.
 
