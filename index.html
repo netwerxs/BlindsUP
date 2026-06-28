@@ -460,7 +460,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.51';
+const VERSION='v1.52';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -762,7 +762,7 @@ function resumeGame(){
 
 function tick(){
   elTod.textContent=fmtClock();
-  if(!running||paused||level===5)return;
+  if(!running||paused||level===5||advancing)return;
   const elapsed=(Date.now()-launchWall)/1000;
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
@@ -771,8 +771,9 @@ function tick(){
   if(remSec<=0&&!advancing){
     advancing=true;
     level=Math.min(level+1,BLINDS.length);
-    showAnnounce();render();
     const ms=maxSec(level);
+    remSec=ms;pausedRemSec=ms;
+    showAnnounce();render();
     if(ms===0){advancing=false;return;} // level 5 break — no countdown
     const ss=new Date().getSeconds();
     snapTO=setTimeout(()=>{
