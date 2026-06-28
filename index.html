@@ -72,6 +72,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #menu-tod{
   position:absolute;top:6vh;right:2vw;
   font-size:7vh;font-weight:300;letter-spacing:0.04em;color:var(--white);
+  pointer-events:none;
 }
 #blind-grid{
   display:grid;
@@ -459,7 +460,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.49';
+const VERSION='v1.50';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -491,7 +492,7 @@ function maxSec(lv){if(lv<=4)return 15*60;if(lv===5)return 0;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
-let lastTickSec=-1,tickHandle=null,announceTO=null,advancing=false;
+let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let volume=0.5,audioCtx=null,alarmNodes=[];
 let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
 
@@ -599,6 +600,8 @@ function reSnapSec(curSec){
   const ss=new Date().getSeconds();
   return Math.floor(curSec/60)*60+(60-ss)%60;
 }
+
+function cancelSnap(){if(snapTO){clearTimeout(snapTO);snapTO=null;}}
 
 function selectBlind(i){
   level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
@@ -743,7 +746,10 @@ function beginCountdown(){
 
 function resumeGame(){
   getCtx(); // unlock AudioContext within this user-gesture handler (iOS requires it)
-  if(level!==5){pausedRemSec=reSnapSec(pausedRemSec);remSec=pausedRemSec;}
+  if(level!==5){
+    if(pausedRemSec===0){remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;advancing=false;}
+    else{pausedRemSec=reSnapSec(pausedRemSec);remSec=pausedRemSec;}
+  }
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
   paused=false;running=true;
@@ -766,19 +772,22 @@ function tick(){
     advancing=true;
     level=Math.min(level+1,BLINDS.length);
     showAnnounce();render();
-    (function tryLevel(){
-      if(new Date().getSeconds()>20){setTimeout(tryLevel,2000);return;}
-      if(!running||paused){advancing=false;return;}
-      remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;
+    const ms=maxSec(level);
+    if(ms===0){advancing=false;return;} // level 5 break — no countdown
+    const ss=new Date().getSeconds();
+    snapTO=setTimeout(()=>{
+      snapTO=null;
+      if(!advancing||!running||paused)return;
+      remSec=snapToRTC(ms);pausedRemSec=remSec;
       launchWall=Date.now();lastTickSec=-1;advancing=false;render();
-    })();
+    },((20-ss+60)%60)*1000);
   }
 }
 
 function togglePause(){
   if(!running)return;
   if(!paused){
-    paused=true;pausedRemSec=remSec;advancing=false;
+    paused=true;pausedRemSec=remSec;cancelSnap();
     if(tickHandle)clearInterval(tickHandle);
     showMenu(true);
   } else {
@@ -807,6 +816,7 @@ function togglePause(){
 })();
 
 function adjustLevel(dir){
+  cancelSnap();advancing=false;
   const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
   if(nv===level)return;
   level=nv;
@@ -817,6 +827,7 @@ function adjustLevel(dir){
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   if(level===5)return;
+  cancelSnap();advancing=false;
   const newRem=reSnapSec((Math.floor(remSec/60)+dir)*60);
   if(newRem<=0||newRem>maxSec(level)+59)return;
   remSec=newRem;pausedRemSec=newRem;
@@ -855,7 +866,7 @@ updateClocks();
       escTO=setTimeout(()=>{
         stopAlarm();dismissAnnounce();
         if(tickHandle)clearInterval(tickHandle);
-        running=false;paused=true;advancing=false;
+        running=false;paused=true;advancing=false;cancelSnap();
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
         elBtnPause.textContent='Pause';
         elApp.classList.remove('visible');
