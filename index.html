@@ -455,7 +455,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.54';
+const VERSION='v1.55';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -774,6 +774,7 @@ function tick(){
   if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
   else if(remSec>12)lastTickSec=-1;
   if(remSec<=0&&!advancing){
+    if(level===5){advancing=false;startBreak();return;}
     advancing=true;
     level=Math.min(level+1,BLINDS.length);
     const ms=maxSec(level);
