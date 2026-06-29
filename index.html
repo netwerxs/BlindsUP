@@ -456,7 +456,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.66';
+const VERSION='v1.67';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -828,8 +828,10 @@ function adjustLevel(dir){
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   cancelSnap();advancing=false;
-  const newRem=reSnapSec((Math.floor(remSec/60)+dir)*60);
-  if(newRem<0||newRem>maxSec(level)+59)return;
+  const newMin=Math.floor(remSec/60)+dir;
+  if(newMin<0||newMin*60>maxSec(level)+59)return;
+  const ss=new Date().getSeconds();
+  const newRem=newMin===0?(60-ss)%60:reSnapSec(newMin*60);
   remSec=newRem;pausedRemSec=newRem;
   launchWall=Date.now();lastTickSec=-1;render();updateBreakETA();
 }
