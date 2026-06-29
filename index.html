@@ -456,7 +456,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.65';
+const VERSION='v1.66';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -670,7 +670,7 @@ function stopAlarm(){
 
 function playTick(){
   zzfx(1,0,1200,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0);
-  setTimeout(()=>zzfx(1,0,900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0),500);
+  setTimeout(()=>zzfx(0.4,0,900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0),500);
 }
 
 let volPreviewTO=null;
@@ -829,7 +829,7 @@ function adjustLevel(dir){
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   cancelSnap();advancing=false;
   const newRem=reSnapSec((Math.floor(remSec/60)+dir)*60);
-  if(newRem<=0||newRem>maxSec(level)+59)return;
+  if(newRem<0||newRem>maxSec(level)+59)return;
   remSec=newRem;pausedRemSec=newRem;
   launchWall=Date.now();lastTickSec=-1;render();updateBreakETA();
 }
