@@ -456,7 +456,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.62';
+const VERSION='v1.63';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -491,8 +491,7 @@ let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0;
 let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let inBreak=false,breakRemSec=0,breakTO=null;
-let volume=0.5,audioCtx=null,alarmNodes=[];
-let volHornNode=null,volHornGain=null,volSinNode=null,volSinGain=null,hornStopTO=null;
+let volume=0.5,audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
 // ── Touch detection ───────────────────────────────────────────────
 (function(){
@@ -620,71 +619,65 @@ document.addEventListener('touchstart',function unlockAudio(){
   document.removeEventListener('touchstart',unlockAudio);
 },{once:true,passive:true});
 
+// ZzFX ~ adapted from v1.3.2 by Frank Force (MIT)
+function zzfx(vol=1,randomness=.05,frequency=220,attack=0,sustain=0,release=.1,shape=0,shapeCurve=1,slide=0,deltaSlide=0,pitchJump=0,pitchJumpTime=0,repeatTime=0,noise=0,modulation=0,bitCrush=0,delay=0,sustainVolume=1,decay=0,tremolo=0){
+  const ctx=getCtx(),R=44100,PI2=Math.PI*2,abs=Math.abs,sign=v=>v<0?-1:1;
+  let startSlide=slide*=500*PI2/R/R,
+      startFreq=frequency*=(1+randomness*2*Math.random()-randomness)*PI2/R,
+      modOffset=0,rep=0,crush=0,jump=1,t=0,i=0,s=0,f,b=[];
+  attack=attack*R||9; decay*=R; sustain*=R; release*=R; delay*=R;
+  deltaSlide*=500*PI2/R**3; modulation*=PI2/R; pitchJump*=PI2/R;
+  pitchJumpTime*=R; repeatTime=repeatTime*R|0;
+  for(let len=attack+decay+sustain+release+delay|0;i<len;b[i++]=s){
+    if(!(++crush%(bitCrush*100|0||1))){
+      s=shape>4?(t/PI2%1<shapeCurve/2)*2-1:
+        shape>3?Math.sin(t**3):
+        shape>2?Math.max(Math.min(Math.tan(t),1),-1):
+        shape>1?1-(2*t/PI2%2+2)%2:
+        shape>0?1-4*abs(Math.round(t/PI2)-t/PI2):
+        Math.sin(t);
+      s=(repeatTime?1-tremolo+tremolo*Math.sin(PI2*i/repeatTime):1)*
+        (shape>4?s:sign(s)*abs(s)**shapeCurve)*
+        (i<attack?i/attack:
+         i<attack+decay?1-((i-attack)/decay)*(1-sustainVolume):
+         i<attack+decay+sustain?sustainVolume:
+         i<len-delay?(len-i-delay)/release*sustainVolume:0);
+      s=delay?s/2+(delay>i?0:(i<len-delay?1:(len-i)/delay)*b[i-delay|0]/2):s;
+    }
+    f=(frequency+=slide+=deltaSlide)*Math.cos(modulation*modOffset++);
+    t+=f+f*noise*Math.sin(i**5);
+    if(jump&&++jump>pitchJumpTime){frequency+=pitchJump;startFreq+=pitchJump;jump=0;}
+    if(repeatTime&&!(++rep%repeatTime)){frequency=startFreq;slide=startSlide;jump||=1;}
+  }
+  const buf=ctx.createBuffer(1,b.length,R),data=buf.getChannelData(0);
+  for(let j=0;j<b.length;j++)data[j]=b[j]*vol*volume;
+  const src=ctx.createBufferSource();
+  src.buffer=buf;src.connect(ctx.destination);src.start();
+  return src;
+}
+
 function playAlarm(){
   stopAlarm();
-  const ctx=getCtx();let t=ctx.currentTime;
-  function blast(start,dur){
-    [{f:220,type:'sawtooth',g:0.5},{f:440,type:'sine',g:0.35}].forEach(l=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      o.type=l.type;o.frequency.value=l.f;
-      g.gain.setValueAtTime(0,start);
-      g.gain.linearRampToValueAtTime(volume*l.g,start+0.02);
-      g.gain.setValueAtTime(volume*l.g,start+dur-0.03);
-      g.gain.linearRampToValueAtTime(0,start+dur);
-      o.start(start);o.stop(start+dur);alarmNodes.push(o);
-    });
-  }
-  for(let i=0;i<7;i++)blast(t+i*0.45,0.3);
-  blast(t+6*0.45+0.3+0.4,2.0);
+  for(let i=0;i<7;i++)
+    alarmTimeouts.push(setTimeout(()=>alarmNodes.push(zzfx(1,0,440,.01,.2,.07,2,1,.4)),i*450));
+  alarmTimeouts.push(setTimeout(()=>alarmNodes.push(zzfx(1,0,360,.05,1.7,.4,2,.5)),7*450));
 }
 
-function stopAlarm(){alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];}
+function stopAlarm(){
+  alarmTimeouts.forEach(clearTimeout);alarmTimeouts=[];
+  alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
+}
 
 function playTick(sec){
-  const ctx=getCtx();
-  const freq=500+(12-sec)*55;
-  const vol2=volume*(0.2+(12-sec)*0.07);
-  const dur=Math.max(0.04,0.1-(12-sec)*0.006);
-  const o=ctx.createOscillator(),g=ctx.createGain();
-  o.connect(g);g.connect(ctx.destination);
-  o.type='square';o.frequency.value=freq;
-  g.gain.setValueAtTime(vol2,ctx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
-  o.start();o.stop(ctx.currentTime+dur);
+  zzfx(0.5,0,500+(12-sec)*55,0,0,.04,3);
 }
 
+let volPreviewTO=null;
 function onVolSlider(val){
   volume=val/100;
   elVolPct.textContent=Math.round(volume*100)+'%';
-  const ctx=getCtx();
-  if(!volHornNode){
-    const saw=ctx.createOscillator(),sawG=ctx.createGain();
-    const sin=ctx.createOscillator(),sinG=ctx.createGain();
-    saw.connect(sawG);sawG.connect(ctx.destination);
-    sin.connect(sinG);sinG.connect(ctx.destination);
-    saw.type='sawtooth';saw.frequency.value=220;
-    sin.type='sine';sin.frequency.value=440;
-    sawG.gain.value=volume*0.5;sinG.gain.value=volume*0.35;
-    saw.start();sin.start();
-    volHornNode=saw;volHornGain=sawG;
-    volSinNode=sin;volSinGain=sinG;
-  } else {
-    volHornGain.gain.setTargetAtTime(volume*0.5,ctx.currentTime,0.02);
-    volSinGain.gain.setTargetAtTime(volume*0.35,ctx.currentTime,0.02);
-  }
-  if(hornStopTO)clearTimeout(hornStopTO);
-  hornStopTO=setTimeout(()=>{
-    if(volHornNode){
-      const c=getCtx();
-      volHornGain.gain.setTargetAtTime(0,c.currentTime,0.05);
-      volSinGain.gain.setTargetAtTime(0,c.currentTime,0.05);
-      setTimeout(()=>{
-        try{volHornNode.stop();volSinNode.stop();}catch(e){}
-        volHornNode=null;volHornGain=null;volSinNode=null;volSinGain=null;
-      },300);
-    }
-  },600);
+  if(volPreviewTO)clearTimeout(volPreviewTO);
+  volPreviewTO=setTimeout(()=>{zzfx(1,0,440,.01,.12,.08,2);volPreviewTO=null;},200);
 }
 
 async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
