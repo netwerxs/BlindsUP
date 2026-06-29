@@ -456,7 +456,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.64';
+const VERSION='v1.65';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -668,9 +668,9 @@ function stopAlarm(){
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
 }
 
-function playTick(sec){
-  if(sec%2===0)zzfx(1,0,1200,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0);
-  else         zzfx(1,0, 900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0);
+function playTick(){
+  zzfx(1,0,1200,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0);
+  setTimeout(()=>zzfx(1,0,900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0),500);
 }
 
 let volPreviewTO=null;
@@ -766,7 +766,7 @@ function tick(){
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
   updateBreakETA();
-  if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick(remSec);}
+  if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick();}
   else if(remSec>12)lastTickSec=-1;
   if(remSec<=0&&!advancing){
     if(level===5){advancing=false;level=6;startBreak();return;}
