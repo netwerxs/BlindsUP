@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.77';
+const VERSION='v1.78';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -727,8 +727,8 @@ function allowSound(){
   // iOS only truly unmutes audio output when a real sound is started
   // synchronously inside a gesture — resume() alone can report
   // 'running' without actually unlocking playback. A ~3s simulated
-  // parrot whistle: 5 rising-pitch trills with amplitude flutter.
-  zzfx(1,.02,900,.05,2.55,.4,0,1,12,-1.2,0,0,.6,0,.02,0,0,1,0,.25);
+  // parrot whistle: a single rising-pitch sweep with amplitude flutter.
+  zzfx(1,.02,900,.05,2.55,.4,0,1,2.4,-.048,0,0,3,0,.02,0,0,1,0,.25);
   elSoundcheckScreen.style.display='none';
   showMenu(false);
   render();
