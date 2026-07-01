@@ -201,7 +201,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #col-right{
   grid-column:3;grid-row:1/span 2;
   display:flex;flex-direction:column;align-items:stretch;
-  gap:2.5vh;
+  justify-content:space-between;
   padding:2vh 1.5vw;
   border-left:1px solid rgba(255,255,255,0.07);
 }
@@ -244,7 +244,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #vol-pct{font-size:1.5vh;font-weight:400;color:rgba(255,255,255,0.4);letter-spacing:0.08em;}
 #btn-break,#btn-pause{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
 #version-label-app{
-  margin-top:auto;
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
   color:rgba(255,255,255,0.45);white-space:nowrap;text-align:center;
 }
@@ -479,7 +478,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.84';
+const VERSION='v1.85';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
