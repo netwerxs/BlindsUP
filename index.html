@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.78';
+const VERSION='v1.79';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -513,7 +513,7 @@ for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
 function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
-let paused=true,running=false,launchWall=0;
+let paused=true,running=false,launchWall=0,pauseSecRTC=0;
 let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let inBreak=false,breakRemSec=0,breakTO=null;
 let volume=0.5,audioCtx=null,alarmNodes=[],alarmTimeouts=[];
@@ -611,12 +611,13 @@ function snapToRTC(baseSec){
   return baseSec+(ss<30?-ss:60-ss);
 }
 
-// Preserve current minutes, re-lock seconds to RTC.
-// Used when resuming from pause or adjusting the minute count.
-function reSnapSec(curSec){
-  if(curSec===0)return 0;
-  const ss=new Date().getSeconds();
-  return Math.floor(curSec/60)*60+(60-ss)%60;
+// Signed difference between two RTC seconds-of-minute readings, folded to
+// the smallest-magnitude equivalent (range (-30, 30]) so a pause/resume
+// only ever nudges the countdown by the minimum amount needed to land
+// back on an RTC-aligned :00, not by up to a full minute.
+function minDriftSec(fromSec,toSec){
+  let d=(toSec-fromSec+30+600)%60-30;
+  return d;
 }
 
 function cancelSnap(){if(snapTO){clearTimeout(snapTO);snapTO=null;}}
@@ -799,7 +800,14 @@ function resumeGame(){
   if(inBreak)return;
   getCtx(); // unlock AudioContext within this user-gesture handler (iOS requires it)
   if(pausedRemSec===0){remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;advancing=false;}
-  else{pausedRemSec=reSnapSec(pausedRemSec);remSec=pausedRemSec;}
+  else{
+    // Correct for however long we were paused by the minimum amount
+    // needed to stay RTC-aligned, rather than the pause silently
+    // shifting the eventual :00 hit by whatever the pause happened to last.
+    const drift=minDriftSec(pauseSecRTC,new Date().getSeconds());
+    pausedRemSec=Math.max(0,pausedRemSec-drift);
+    remSec=pausedRemSec;
+  }
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
   paused=false;running=true;
@@ -853,7 +861,7 @@ function scheduleTick(){
 function togglePause(){
   if(!running)return;
   if(!paused){
-    paused=true;pausedRemSec=remSec;cancelSnap();
+    paused=true;pausedRemSec=remSec;pauseSecRTC=new Date().getSeconds();cancelSnap();
     if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
     showMenu(true);
   } else {
@@ -896,7 +904,7 @@ function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   const newMin=Math.floor(remSec/60)+dir;
   if(newMin<0||newMin*60>maxSec(level)+59)return;
   const ss=new Date().getSeconds();
-  const newRem=newMin===0?(60-ss)%60:reSnapSec(newMin*60);
+  const newRem=newMin===0?(60-ss)%60:snapToRTC(newMin*60);
   remSec=newRem;pausedRemSec=newRem;
   launchWall=Date.now();lastTickSec=-1;render();updateBreakETA();
 }
@@ -944,7 +952,7 @@ function flashBreak(onDone){
 function startBreak(){
   inBreak=true;
   breakRemSec=15*60;
-  paused=true;pausedRemSec=remSec;cancelSnap();
+  paused=true;pausedRemSec=remSec;pauseSecRTC=new Date().getSeconds();cancelSnap();
   if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
   elApp.classList.remove('visible');
   flashBreak(()=>{
