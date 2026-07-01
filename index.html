@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.76';
+const VERSION='v1.77';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -729,7 +729,6 @@ function allowSound(){
   // 'running' without actually unlocking playback. A ~3s simulated
   // parrot whistle: 5 rising-pitch trills with amplitude flutter.
   zzfx(1,.02,900,.05,2.55,.4,0,1,12,-1.2,0,0,.6,0,.02,0,0,1,0,.25);
-  speak("It's time!");
   elSoundcheckScreen.style.display='none';
   showMenu(false);
   render();
@@ -920,14 +919,6 @@ function dismissAnnounce(){
   if(announceTO)clearTimeout(announceTO);
 }
 
-function speak(text){
-  if(!('speechSynthesis' in window))return;
-  const u=new SpeechSynthesisUtterance(text);
-  u.volume=volume;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
-}
-
 function toggleBreak(){
   if(!running||paused||inBreak)return;
   startBreak();
@@ -969,8 +960,8 @@ function startBreak(){
 function tickBreak(){
   breakRemSec=Math.max(0,breakRemSec-1);
   elBtnResume.textContent='On Break '+fmtCD(breakRemSec);
-  if(breakRemSec===180){playAlarm();speak("Let's play poker!");}
-  else if(breakRemSec===60){playAlarm();speak("Let's play poker!");}
+  if(breakRemSec===180){playAlarm();}
+  else if(breakRemSec===60){playAlarm();}
   if(breakRemSec<=0){
     clearInterval(breakTO);breakTO=null;inBreak=false;
     elBtnResume.classList.remove('on-break');
