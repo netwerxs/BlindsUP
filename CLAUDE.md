@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BlindsUP is a single-file poker blinds timer — all HTML, CSS, and JavaScript live in `index.html`. There is no build step, no package manager, and no test framework.
 
+## Workflow
+
+Always commit and push every change immediately after making it — no need to ask for confirmation first.
+
 ## Running the app
 
 Open `index.html` directly in a browser, or serve it with any static file server:
@@ -49,7 +53,7 @@ Break is not a level. A **Break button** (above the volume slider in col-right) 
 
 ### Timer loop
 
-`setInterval(tick, 500)` drives the timer. `tick()` computes elapsed wall-clock time from `launchWall` and derives `remSec` with `Math.ceil(pausedRemSec - elapsed)` — this makes the timer drift-resistant. At `remSec <= 0`, the level auto-advances and `showAnnounce()` fires.
+`tick()` computes elapsed wall-clock time from `launchWall` and derives `remSec` with `Math.ceil(pausedRemSec - elapsed)` — this makes the timer drift-resistant. Rather than polling on a fixed interval, `scheduleTick()` computes the exact ms remaining until the next whole-second boundary and schedules `tick()` to land there via `setTimeout`, then `tick()` calls `scheduleTick()` again at the end — so each digit displays for a consistent ~1s instead of drifting. At `remSec <= 0`, the level auto-advances and `showAnnounce()` fires.
 
 ### Audio
 

@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.72';
+const VERSION='v1.73';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -719,6 +719,7 @@ function startSoundcheck(){
     if(ctx.state==='running'){showMenu(false);render();}
     else{elMenuScreen.style.display='none';elSoundcheckScreen.style.display='flex';}
   };
+  speak('Polly want a cracker!');
   ctx.resume().then(decide,decide);
   setTimeout(decide,300);
 }
@@ -728,6 +729,7 @@ function allowSound(){
   // synchronously inside a gesture — resume() alone can report
   // 'running' without actually unlocking playback.
   zzfx(1,0,440,.01,.12,.08,2);
+  speak('Polly want a cracker!');
   elSoundcheckScreen.style.display='none';
   showMenu(false);
   render();
