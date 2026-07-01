@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.79';
+const VERSION='v1.80';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -901,7 +901,12 @@ function adjustLevel(dir){
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   cancelSnap();advancing=false;
-  const newMin=Math.floor(remSec/60)+dir;
+  // remSec is usually already RTC-snapped, which can sit up to 30s to either
+  // side of a clean minute mark. Math.floor would sometimes read that as one
+  // minute short (e.g. 13:59 reads as minute 13), making +1 silently re-land
+  // on the same value instead of advancing. Round to the nearest minute
+  // instead (ties break down, matching snapToRTC's own -29..+30 range).
+  const newMin=Math.ceil(remSec/60-0.5)+dir;
   if(newMin<0||newMin*60>maxSec(level)+59)return;
   const ss=new Date().getSeconds();
   const newRem=newMin===0?(60-ss)%60:snapToRTC(newMin*60);
