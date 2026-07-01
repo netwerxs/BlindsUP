@@ -21,6 +21,23 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   user-select:none;-webkit-user-select:none;touch-action:manipulation;
   overscroll-behavior:none;}
 
+/* ── SOUND CHECK SCREEN ── */
+#soundcheck-screen{
+  position:fixed;inset:0;background:var(--bg);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:4vh;padding:3vh 4vw;z-index:45;
+}
+#soundcheck-text{
+  font-size:2.6vh;font-weight:300;letter-spacing:0.05em;
+  color:var(--white);text-align:center;
+}
+#soundcheck-vol-wrap{
+  display:flex;align-items:center;gap:2vw;
+}
+#soundcheck-vol-icon{font-size:2.4vh;color:var(--dim);}
+#soundcheck-vol-slider{width:40vw;max-width:26rem;cursor:pointer;}
+#soundcheck-vol-pct{font-size:1.8vh;color:rgba(255,255,255,0.5);letter-spacing:0.08em;min-width:3.5em;text-align:right;}
+
 /* ── MENU SCREEN ── */
 #menu-screen{
   position:fixed;inset:0;background:var(--bg);
@@ -355,6 +372,18 @@ body.no-touch .no-touch-only{display:flex;}
   <div id="rotate-text">Rotate to landscape</div>
 </div>
 
+<!-- SOUND CHECK -->
+<div id="soundcheck-screen" onclick="getCtx()">
+  <div class="menu-title">Sound Check</div>
+  <div id="soundcheck-text">Playing sound, adjust to taste then continue</div>
+  <div id="soundcheck-vol-wrap">
+    <span id="soundcheck-vol-icon">&#9835;</span>
+    <input type="range" id="soundcheck-vol-slider" min="0" max="100" value="50" oninput="onSoundcheckVolSlider(this.value)">
+    <span id="soundcheck-vol-pct">50%</span>
+  </div>
+  <button class="pill-btn" id="btn-soundcheck-continue" onclick="continueSoundcheck()">Continue</button>
+</div>
+
 <!-- MENU -->
 <div id="break-flash">BREAK!</div>
 <div id="menu-screen">
@@ -463,7 +492,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.68';
+const VERSION='v1.69';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -481,6 +510,10 @@ const elAnnBB=document.getElementById('annBB');
 const elBtnPause=document.getElementById('btn-pause');
 const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
+const elSoundcheckScreen=document.getElementById('soundcheck-screen');
+const elVolSlider=document.getElementById('vol-slider');
+const elSoundcheckVolSlider=document.getElementById('soundcheck-vol-slider');
+const elSoundcheckVolPct=document.getElementById('soundcheck-vol-pct');
 const elVolPct=document.getElementById('vol-pct');
 const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
@@ -686,6 +719,37 @@ function onVolSlider(val){
   elVolPct.textContent=Math.round(volume*100)+'%';
   if(volPreviewTO)clearTimeout(volPreviewTO);
   volPreviewTO=setTimeout(()=>{zzfx(1,0,440,.01,.12,.08,2);volPreviewTO=null;},200);
+}
+
+// ── Sound check ───────────────────────────────────────────────────
+let soundcheckTO=null;
+function playSoundcheckChime(){
+  zzfx(1,.02,523.25,.02,.18,.25,1,1.3,0,0,0,0,0,0,0,0,0,1,.05,0);
+  setTimeout(()=>zzfx(1,.02,659.25,.02,.3,.35,1,1.3,0,0,0,0,0,0,0,0,0,1,.05,0),160);
+}
+function onSoundcheckVolSlider(val){
+  getCtx();
+  volume=val/100;
+  elSoundcheckVolPct.textContent=Math.round(volume*100)+'%';
+  elVolPct.textContent=Math.round(volume*100)+'%';
+  elVolSlider.value=val;
+}
+function startSoundcheck(){
+  getCtx();
+  elSoundcheckVolSlider.value=Math.round(volume*100);
+  elSoundcheckVolPct.textContent=Math.round(volume*100)+'%';
+  elMenuScreen.style.display='none';
+  elSoundcheckScreen.style.display='flex';
+  playSoundcheckChime();
+  if(soundcheckTO)clearInterval(soundcheckTO);
+  soundcheckTO=setInterval(playSoundcheckChime,1400);
+}
+function continueSoundcheck(){
+  getCtx();
+  if(soundcheckTO){clearInterval(soundcheckTO);soundcheckTO=null;}
+  elSoundcheckScreen.style.display='none';
+  showMenu(false);
+  render();
 }
 
 async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
@@ -946,8 +1010,8 @@ updateClocks();
   });
 })();
 
-// Show menu on load
-showMenu(false);
+// Confirm sound is working on first load, then show menu
+startSoundcheck();
 render();
 
 if('serviceWorker' in navigator){
