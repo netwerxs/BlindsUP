@@ -31,12 +31,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   font-size:2.6vh;font-weight:300;letter-spacing:0.05em;
   color:var(--white);text-align:center;
 }
-#soundcheck-vol-wrap{
-  display:flex;align-items:center;gap:2vw;
-}
-#soundcheck-vol-icon{font-size:2.4vh;color:var(--dim);}
-#soundcheck-vol-slider{width:40vw;max-width:26rem;cursor:pointer;}
-#soundcheck-vol-pct{font-size:1.8vh;color:rgba(255,255,255,0.5);letter-spacing:0.08em;min-width:3.5em;text-align:right;}
 
 /* ── MENU SCREEN ── */
 #menu-screen{
@@ -373,15 +367,9 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <!-- SOUND CHECK -->
-<div id="soundcheck-screen" onclick="getCtx()">
-  <div class="menu-title">Sound Check</div>
-  <div id="soundcheck-text">Playing sound, adjust to taste then continue</div>
-  <div id="soundcheck-vol-wrap">
-    <span id="soundcheck-vol-icon">&#9835;</span>
-    <input type="range" id="soundcheck-vol-slider" min="0" max="100" value="50" oninput="onSoundcheckVolSlider(this.value)">
-    <span id="soundcheck-vol-pct">50%</span>
-  </div>
-  <button class="pill-btn" id="btn-soundcheck-continue" onclick="continueSoundcheck()">Continue</button>
+<div id="soundcheck-screen">
+  <div id="soundcheck-text">Sound is blocked on this device</div>
+  <button class="pill-btn" id="btn-allow-sound" onclick="allowSound()">Allow Sound</button>
 </div>
 
 <!-- MENU -->
@@ -492,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.69';
+const VERSION='v1.70';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -511,9 +499,6 @@ const elBtnPause=document.getElementById('btn-pause');
 const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
-const elVolSlider=document.getElementById('vol-slider');
-const elSoundcheckVolSlider=document.getElementById('soundcheck-vol-slider');
-const elSoundcheckVolPct=document.getElementById('soundcheck-vol-pct');
 const elVolPct=document.getElementById('vol-pct');
 const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
@@ -722,31 +707,23 @@ function onVolSlider(val){
 }
 
 // ── Sound check ───────────────────────────────────────────────────
-let soundcheckTO=null;
-function playSoundcheckChime(){
-  zzfx(1,.02,523.25,.02,.18,.25,1,1.3,0,0,0,0,0,0,0,0,0,1,.05,0);
-  setTimeout(()=>zzfx(1,.02,659.25,.02,.3,.35,1,1.3,0,0,0,0,0,0,0,0,0,1,.05,0),160);
-}
-function onSoundcheckVolSlider(val){
-  getCtx();
-  volume=val/100;
-  elSoundcheckVolPct.textContent=Math.round(volume*100)+'%';
-  elVolPct.textContent=Math.round(volume*100)+'%';
-  elVolSlider.value=val;
-}
+// Some browsers/devices block audio until a user gesture resumes the
+// AudioContext. Try to resume automatically first; only show the
+// "Allow Sound" prompt if that attempt didn't stick.
+let soundcheckDecided=false;
 function startSoundcheck(){
-  getCtx();
-  elSoundcheckVolSlider.value=Math.round(volume*100);
-  elSoundcheckVolPct.textContent=Math.round(volume*100)+'%';
-  elMenuScreen.style.display='none';
-  elSoundcheckScreen.style.display='flex';
-  playSoundcheckChime();
-  if(soundcheckTO)clearInterval(soundcheckTO);
-  soundcheckTO=setInterval(playSoundcheckChime,1400);
+  const ctx=getCtx();
+  const decide=()=>{
+    if(soundcheckDecided)return;
+    soundcheckDecided=true;
+    if(ctx.state==='running'){showMenu(false);render();}
+    else{elMenuScreen.style.display='none';elSoundcheckScreen.style.display='flex';}
+  };
+  ctx.resume().then(decide,decide);
+  setTimeout(decide,300);
 }
-function continueSoundcheck(){
+function allowSound(){
   getCtx();
-  if(soundcheckTO){clearInterval(soundcheckTO);soundcheckTO=null;}
   elSoundcheckScreen.style.display='none';
   showMenu(false);
   render();
@@ -1010,7 +987,7 @@ updateClocks();
   });
 })();
 
-// Confirm sound is working on first load, then show menu
+// Ensure audio is unlocked before showing the menu; only prompt if needed
 startSoundcheck();
 render();
 
