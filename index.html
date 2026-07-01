@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.70';
+const VERSION='v1.71';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -724,6 +724,10 @@ function startSoundcheck(){
 }
 function allowSound(){
   getCtx();
+  // iOS only truly unmutes audio output when a real sound is started
+  // synchronously inside a gesture — resume() alone can report
+  // 'running' without actually unlocking playback.
+  zzfx(1,0,440,.01,.12,.08,2);
   elSoundcheckScreen.style.display='none';
   showMenu(false);
   render();
