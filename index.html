@@ -480,7 +480,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.71';
+const VERSION='v1.72';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -791,8 +791,7 @@ function beginCountdown(){
   elBtnPause.textContent='Pause';
   pausedRemSec=remSec;launchWall=Date.now();lastTickSec=-1;
   render();updateBreakETA();requestWakeLock();requestLandscape();
-  if(tickHandle)clearInterval(tickHandle);
-  tickHandle=setInterval(tick,500);
+  scheduleTick();
 }
 
 function resumeGame(){
@@ -807,8 +806,7 @@ function resumeGame(){
   launchWall=Date.now();
   updateBreakETA();
   requestWakeLock();requestLandscape();
-  if(tickHandle)clearInterval(tickHandle);
-  tickHandle=setInterval(tick,500);
+  scheduleTick();
 }
 
 function tick(){
@@ -833,15 +831,29 @@ function tick(){
       if(!advancing||!running||paused)return;
       remSec=snapToRTC(ms);pausedRemSec=remSec;
       launchWall=Date.now();lastTickSec=-1;advancing=false;render();
+      scheduleTick();
     },((7-ss+60)%60)*1000);
+    return;
   }
+  scheduleTick();
+}
+
+// Schedule the next tick to land exactly on the next whole-second boundary
+// (instead of polling at a fixed interval) so the displayed digit changes
+// at a steady 1s cadence rather than drifting between updates.
+function scheduleTick(){
+  if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+  if(!running||paused||advancing)return;
+  const elapsedMs=Date.now()-launchWall;
+  const msUntilNext=1000-(elapsedMs%1000+1000)%1000;
+  tickHandle=setTimeout(tick,msUntilNext);
 }
 
 function togglePause(){
   if(!running)return;
   if(!paused){
     paused=true;pausedRemSec=remSec;cancelSnap();
-    if(tickHandle){clearInterval(tickHandle);tickHandle=null;}
+    if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
     showMenu(true);
   } else {
     resumeGame();
@@ -940,7 +952,7 @@ function startBreak(){
   inBreak=true;
   breakRemSec=15*60;
   paused=true;pausedRemSec=remSec;cancelSnap();
-  if(tickHandle){clearInterval(tickHandle);tickHandle=null;}
+  if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
   elApp.classList.remove('visible');
   flashBreak(()=>{
     elBtnResume.classList.add('on-break');
@@ -977,7 +989,7 @@ updateClocks();
     if(e.key==='Escape'&&!escTO){
       escTO=setTimeout(()=>{
         stopAlarm();dismissAnnounce();
-        if(tickHandle){clearInterval(tickHandle);tickHandle=null;}
+        if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
         running=false;paused=true;advancing=false;cancelSnap();
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
         elBtnPause.textContent='Pause';
@@ -1023,8 +1035,8 @@ window.addEventListener('resize',()=>{
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState!=='visible')return;
   if(running&&!paused){
-    if(tickHandle){clearInterval(tickHandle);tickHandle=null;}
-    tickHandle=setInterval(tick,500);
+    if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+    tick();
   }
   fetch('./index.html',{cache:'no-store'})
     .then(r=>r.text())
