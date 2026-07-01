@@ -160,7 +160,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:flex;align-items:center;justify-content:center;
   height:100%;width:100%;
 }
-.b-num{font-size:34vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
+.b-num{font-size:34vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
 .b-amp{font-size:13vh;font-weight:700;color:rgba(255,255,255,0.35);align-self:center;margin:0 0.25em;}
 
 #cd-zone{
@@ -169,7 +169,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   overflow:hidden;cursor:ew-resize;position:relative;
 }
 #cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
-.cd-num{font-size:32vh;font-weight:900;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
+.cd-num{font-size:32vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
 .cd-colon{font-size:22vh;font-weight:900;color:rgba(255,255,255,0.38);align-self:center;margin:0 0.05em;}
 
 
@@ -201,7 +201,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #col-right{
   grid-column:3;grid-row:1/span 2;
   display:flex;flex-direction:column;align-items:stretch;
-  justify-content:space-between;
+  gap:2.5vh;
   padding:2vh 1.5vw;
   border-left:1px solid rgba(255,255,255,0.07);
 }
@@ -215,12 +215,13 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 }
 #vol-icon{font-size:2vh;color:var(--dim);}
 #vol-slider-wrap{
-  flex:1;width:3rem;
+  height:80vh;width:3rem;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.28);border-radius:100px;
 }
 #vol-slider{
   -webkit-appearance:none;appearance:none;
-  width:90vh;height:3rem;flex-shrink:0;
+  width:80vh;height:3rem;flex-shrink:0;
   transform:rotate(-90deg);
   cursor:pointer;background:transparent;
 }
@@ -243,6 +244,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #vol-pct{font-size:1.5vh;font-weight:400;color:rgba(255,255,255,0.4);letter-spacing:0.08em;}
 #btn-break,#btn-pause{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
 #version-label-app{
+  margin-top:auto;
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
   color:rgba(255,255,255,0.45);white-space:nowrap;text-align:center;
 }
@@ -477,7 +479,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.82';
+const VERSION='v1.83';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
