@@ -107,8 +107,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   background:rgba(255,255,255,0.12);
   border-color:rgba(255,255,255,0.35);
 }
-.blind-card.special-break{border-color:rgba(232,200,74,0.35);}
-.blind-card.special-break:hover{background:rgba(232,200,74,0.1);border-color:var(--accent);}
 .blind-card.special-freeze{border-color:rgba(100,180,255,0.3);}
 .blind-card.special-freeze:hover{background:rgba(100,180,255,0.08);border-color:rgba(100,180,255,0.7);}
 .card-label{
@@ -120,7 +118,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   font-size:3.5vh;font-weight:900;
   letter-spacing:-0.02em;color:var(--white);
 }
-.card-blinds.accent{color:var(--accent);}
 .card-blinds.freeze{color:rgba(100,180,255,0.9);}
 .card-time{
   font-size:1.1vh;font-weight:300;
@@ -182,7 +179,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
 
-.swipe-hint{display:none;}
 #break-flash{
   display:none;position:fixed;inset:0;z-index:200;
   align-items:center;justify-content:center;
@@ -398,7 +394,6 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"><span class="zone-sign">+</span></div>
-    <span class="swipe-hint">← down &nbsp; up →</span>
   </div>
 
   <div id="cd-zone">
@@ -409,7 +404,6 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"><span class="zone-sign">↓</span></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"><span class="zone-sign">↑</span></div>
-    <span class="swipe-hint">← +1m &nbsp; −1m →</span>
     <div id="break-eta"></div>
   </div>
 
@@ -480,7 +474,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.80';
+const VERSION='v1.81';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -488,7 +482,6 @@ const elBBB=document.getElementById('bBB');
 const elCdMin=document.getElementById('cdMin');
 const elCdSec=document.getElementById('cdSec');
 const elCdInner=document.getElementById('cd-inner');
-const elBtnBreak=document.getElementById('btn-break');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
 const elBlindInner=document.getElementById('blind-inner');
@@ -745,9 +738,7 @@ function fmtClock(){
 
 function render(){
   const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-  elBlindInner.style.display='flex';
   elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;
-  elCdInner.style.display='flex';
   const mm=Math.floor(remSec/60),ss=remSec%60;
   elCdMin.textContent=String(mm).padStart(2,'0');
   elCdSec.textContent=String(ss).padStart(2,'0');
@@ -786,14 +777,22 @@ function showMenu(showResume){
   elMenuScreen.style.display='flex';
 }
 
-function beginCountdown(){
+// Shared tail for entering (or resuming) the running countdown state.
+function enterRunningState(){
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
-  running=true;paused=false;
+  paused=false;running=true;
   elBtnPause.textContent='Pause';
-  pausedRemSec=remSec;launchWall=Date.now();lastTickSec=-1;
-  render();updateBreakETA();requestWakeLock();requestLandscape();
+  launchWall=Date.now();
+  updateBreakETA();
+  requestWakeLock();requestLandscape();
   scheduleTick();
+}
+
+function beginCountdown(){
+  pausedRemSec=remSec;lastTickSec=-1;
+  render();
+  enterRunningState();
 }
 
 function resumeGame(){
@@ -808,14 +807,7 @@ function resumeGame(){
     pausedRemSec=Math.max(0,pausedRemSec-drift);
     remSec=pausedRemSec;
   }
-  elMenuScreen.style.display='none';
-  elApp.classList.add('visible');
-  paused=false;running=true;
-  elBtnPause.textContent='Pause';
-  launchWall=Date.now();
-  updateBreakETA();
-  requestWakeLock();requestLandscape();
-  scheduleTick();
+  enterRunningState();
 }
 
 function tick(){
@@ -847,47 +839,53 @@ function tick(){
   scheduleTick();
 }
 
+function stopTick(){if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}}
+
 // Schedule the next tick to land exactly on the next whole-second boundary
 // (instead of polling at a fixed interval) so the displayed digit changes
 // at a steady 1s cadence rather than drifting between updates.
 function scheduleTick(){
-  if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+  stopTick();
   if(!running||paused||advancing)return;
   const elapsedMs=Date.now()-launchWall;
   const msUntilNext=1000-(elapsedMs%1000+1000)%1000;
   tickHandle=setTimeout(tick,msUntilNext);
 }
 
+// Freeze the countdown at its current remaining time and record the RTC
+// second-of-minute so resumeGame() can later correct for however long we
+// were paused. Shared by Pause and by starting a Break.
+function freezeCountdown(){
+  paused=true;pausedRemSec=remSec;pauseSecRTC=new Date().getSeconds();cancelSnap();
+  stopTick();
+}
+
 function togglePause(){
   if(!running)return;
   if(!paused){
-    paused=true;pausedRemSec=remSec;pauseSecRTC=new Date().getSeconds();cancelSnap();
-    if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+    freezeCountdown();
     showMenu(true);
   } else {
     resumeGame();
   }
 }
 
+// Bind touch-swipe and mouse-drag gestures on `el`, calling onSwipe(dx) with
+// the horizontal delta once a drag exceeds the 25px threshold. Gestures that
+// start within EDGE px of the screen's left/right edge are ignored (reserved
+// for the system's own edge-swipe navigation).
+function bindSwipe(el,onSwipe){
+  let sx=0,edgeTouch=false;
+  const EDGE=30;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
+  el.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;onSwipe(dx);},{passive:true});
+  el.addEventListener('mousedown',e=>{sx=e.clientX;});
+  el.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;onSwipe(dx);});
+}
 // Swipe blinds: right=up, left=down
-(function(){
-  let sx=0,edgeTouch=false;
-  const EDGE=30;
-  elBlindZone.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
-  elBlindZone.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);},{passive:true});
-  elBlindZone.addEventListener('mousedown',e=>{sx=e.clientX;});
-  elBlindZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustLevel(dx>0?1:-1);});
-})();
-
+bindSwipe(elBlindZone,dx=>adjustLevel(dx>0?1:-1));
 // Swipe countdown: left=+1min, right=-1min (re-snaps seconds to RTC)
-(function(){
-  let sx=0,edgeTouch=false;
-  const EDGE=30;
-  elCdZone.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;edgeTouch=sx<EDGE||sx>window.innerWidth-EDGE;},{passive:true});
-  elCdZone.addEventListener('touchend',e=>{if(edgeTouch)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-1:1);},{passive:true});
-  elCdZone.addEventListener('mousedown',e=>{sx=e.clientX;});
-  elCdZone.addEventListener('mouseup',e=>{const dx=e.clientX-sx;if(Math.abs(dx)<25)return;adjustTime(dx>0?-1:1);});
-})();
+bindSwipe(elCdZone,dx=>adjustTime(dx>0?-1:1));
 
 function adjustLevel(dir){
   cancelSnap();advancing=false;
@@ -919,7 +917,7 @@ function showAnnounce(){
   elAnnSB.textContent=bl.sb;
   elAnnBB.textContent=bl.bb;
   elAnnounce.classList.add('visible');
-  stopAlarm();playAlarm();
+  playAlarm();
   if(announceTO)clearTimeout(announceTO);
   announceTO=setTimeout(dismissAnnounce,6500);
   elBlindInner.classList.add('flash');
@@ -957,8 +955,7 @@ function flashBreak(onDone){
 function startBreak(){
   inBreak=true;
   breakRemSec=15*60;
-  paused=true;pausedRemSec=remSec;pauseSecRTC=new Date().getSeconds();cancelSnap();
-  if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+  freezeCountdown();
   elApp.classList.remove('visible');
   flashBreak(()=>{
     elBtnResume.classList.add('on-break');
@@ -994,8 +991,8 @@ updateClocks();
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'&&!escTO){
       escTO=setTimeout(()=>{
-        stopAlarm();dismissAnnounce();
-        if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+        dismissAnnounce();
+        stopTick();
         running=false;paused=true;advancing=false;cancelSnap();
         level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
         elBtnPause.textContent='Pause';
@@ -1041,7 +1038,7 @@ window.addEventListener('resize',()=>{
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState!=='visible')return;
   if(running&&!paused){
-    if(tickHandle){clearTimeout(tickHandle);tickHandle=null;}
+    stopTick();
     tick();
   }
   fetch('./index.html',{cache:'no-store'})
