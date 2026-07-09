@@ -42,10 +42,10 @@ All mutable state is global:
 
 ### Blind schedule
 
-`BLINDS` is a 25-entry array: `{sb: i, bb: i*2}`. Level semantics:
+`BLINDS` is a 22-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
-- Levels 1–5: 15-minute countdown
-- Levels 6–25: 10-minute countdown ("Freezeout" begins at level 6, sb:6–25)
+- Levels 1–15: `sb = level, bb = level*2` (15-minute countdown for 1–5, "Freezeout" 10-minute countdown from level 6)
+- Levels 16–22: jump by +5/+10 per level (20/40, 25/50, ... up to 50/100), still 10-minute countdown
 
 Break is not a level. A **Break button** (above the volume slider in col-right) starts a separate 15-minute break countdown (`inBreak` flag). During break, the level timer is frozen and the break screen shows "Break" in the blind zone. Horn fires at 3 min, 1 min, and 0; break holds at 0. "End Break" / "Break" label toggles on the button. Pressing Pause during break ends break and shows the menu.
 
@@ -57,7 +57,7 @@ Break is not a level. A **Break button** (above the volume slider in col-right) 
 
 ### Audio
 
-All audio uses the Web Audio API (`AudioContext`). `playAlarm()` synthesizes 7 short sawtooth/sine blasts plus a long tail. `playTick()` synthesizes accelerating tick sounds for the final 12 seconds. The volume slider previews volume by running live oscillators that auto-stop after 600 ms of inactivity.
+All audio uses the Web Audio API (`AudioContext`). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail. `playTick()` synthesizes accelerating tick sounds for the final 5 seconds. The volume slider previews volume by running live oscillators that auto-stop after 600 ms of inactivity.
 
 ### Input
 

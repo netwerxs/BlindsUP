@@ -397,7 +397,7 @@ body.no-touch .no-touch-only{display:flex;}
   <div id="blind-zone">
     <div id="blind-inner">
       <span class="b-num" id="bSB">1</span>
-      <span class="b-amp">&amp;</span>
+      <span class="b-amp">/</span>
       <span class="b-num" id="bBB">2</span>
     </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
@@ -443,7 +443,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Blind Schedule</div>
-      <div class="help-body"><b>Levels 1–5</b> (1&amp;2 through 5&amp;10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (Freezeout, starting at 6&amp;12) run for <b>10 minutes</b> each. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
+      <div class="help-body"><b>Levels 1–5</b> (1/2 through 5/10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (Freezeout, starting at 6/12) run for <b>10 minutes</b> each, jumping by +5/+10 from level 16 onward up to 50/100. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Full Screen</div>
@@ -465,7 +465,7 @@ body.no-touch .no-touch-only{display:flex;}
   <div class="ann-label">Blinds Up</div>
   <div id="ann-wrap">
     <span class="ann-num" id="annSB">2</span>
-    <span class="ann-amp">&amp;</span>
+    <span class="ann-amp">/</span>
     <span class="ann-num" id="annBB">4</span>
   </div>
   <div class="ann-sub">Timer started, good luck!</div>
@@ -473,7 +473,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.88';
+const VERSION='v1.89';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -499,8 +499,14 @@ const elBreakETA=document.getElementById('break-eta');
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
-const BLINDS=[];
-for(let i=1;i<=25;i++) BLINDS.push({sb:i,bb:i*2});
+// Levels 1-15 follow sb=i/bb=2i; levels 16-22 jump by +5/+10 per level up to 50/100.
+const BLINDS=[
+  {sb:1,bb:2},{sb:2,bb:4},{sb:3,bb:6},{sb:4,bb:8},{sb:5,bb:10},
+  {sb:6,bb:12},{sb:7,bb:14},{sb:8,bb:16},{sb:9,bb:18},{sb:10,bb:20},
+  {sb:11,bb:22},{sb:12,bb:24},{sb:13,bb:26},{sb:14,bb:28},{sb:15,bb:30},
+  {sb:20,bb:40},{sb:25,bb:50},{sb:30,bb:60},{sb:35,bb:70},{sb:40,bb:80},
+  {sb:45,bb:90},{sb:50,bb:100}
+];
 
 function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
 
@@ -584,10 +590,10 @@ async function nativeInstall(e){
     const card=document.createElement('div');
     if(i===6){
       card.className='blind-card special-freeze';
-      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds freeze">Freezeout</div><div class="card-time">6 &amp; 12 · 10 min</div>`;
+      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds freeze">Freezeout</div><div class="card-time">6/12 · 10 min</div>`;
     } else {
       card.className='blind-card';
-      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb} &amp; ${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
+      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb}/${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
     }
     card.addEventListener('click',()=>selectBlind(i));
     grid.appendChild(card);
@@ -676,9 +682,16 @@ function zzfx(vol=1,randomness=.05,frequency=220,attack=0,sustain=0,release=.1,s
 
 function playAlarm(){
   stopAlarm();
-  for(let i=0;i<7;i++)
-    alarmTimeouts.push(setTimeout(()=>alarmNodes.push(zzfx(1,0,440,.01,.2,.07,2,1,.4)),i*450));
-  alarmTimeouts.push(setTimeout(()=>alarmNodes.push(zzfx(1,0,360,.05,1.7,.4,2,.5)),7*450));
+  // Ascending major arpeggio (C5-E5-G5-C6) on a warm triangle tone,
+  // resolving into a soft shimmering two-note chime tail.
+  const notes=[523.25,659.25,783.99,1046.50];
+  notes.forEach((freq,i)=>{
+    alarmTimeouts.push(setTimeout(()=>alarmNodes.push(zzfx(1,0,freq,.01,.1,.2,1,1,0,0,0,0,0,0,0,0,0,1,.02)),i*150));
+  });
+  alarmTimeouts.push(setTimeout(()=>{
+    alarmNodes.push(zzfx(0.9,0,1046.50,.02,1.6,.6,1,1,0,0,0,0,0,0,.015,0,0,1,.05));
+    alarmNodes.push(zzfx(0.5,0,1318.51,.02,1.6,.6,1,1,0,0,0,0,0,0,.015,0,0,1,.05));
+  },notes.length*150));
 }
 
 function stopAlarm(){
@@ -741,7 +754,7 @@ function render(){
   const mm=Math.floor(remSec/60),ss=remSec%60;
   elCdMin.textContent=String(mm).padStart(2,'0');
   elCdSec.textContent=String(ss).padStart(2,'0');
-  if(remSec<=12){elCdZone.className='urgent';elBlindZone.className='';}
+  if(remSec<=5){elCdZone.className='urgent';elBlindZone.className='';}
   else if(remSec<=30){elCdZone.className='warn';elBlindZone.className='warn';}
   else{elCdZone.className='';elBlindZone.className='';}
 }
@@ -768,7 +781,7 @@ function showMenu(showResume){
   elApp.classList.remove('visible');
   if(showResume){
     const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-    elBtnResume.textContent='Resume '+bl.sb+' & '+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
+    elBtnResume.textContent='Resume '+bl.sb+'/'+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
     elBtnResume.style.display='block';
   } else {
     elBtnResume.style.display='none';
@@ -816,8 +829,8 @@ function tick(){
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
   updateBreakETA();
-  if(remSec<=12&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick();}
-  else if(remSec>12)lastTickSec=-1;
+  if(remSec<=5&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick();}
+  else if(remSec>5)lastTickSec=-1;
   if(remSec<=0&&!advancing){
     if(level===5){advancing=false;level=6;startBreak();return;}
     advancing=true;
