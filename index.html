@@ -76,11 +76,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 }
 #btn-help{right:2vw;}
 #btn-install{left:2vw;}
-#btn-check-update{top:auto;bottom:1.5vh;left:2vw;}
-#version-label{
-  position:absolute;bottom:1.5vh;right:2vw;
-  font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);
-}
+#btn-check-update{top:auto;bottom:1.5vh;right:2vw;font-size:2.3vh;}
 #menu-tod{
   position:absolute;top:6vh;right:2vw;
   font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
@@ -335,12 +331,11 @@ body.no-touch .no-touch-only{display:flex;}
 <div id="menu-screen">
   <button id="btn-install" class="menu-corner-btn" onclick="openInstall()">Install</button>
   <button id="btn-help" class="menu-corner-btn" onclick="openHelp()">Help</button>
-  <button id="btn-check-update" class="menu-corner-btn" onclick="checkForUpdates()">Check for Updates</button>
+  <button id="btn-check-update" class="menu-corner-btn" onclick="checkForUpdates()"></button>
   <div id="resume-wrap">
     <button id="btn-resume" onclick="resumeGame()">Resume</button>
   </div>
   <div class="menu-title">Select Starting Blind</div>
-  <div id="version-label"></div>
   <div id="menu-tod"></div>
   <div id="blind-grid"></div>
 </div>
@@ -428,7 +423,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.92';
+const VERSION='v1.93';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -450,7 +445,7 @@ const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
 const elBreakETA=document.getElementById('break-eta');
 
-document.getElementById('version-label').textContent=VERSION;
+document.getElementById('btn-check-update').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
 // Levels 1-15 follow sb=i/bb=2i; levels 16-25 jump by +5/+10 per level up to 65/130.
@@ -975,7 +970,6 @@ if('serviceWorker' in navigator){
 // asked for it, then reload to swap in the update.
 async function checkForUpdates(){
   const btn=document.getElementById('btn-check-update');
-  const original=btn.textContent;
   btn.textContent='Checking…';btn.disabled=true;
   try{
     if(swReg)await swReg.update();
@@ -983,20 +977,24 @@ async function checkForUpdates(){
     const html=await res.text();
     const match=html.match(/const VERSION='([^']+)'/);
     if(match&&match[1]!==VERSION){
-      btn.textContent='Installing update…';
+      const newVersion=match[1];
+      btn.textContent=`Updated from ${VERSION} to ${newVersion}`;
+      // Give the user a moment to actually see the confirmation before the
+      // reload swaps in the new version.
+      const reload=()=>setTimeout(()=>window.location.reload(),1500);
       if(swReg&&swReg.waiting){
-        navigator.serviceWorker.addEventListener('controllerchange',()=>window.location.reload(),{once:true});
+        navigator.serviceWorker.addEventListener('controllerchange',reload,{once:true});
         swReg.waiting.postMessage({type:'SKIP_WAITING'});
       } else {
-        window.location.reload();
+        reload();
       }
     } else {
-      btn.textContent='Up to date';
-      setTimeout(()=>{btn.textContent=original;btn.disabled=false;},2000);
+      btn.textContent='Latest '+VERSION;
+      setTimeout(()=>{btn.textContent=VERSION;btn.disabled=false;},2000);
     }
   }catch(e){
     btn.textContent='Check failed';
-    setTimeout(()=>{btn.textContent=original;btn.disabled=false;},2000);
+    setTimeout(()=>{btn.textContent=VERSION;btn.disabled=false;},2000);
   }
 }
 

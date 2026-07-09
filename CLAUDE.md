@@ -63,7 +63,7 @@ All audio uses the Web Audio API (`AudioContext`). `playAlarm()` synthesizes a w
 
 ### Updates
 
-The app is a PWA (`sw.js`) that runs entirely offline from its installed cache and never fetches anything on its own. A **Check for Updates** button (menu screen, bottom-left) is the only way it goes online: it calls `registration.update()` to refetch `sw.js` and fetches `index.html` to compare the embedded `VERSION` string. If a new version installed in the background (service worker `waiting` state), pressing the button posts `SKIP_WAITING` to it and reloads once `controllerchange` fires, replacing the installed app. `sw.js`'s `install` handler intentionally does not call `self.skipWaiting()` itself — that only happens on this explicit user request.
+The app is a PWA (`sw.js`) that runs entirely offline from its installed cache and never fetches anything on its own. The **version label doubles as the "Check for Updates" button** (`#btn-check-update`, menu screen bottom-right) — it shows the current `VERSION` at rest, and is the only way the app goes online: clicking it calls `registration.update()` to refetch `sw.js` and fetches `index.html` to compare the embedded `VERSION` string, showing "Latest vX.XX" (no update) or "Updated from vX.XX to vY.YY" (update found) before reloading to swap in the new version. If a new version installed in the background (service worker `waiting` state), the click posts `SKIP_WAITING` to it and reloads once `controllerchange` fires, replacing the installed app. `sw.js`'s `install` handler intentionally does not call `self.skipWaiting()` itself — that only happens on this explicit user request.
 
 ### Input
 
