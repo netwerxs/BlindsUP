@@ -32,15 +32,30 @@ self.addEventListener('fetch', e => {
   // picks up the change even though sw.js itself never changed.
   if (url.searchParams.has('swCheckUpdate')) {
     e.respondWith((async () => {
-      const res = await fetch('./index.html', { cache: 'no-store' });
-      const cache = await caches.open(CACHE);
-      cache.put('./index.html', res.clone());
-      return res;
+      try {
+        const res = await fetch('./index.html', { cache: 'no-store' });
+        const cache = await caches.open(CACHE);
+        cache.put('./index.html', res.clone());
+        return res;
+      } catch (err) {
+        // Offline or unreachable — fail soft to whatever's cached rather
+        // than rejecting respondWith with an uncaught error.
+        return (await caches.match('./index.html')) || Response.error();
+      }
     })());
     return;
   }
   // Cache-first for everything else, including normal navigations — the app
   // runs entirely from the installed cache and never touches the network on
-  // its own otherwise.
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  // its own otherwise. A network miss (offline, resource never cached) fails
+  // soft instead of throwing an uncaught rejection into respondWith.
+  e.respondWith((async () => {
+    const cached = await caches.match(e.request);
+    if (cached) return cached;
+    try {
+      return await fetch(e.request);
+    } catch (err) {
+      return Response.error();
+    }
+  })());
 });
