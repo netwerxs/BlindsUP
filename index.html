@@ -107,8 +107,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   background:rgba(255,255,255,0.12);
   border-color:rgba(255,255,255,0.35);
 }
-.blind-card.special-freeze{border-color:rgba(100,180,255,0.3);}
-.blind-card.special-freeze:hover{background:rgba(100,180,255,0.08);border-color:rgba(100,180,255,0.7);}
 .card-label{
   font-size:1.2vh;font-weight:300;
   letter-spacing:0.25em;text-transform:uppercase;
@@ -118,7 +116,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   font-size:3.5vh;font-weight:900;
   letter-spacing:-0.02em;color:var(--white);
 }
-.card-blinds.freeze{color:rgba(100,180,255,0.9);}
 .card-time{
   font-size:1.1vh;font-weight:300;
   letter-spacing:0.15em;color:var(--dim);
@@ -155,7 +152,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   height:100%;width:100%;
 }
 .b-num{font-size:34vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
-.b-amp{font-size:13vh;font-weight:700;color:rgba(255,255,255,0.35);align-self:center;margin:0 0.25em;}
+.b-amp{font-size:13vh;font-weight:700;color:var(--white);align-self:center;margin:0 0.25em;}
 
 #cd-zone{
   grid-column:1;grid-row:2;
@@ -169,7 +166,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 
 /* warn/urgent */
 #blind-zone.warn .b-num{color:var(--accent);}
-#blind-zone.warn .b-amp{color:rgba(232,200,74,0.4);}
+#blind-zone.warn .b-amp{color:var(--accent);}
 #blind-zone.warn,#cd-zone.warn{animation:warnpulse 1.2s ease-in-out infinite;}
 @keyframes warnpulse{0%,100%{opacity:1;}50%{opacity:0.45;}}
 #cd-zone.urgent .cd-num{color:var(--danger);}
@@ -220,7 +217,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .ann-label{font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;color:var(--dim);animation:fadein 0.4s ease;}
 #ann-wrap{display:flex;align-items:center;justify-content:center;animation:pop 0.38s cubic-bezier(0.34,1.56,0.64,1);}
 .ann-num{font-size:40vh;font-weight:900;color:var(--white);letter-spacing:-0.04em;line-height:0.85;}
-.ann-amp{font-size:17vh;font-weight:700;color:rgba(255,255,255,0.3);margin:0 0.18em;align-self:center;}
+.ann-amp{font-size:17vh;font-weight:900;color:var(--white);margin:0 0.18em;align-self:center;}
 .ann-sub{font-size:1.8vh;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;color:var(--dim);animation:fadein 0.5s 0.5s both ease;margin-top:1vh;}
 .ann-tap{font-size:1.3vh;font-weight:300;letter-spacing:0.3em;text-transform:uppercase;color:var(--dimmer);animation:fadein 0.5s 0.3s both ease;}
 @keyframes pop{from{opacity:0;transform:scale(0.75);}to{opacity:1;transform:scale(1);}}
@@ -401,7 +398,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Blind Schedule</div>
-      <div class="help-body"><b>Levels 1–5</b> (1/2 through 5/10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (Freezeout, starting at 6/12) run for <b>10 minutes</b> each, jumping by +5/+10 from level 16 onward up to 50/100. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
+      <div class="help-body"><b>Levels 1–5</b> (1/2 through 5/10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (starting at 6/12) run for <b>10 minutes</b> each, jumping by +5/+10 from level 16 onward up to 65/130. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Full Screen</div>
@@ -431,7 +428,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.91';
+const VERSION='v1.92';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -456,13 +453,13 @@ const elBreakETA=document.getElementById('break-eta');
 document.getElementById('version-label').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
 
-// Levels 1-15 follow sb=i/bb=2i; levels 16-22 jump by +5/+10 per level up to 50/100.
+// Levels 1-15 follow sb=i/bb=2i; levels 16-25 jump by +5/+10 per level up to 65/130.
 const BLINDS=[
   {sb:1,bb:2},{sb:2,bb:4},{sb:3,bb:6},{sb:4,bb:8},{sb:5,bb:10},
   {sb:6,bb:12},{sb:7,bb:14},{sb:8,bb:16},{sb:9,bb:18},{sb:10,bb:20},
   {sb:11,bb:22},{sb:12,bb:24},{sb:13,bb:26},{sb:14,bb:28},{sb:15,bb:30},
   {sb:20,bb:40},{sb:25,bb:50},{sb:30,bb:60},{sb:35,bb:70},{sb:40,bb:80},
-  {sb:45,bb:90},{sb:50,bb:100}
+  {sb:45,bb:90},{sb:50,bb:100},{sb:55,bb:110},{sb:60,bb:120},{sb:65,bb:130}
 ];
 
 function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
@@ -545,13 +542,8 @@ async function nativeInstall(e){
   for(let i=1;i<=BLINDS.length;i++){
     const bl=BLINDS[i-1];
     const card=document.createElement('div');
-    if(i===6){
-      card.className='blind-card special-freeze';
-      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds freeze">Freezeout</div><div class="card-time">6/12 · 10 min</div>`;
-    } else {
-      card.className='blind-card';
-      card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb}/${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
-    }
+    card.className='blind-card';
+    card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb}/${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
     card.addEventListener('click',()=>selectBlind(i));
     grid.appendChild(card);
   }

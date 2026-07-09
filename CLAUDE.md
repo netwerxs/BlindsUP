@@ -34,7 +34,7 @@ All mutable state is global:
 
 | Variable | Purpose |
 |---|---|
-| `level` | Current blind level (1–25) |
+| `level` | Current blind level (1–25, see Blind schedule) |
 | `remSec` / `pausedRemSec` | Remaining seconds; `pausedRemSec` is the snapshot saved at pause |
 | `paused` / `running` | Timer state |
 | `launchWall` | `Date.now()` at last resume — elapsed time is computed as `(Date.now() - launchWall) / 1000` |
@@ -42,10 +42,12 @@ All mutable state is global:
 
 ### Blind schedule
 
-`BLINDS` is a 22-entry array of explicit `{sb, bb}` pairs. Level semantics:
+`BLINDS` is a 25-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
-- Levels 1–15: `sb = level, bb = level*2` (15-minute countdown for 1–5, "Freezeout" 10-minute countdown from level 6)
-- Levels 16–22: jump by +5/+10 per level (20/40, 25/50, ... up to 50/100), still 10-minute countdown
+- Levels 1–15: `sb = level, bb = level*2` (15-minute countdown for 1–5, 10-minute countdown from level 6)
+- Levels 16–25: jump by +5/+10 per level (20/40, 25/50, ... up to 65/130), still 10-minute countdown
+
+There's no special UI treatment for any level — the menu grid renders every level identically (`Level N` / `sb/bb` / duration).
 
 Break is not a level. A **Break button** (in col-right) starts a separate 15-minute break countdown (`inBreak` flag). During break, the level timer is frozen and the break screen shows "Break" in the blind zone. Horn fires at 3 min, 1 min, and 0; break holds at 0. "End Break" / "Break" label toggles on the button. Pressing Pause during break ends break and shows the menu.
 
