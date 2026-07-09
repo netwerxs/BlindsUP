@@ -47,7 +47,7 @@ All mutable state is global:
 - Levels 1–15: `sb = level, bb = level*2` (15-minute countdown for 1–5, "Freezeout" 10-minute countdown from level 6)
 - Levels 16–22: jump by +5/+10 per level (20/40, 25/50, ... up to 50/100), still 10-minute countdown
 
-Break is not a level. A **Break button** (above the volume slider in col-right) starts a separate 15-minute break countdown (`inBreak` flag). During break, the level timer is frozen and the break screen shows "Break" in the blind zone. Horn fires at 3 min, 1 min, and 0; break holds at 0. "End Break" / "Break" label toggles on the button. Pressing Pause during break ends break and shows the menu.
+Break is not a level. A **Break button** (in col-right) starts a separate 15-minute break countdown (`inBreak` flag). During break, the level timer is frozen and the break screen shows "Break" in the blind zone. Horn fires at 3 min, 1 min, and 0; break holds at 0. "End Break" / "Break" label toggles on the button. Pressing Pause during break ends break and shows the menu.
 
 `maxSec(lv)` encodes this rule and is the single source of truth for level duration.
 
@@ -57,7 +57,11 @@ Break is not a level. A **Break button** (above the volume slider in col-right) 
 
 ### Audio
 
-All audio uses the Web Audio API (`AudioContext`). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail. `playTick()` synthesizes accelerating tick sounds for the final 5 seconds. The volume slider previews volume by running live oscillators that auto-stop after 600 ms of inactivity.
+All audio uses the Web Audio API (`AudioContext`). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail. `playTick()` synthesizes accelerating tick sounds for the final 5 seconds. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
+
+### Updates
+
+The app is a PWA (`sw.js`) that runs entirely offline from its installed cache and never fetches anything on its own. A **Check for Updates** button (menu screen, bottom-left) is the only way it goes online: it calls `registration.update()` to refetch `sw.js` and fetches `index.html` to compare the embedded `VERSION` string. If a new version installed in the background (service worker `waiting` state), pressing the button posts `SKIP_WAITING` to it and reloads once `controllerchange` fires, replacing the installed app. `sw.js`'s `install` handler intentionally does not call `self.skipWaiting()` itself — that only happens on this explicit user request.
 
 ### Input
 

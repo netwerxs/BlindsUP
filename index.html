@@ -77,6 +77,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 }
 #btn-help{right:2vw;}
 #btn-install{left:2vw;}
+#btn-check-update{top:auto;bottom:1.5vh;left:2vw;}
 #version-label{
   position:absolute;bottom:1.5vh;right:2vw;
   font-size:2vh;font-weight:400;letter-spacing:0.15em;color:rgba(255,255,255,0.7);
@@ -130,14 +131,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #layout{
   width:100%;height:100%;
   display:grid;
-  grid-template-columns:auto 1fr auto;
+  grid-template-columns:1fr auto;
   grid-template-rows:50% 50%;
-}
-#col-vol{
-  grid-column:1;grid-row:1/span 2;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  padding:2vh 1.5vw;gap:1.5vh;
-  border-right:1px solid rgba(255,255,255,0.07);
 }
 
 .pill-btn{
@@ -151,7 +146,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .pill-btn:hover,.pill-btn:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 
 #blind-zone{
-  grid-column:2;grid-row:1;
+  grid-column:1;grid-row:1;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;
   border-bottom:1px solid rgba(255,255,255,0.07);
@@ -164,7 +159,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 .b-amp{font-size:13vh;font-weight:700;color:rgba(255,255,255,0.35);align-self:center;margin:0 0.25em;}
 
 #cd-zone{
-  grid-column:2;grid-row:2;
+  grid-column:1;grid-row:2;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;
 }
@@ -199,7 +194,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 
 /* RIGHT */
 #col-right{
-  grid-column:3;grid-row:1/span 2;
+  grid-column:2;grid-row:1/span 2;
   display:flex;flex-direction:column;align-items:stretch;
   justify-content:space-between;
   padding:2vh 1.5vw;
@@ -210,35 +205,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
 }
-#vol-icon{font-size:2vh;color:var(--dim);}
-#vol-slider-wrap{
-  height:80vh;width:3rem;
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-  border:1px solid rgba(255,255,255,0.28);border-radius:100px;
-}
-#vol-slider{
-  -webkit-appearance:none;appearance:none;
-  width:80vh;height:3rem;flex-shrink:0;
-  transform:rotate(-90deg);
-  cursor:pointer;background:transparent;
-}
-#vol-slider::-webkit-slider-runnable-track{
-  background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
-}
-#vol-slider::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  width:2.5rem;height:2.5rem;border-radius:50%;
-  background:var(--white);cursor:pointer;
-  margin-top:calc(-1.25rem + 2px);
-}
-#vol-slider::-moz-range-track{
-  background:rgba(255,255,255,0.25);height:4px;border-radius:2px;
-}
-#vol-slider::-moz-range-thumb{
-  width:2.5rem;height:2.5rem;border-radius:50%;
-  background:var(--white);cursor:pointer;border:none;
-}
-#vol-pct{font-size:1.5vh;font-weight:400;color:rgba(255,255,255,0.4);letter-spacing:0.08em;}
 #btn-break,#btn-pause{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
@@ -373,6 +339,7 @@ body.no-touch .no-touch-only{display:flex;}
 <div id="menu-screen">
   <button id="btn-install" class="menu-corner-btn" onclick="openInstall()">Install</button>
   <button id="btn-help" class="menu-corner-btn" onclick="openHelp()">Help</button>
+  <button id="btn-check-update" class="menu-corner-btn" onclick="checkForUpdates()">Check for Updates</button>
   <div id="resume-wrap">
     <button id="btn-resume" onclick="resumeGame()">Resume</button>
   </div>
@@ -385,14 +352,6 @@ body.no-touch .no-touch-only{display:flex;}
 <!-- APP -->
 <div id="app">
 <div id="layout">
-
-  <div id="col-vol">
-    <div id="vol-icon">&#9835;</div>
-    <div id="vol-slider-wrap">
-      <input type="range" id="vol-slider" min="15" max="100" value="50" oninput="onVolSlider(this.value)">
-    </div>
-    <div id="vol-pct">50%</div>
-  </div>
 
   <div id="blind-zone">
     <div id="blind-inner">
@@ -431,7 +390,7 @@ body.no-touch .no-touch-only{display:flex;}
   <div class="help-sections">
     <div class="help-section">
       <div class="help-heading">Volume</div>
-      <div class="help-body">Use the <b>in-app slider</b> on the right side to set the alarm volume. Set your <b>device volume to full blast</b> first — the slider then controls the alarm level relative to that.</div>
+      <div class="help-body">Alarm volume follows your <b>device's hardware volume buttons</b> — there's no in-app slider. Set it to full blast before you start.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Changing Blinds</div>
@@ -473,7 +432,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.89';
+const VERSION='v1.90';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -491,7 +450,6 @@ const elBtnPause=document.getElementById('btn-pause');
 const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
-const elVolPct=document.getElementById('vol-pct');
 const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
 const elBreakETA=document.getElementById('break-eta');
@@ -514,7 +472,7 @@ let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0,pauseSecRTC=0;
 let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let inBreak=false,breakRemSec=0,breakTO=null;
-let volume=0.5,audioCtx=null,alarmNodes=[],alarmTimeouts=[];
+let audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
 // ── Touch detection ───────────────────────────────────────────────
 (function(){
@@ -674,7 +632,7 @@ function zzfx(vol=1,randomness=.05,frequency=220,attack=0,sustain=0,release=.1,s
     if(repeatTime&&!(++rep%repeatTime)){frequency=startFreq;slide=startSlide;jump||=1;}
   }
   const buf=ctx.createBuffer(1,b.length,R),data=buf.getChannelData(0);
-  for(let j=0;j<b.length;j++)data[j]=b[j]*vol*volume;
+  for(let j=0;j<b.length;j++)data[j]=b[j]*vol;
   const src=ctx.createBufferSource();
   src.buffer=buf;src.connect(ctx.destination);src.start();
   return src;
@@ -702,14 +660,6 @@ function stopAlarm(){
 function playTick(){
   zzfx(1,0,1200,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0);
   setTimeout(()=>zzfx(0.4,0,900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0),500);
-}
-
-let volPreviewTO=null;
-function onVolSlider(val){
-  volume=val/100;
-  elVolPct.textContent=Math.round(volume*100)+'%';
-  if(volPreviewTO)clearTimeout(volPreviewTO);
-  volPreviewTO=setTimeout(()=>{zzfx(1,0,440,.01,.12,.08,2);volPreviewTO=null;},200);
 }
 
 // ── Sound check ───────────────────────────────────────────────────
@@ -1022,8 +972,41 @@ updateClocks();
 startSoundcheck();
 render();
 
+let swReg=null;
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js');
+  navigator.serviceWorker.register('./sw.js').then(reg=>{swReg=reg;});
+}
+
+// Explicit, user-triggered update check — the app otherwise never goes
+// online on its own and just runs whatever was installed. Forces the
+// browser to refetch sw.js; if it changed, the new worker installs in the
+// background and we hand it control (skip waiting) only once the user
+// asked for it, then reload to swap in the update.
+async function checkForUpdates(){
+  const btn=document.getElementById('btn-check-update');
+  const original=btn.textContent;
+  btn.textContent='Checking…';btn.disabled=true;
+  try{
+    if(swReg)await swReg.update();
+    const res=await fetch('./index.html?swCheckUpdate=1',{cache:'no-store'});
+    const html=await res.text();
+    const match=html.match(/const VERSION='([^']+)'/);
+    if(match&&match[1]!==VERSION){
+      btn.textContent='Installing update…';
+      if(swReg&&swReg.waiting){
+        navigator.serviceWorker.addEventListener('controllerchange',()=>window.location.reload(),{once:true});
+        swReg.waiting.postMessage({type:'SKIP_WAITING'});
+      } else {
+        window.location.reload();
+      }
+    } else {
+      btn.textContent='Up to date';
+      setTimeout(()=>{btn.textContent=original;btn.disabled=false;},2000);
+    }
+  }catch(e){
+    btn.textContent='Check failed';
+    setTimeout(()=>{btn.textContent=original;btn.disabled=false;},2000);
+  }
 }
 
 // iOS touch coordinates desync after rotation. The only reliable fix is a fresh
@@ -1045,21 +1028,15 @@ window.addEventListener('resize',()=>{
   document.body.style.display='';
 });
 
-// On iOS PWA, app resumes from suspension rather than reloading — check for
-// a new version whenever the app comes to the foreground and reload if found.
+// On iOS PWA, app resumes from suspension rather than reloading — the
+// countdown may have kept running while backgrounded, so catch it up.
+// Version checks are user-triggered only (see checkForUpdates), never automatic.
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState!=='visible')return;
   if(running&&!paused){
     stopTick();
     tick();
   }
-  fetch('./index.html',{cache:'no-store'})
-    .then(r=>r.text())
-    .then(html=>{
-      const match=html.match(/const VERSION='([^']+)'/);
-      if(match&&match[1]!==VERSION&&!running)window.location.reload();
-    })
-    .catch(()=>{});
 });
 </script>
 </body>
