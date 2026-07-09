@@ -45,9 +45,9 @@ All mutable state is global:
 `BLINDS` is a 25-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
 - Levels 1–15: `sb = level, bb = level*2` (15-minute countdown for 1–5, 10-minute countdown from level 6)
-- Levels 16–25: jump by +5/+10 per level (20|40, 25|50, ... up to 65|130), still 10-minute countdown
+- Levels 16–25: jump by +5/+10 per level (20/40, 25/50, ... up to 65/130), still 10-minute countdown
 
-There's no special UI treatment for any level — the menu grid renders every level identically (`Level N` / `sb|bb` / duration). The blind separator is rendered as `|`, not `/`.
+There's no special UI treatment for any level — the menu grid renders every level identically (`Level N` / `sb/bb` / duration).
 
 Break is not a level. A **Break button** (in col-right) starts a separate 15-minute break countdown (`inBreak` flag). During break, the level timer is frozen and the break screen shows "Break" in the blind zone. Horn fires at 3 min, 1 min, and 0; break holds at 0. "End Break" / "Break" label toggles on the button. Pressing Pause during break ends break and shows the menu.
 
