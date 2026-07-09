@@ -347,7 +347,7 @@ body.no-touch .no-touch-only{display:flex;}
   <div id="blind-zone">
     <div id="blind-inner">
       <span class="b-num" id="bSB">1</span>
-      <span class="b-amp">/</span>
+      <span class="b-amp">|</span>
       <span class="b-num" id="bBB">2</span>
     </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"><span class="zone-sign">−</span></div>
@@ -393,7 +393,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Blind Schedule</div>
-      <div class="help-body"><b>Levels 1–5</b> (1/2 through 5/10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (starting at 6/12) run for <b>10 minutes</b> each, jumping by +5/+10 from level 16 onward up to 65/130. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
+      <div class="help-body"><b>Levels 1–5</b> (1|2 through 5|10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (starting at 6|12) run for <b>10 minutes</b> each, jumping by +5|+10 from level 16 onward up to 65|130. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Full Screen</div>
@@ -415,7 +415,7 @@ body.no-touch .no-touch-only{display:flex;}
   <div class="ann-label">Blinds Up</div>
   <div id="ann-wrap">
     <span class="ann-num" id="annSB">2</span>
-    <span class="ann-amp">/</span>
+    <span class="ann-amp">|</span>
     <span class="ann-num" id="annBB">4</span>
   </div>
   <div class="ann-sub">Timer started, good luck!</div>
@@ -423,7 +423,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.94';
+const VERSION='v1.95';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -538,7 +538,7 @@ async function nativeInstall(e){
     const bl=BLINDS[i-1];
     const card=document.createElement('div');
     card.className='blind-card';
-    card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb}/${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
+    card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb}|${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
     card.addEventListener('click',()=>selectBlind(i));
     grid.appendChild(card);
   }
@@ -717,7 +717,7 @@ function showMenu(showResume){
   elApp.classList.remove('visible');
   if(showResume){
     const bl=BLINDS[Math.min(level,BLINDS.length)-1];
-    elBtnResume.textContent='Resume '+bl.sb+'/'+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
+    elBtnResume.textContent='Resume '+bl.sb+'|'+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
     elBtnResume.style.display='block';
   } else {
     elBtnResume.style.display='none';
