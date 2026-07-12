@@ -425,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.21';
+const VERSION='v1.22';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -463,7 +463,7 @@ function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
 let paused=true,running=false,launchWall=0,pauseSecRTC=0;
-let lastTickSec=-1,tickHandle=null,announceTO=null,snapTO=null,advancing=false;
+let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let inBreak=false,breakRemSec=0,breakTO=null;
 let audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
@@ -568,7 +568,7 @@ function cancelSnap(){if(snapTO){clearTimeout(snapTO);snapTO=null;}}
 
 function selectBlind(i){
   if(inBreak){clearInterval(breakTO);breakTO=null;inBreak=false;elBtnResume.classList.remove('on-break');}
-  level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec; lastTickSec=-1;
+  level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec;
   beginCountdown();
 }
 
@@ -643,26 +643,6 @@ function playAlarm(){
 function stopAlarm(){
   alarmTimeouts.forEach(clearTimeout);alarmTimeouts=[];
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
-}
-
-// Tan-clipped + noise-heavy click, shared by playTick/playClockTick, for a
-// percussive tick rather than a tonal beep. Kept above ~600Hz so small phone
-// speakers (which roll off the low end) still reproduce it clearly.
-function tickClick(amp,freq,noise=.5){
-  zzfx(amp,0.05,freq,0,0,.012,3,1,0,0,0,0,0,noise,0,0,0,1,.006,0);
-}
-
-// Alternating tick(~900Hz)/tock(~650Hz) pair.
-function playTick(){
-  tickClick(1,900);
-  setTimeout(()=>tickClick(0.5,650,.45),500);
-}
-
-// Pre-warning click for the 30s-6s countdown, same mechanical-tick texture as
-// playTick. Two-stage volume ramp: 30s-12s goes 1%->30%, then 11s-6s goes 30%->100%.
-function playClockTick(remSec){
-  const vol=remSec>=12?0.01+(30-remSec)/18*0.29:0.3+(11-remSec)/5*0.7;
-  tickClick(vol,900);
 }
 
 // A loud, buzzy ~2s square-wave tone with a fast tremolo warble, for gauging
@@ -762,7 +742,7 @@ function enterRunningState(){
 }
 
 function beginCountdown(){
-  pausedRemSec=remSec;lastTickSec=-1;
+  pausedRemSec=remSec;
   render();
   enterRunningState();
 }
@@ -789,11 +769,6 @@ function tick(){
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
   updateBreakETA();
-  if(remSec>0&&remSec<=30&&remSec!==lastTickSec){
-    lastTickSec=remSec;
-    remSec<=5?playTick():playClockTick(remSec);
-  }
-  else if(remSec>30)lastTickSec=-1;
   if(remSec<=0&&!advancing){
     if(level===5){advancing=false;level=6;startBreak();return;}
     advancing=true;
@@ -806,7 +781,7 @@ function tick(){
       snapTO=null;
       if(!advancing||!running||paused)return;
       remSec=snapToRTC(ms);pausedRemSec=remSec;
-      launchWall=Date.now();lastTickSec=-1;advancing=false;render();
+      launchWall=Date.now();advancing=false;render();
       scheduleTick();
     },((7-ss+60)%60)*1000);
     return;
@@ -869,7 +844,7 @@ function adjustLevel(dir){
   level=nv;
   const ms=maxSec(level);
   remSec=snapToRTC(ms);pausedRemSec=remSec;
-  launchWall=Date.now();lastTickSec=-1;render();updateBreakETA();
+  launchWall=Date.now();render();updateBreakETA();
 }
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
@@ -884,7 +859,7 @@ function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   const ss=new Date().getSeconds();
   const newRem=newMin===0?(60-ss)%60:snapToRTC(newMin*60);
   remSec=newRem;pausedRemSec=newRem;
-  launchWall=Date.now();lastTickSec=-1;render();updateBreakETA();
+  launchWall=Date.now();render();updateBreakETA();
 }
 
 function showAnnounce(){
@@ -968,7 +943,7 @@ updateClocks();
         dismissAnnounce();
         stopTick();
         running=false;paused=true;advancing=false;cancelSnap();
-        level=1;remSec=15*60;pausedRemSec=15*60;lastTickSec=-1;
+        level=1;remSec=15*60;pausedRemSec=15*60;
         elBtnPause.textContent='Pause';
         elApp.classList.remove('visible');
         showMenu(false);render();
