@@ -198,7 +198,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   white-space:nowrap;
 }
 #btn-break,#btn-pause,#btn-soundcheck{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
-#btn-soundcheck{opacity:0.6;font-size:1.8vh;}
+#btn-soundcheck{opacity:0.6;font-size:1.8vh;line-height:1.4;white-space:normal;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
   color:rgba(255,255,255,0.45);white-space:nowrap;text-align:center;
@@ -370,7 +370,7 @@ body.no-touch .no-touch-only{display:flex;}
     <div id="tod">—</div>
     <button class="pill-btn" id="btn-break" onclick="toggleBreak()">Break</button>
     <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
-    <button class="pill-btn" id="btn-soundcheck" onclick="playSoundcheck()">Soundcheck</button>
+    <button class="pill-btn" id="btn-soundcheck" onclick="playSoundcheck()">SOUND<br/>CHECK</button>
     <div id="version-label-app"></div>
   </div>
 
@@ -425,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.12';
+const VERSION='v1.13';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -663,12 +663,12 @@ function playClockTick(){
   tickClick(0.55,900);
 }
 
-// A smooth ~2s sustained sine pad with a gentle tremolo warble, for gauging
+// A loud, buzzy ~2s square-wave tone with a fast tremolo warble, for gauging
 // device volume after adjusting the hardware buttons. Deliberately unlike any
 // other sound in the app (no percussive click, no arpeggio) so it's never
 // mistaken for a timer event. Purely a sound effect — never touches timer state.
 function playSoundcheck(){
-  zzfx(0.6,0,440,.3,1,.6,0,1,0,0,0,0,.15,0,0,0,0,1,.1,.3);
+  zzfx(1,0.02,480,.05,1.2,.65,5,1,0,0,0,0,.06,0,0,0,0,1,.1,.5);
 }
 
 // ── Sound check ───────────────────────────────────────────────────
