@@ -423,7 +423,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.97';
+const VERSION='v1.98';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -648,6 +648,11 @@ function playTick(){
   setTimeout(()=>zzfx(0.4,0,900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0),500);
 }
 
+// Softer single click for the 20s-6s pre-warning, mixed with noise for a mechanical clock-tick texture.
+function playClockTick(){
+  zzfx(0.5,0.05,1600,0,0,.015,0,1,0,0,0,0,0,.3,0,0,0,1,.003,0);
+}
+
 // ── Sound check ───────────────────────────────────────────────────
 // Some browsers/devices block audio until a user gesture resumes the
 // AudioContext. Try to resume automatically first; only show the
@@ -765,8 +770,8 @@ function tick(){
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
   updateBreakETA();
-  if(remSec<=5&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;playTick();}
-  else if(remSec>5)lastTickSec=-1;
+  if(remSec<=20&&remSec>0&&remSec!==lastTickSec){lastTickSec=remSec;remSec>5?playClockTick():playTick();}
+  else if(remSec>20)lastTickSec=-1;
   if(remSec<=0&&!advancing){
     if(level===5){advancing=false;level=6;startBreak();return;}
     advancing=true;
@@ -920,6 +925,7 @@ function tickBreak(){
   elBtnResume.textContent='On Break '+fmtCD(breakRemSec);
   if(breakRemSec===180){playAlarm();}
   else if(breakRemSec===60){playAlarm();}
+  else if(breakRemSec===0){playAlarm();}
   if(breakRemSec<=0){
     clearInterval(breakTO);breakTO=null;inBreak=false;
     elBtnResume.classList.remove('on-break');
