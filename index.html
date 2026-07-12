@@ -425,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.20';
+const VERSION='v1.21';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -659,9 +659,9 @@ function playTick(){
 }
 
 // Pre-warning click for the 30s-6s countdown, same mechanical-tick texture as
-// playTick. Two-stage volume ramp: 30s-12s goes 1%->60%, then 11s-6s goes 60%->100%.
+// playTick. Two-stage volume ramp: 30s-12s goes 1%->30%, then 11s-6s goes 30%->100%.
 function playClockTick(remSec){
-  const vol=remSec>=12?0.01+(30-remSec)/18*0.59:0.6+(11-remSec)/5*0.4;
+  const vol=remSec>=12?0.01+(30-remSec)/18*0.29:0.3+(11-remSec)/5*0.7;
   tickClick(vol,900);
 }
 
