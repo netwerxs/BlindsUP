@@ -425,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.22';
+const VERSION='v1.23';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -645,6 +645,15 @@ function stopAlarm(){
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
 }
 
+// Two wooden dowels struck together, three times, 300ms apart. Fired once at
+// the 11-second mark of the countdown.
+function playWoodClack(){
+  const strike=()=>zzfx(1,0.05,2000,0,0,.05,3,1,0,0,0,0,0,.6,0,0,0,1,.01,0);
+  strike();
+  setTimeout(strike,300);
+  setTimeout(strike,600);
+}
+
 // A loud, buzzy ~2s square-wave tone with a fast tremolo warble, for gauging
 // device volume after adjusting the hardware buttons. Deliberately unlike any
 // other sound in the app (no percussive click, no arpeggio) so it's never
@@ -769,6 +778,7 @@ function tick(){
   const cur=Math.max(0,Math.ceil(pausedRemSec-elapsed));
   if(cur!==remSec){remSec=cur;render();}
   updateBreakETA();
+  if(remSec===11)playWoodClack();
   if(remSec<=0&&!advancing){
     if(level===5){advancing=false;level=6;startBreak();return;}
     advancing=true;
