@@ -431,7 +431,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.99';
+const VERSION='v1.100';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -652,17 +652,22 @@ function stopAlarm(){
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
 }
 
-// Alternating tick(~900Hz)/tock(~650Hz) pair, tan-clipped + noise-heavy for a
-// percussive click rather than a tonal beep. Kept above ~600Hz so small phone
+// Tan-clipped + noise-heavy click, shared by playTick/playClockTick, for a
+// percussive tick rather than a tonal beep. Kept above ~600Hz so small phone
 // speakers (which roll off the low end) still reproduce it clearly.
+function tickClick(amp,freq,noise=.5){
+  zzfx(amp,0.05,freq,0,0,.012,3,1,0,0,0,0,0,noise,0,0,0,1,.006,0);
+}
+
+// Alternating tick(~900Hz)/tock(~650Hz) pair.
 function playTick(){
-  zzfx(1,0.05,900,0,0,.012,3,1,0,0,0,0,0,.5,0,0,0,1,.006,0);
-  setTimeout(()=>zzfx(0.5,0.05,650,0,0,.012,3,1,0,0,0,0,0,.45,0,0,0,1,.006,0),500);
+  tickClick(1,900);
+  setTimeout(()=>tickClick(0.5,650,.45),500);
 }
 
 // Softer single click for the 20s-6s pre-warning, same mechanical-tick texture as playTick.
 function playClockTick(){
-  zzfx(0.55,0.05,900,0,0,.012,3,1,0,0,0,0,0,.5,0,0,0,1,.006,0);
+  tickClick(0.55,900);
 }
 
 // Plays every sound in the app back-to-back, naming each one on screen as it plays.
@@ -958,9 +963,7 @@ function startBreak(){
 function tickBreak(){
   breakRemSec=Math.max(0,breakRemSec-1);
   elBtnResume.textContent='On Break '+fmtCD(breakRemSec);
-  if(breakRemSec===180){playAlarm();}
-  else if(breakRemSec===60){playAlarm();}
-  else if(breakRemSec===0){playAlarm();}
+  if(breakRemSec===180||breakRemSec===60||breakRemSec===0)playAlarm();
   if(breakRemSec<=0){
     clearInterval(breakTO);breakTO=null;inBreak=false;
     elBtnResume.classList.remove('on-break');
