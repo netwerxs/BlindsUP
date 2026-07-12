@@ -77,6 +77,12 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #btn-help{right:2vw;}
 #btn-install{left:2vw;}
 #btn-check-update{top:auto;bottom:1.5vh;right:2vw;font-size:2.3vh;}
+#btn-preview-sounds{top:auto;bottom:1.5vh;left:2vw;}
+#sound-preview-label{
+  display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:2.6vh;font-weight:600;letter-spacing:0.1em;text-transform:none;
+  color:var(--accent);pointer-events:none;font-family:'Inter',monospace;z-index:3;
+}
 #menu-tod{
   position:absolute;top:6vh;right:2vw;
   font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
@@ -332,6 +338,8 @@ body.no-touch .no-touch-only{display:flex;}
   <button id="btn-install" class="menu-corner-btn" onclick="openInstall()">Install</button>
   <button id="btn-help" class="menu-corner-btn" onclick="openHelp()">Help</button>
   <button id="btn-check-update" class="menu-corner-btn" onclick="checkForUpdates()"></button>
+  <button id="btn-preview-sounds" class="menu-corner-btn" onclick="previewSounds()">Sounds</button>
+  <div id="sound-preview-label"></div>
   <div id="resume-wrap">
     <button id="btn-resume" onclick="resumeGame()">Resume</button>
   </div>
@@ -423,7 +431,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.98';
+const VERSION='v1.99';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -441,6 +449,7 @@ const elBtnPause=document.getElementById('btn-pause');
 const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
+const elSoundPreviewLabel=document.getElementById('sound-preview-label');
 const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
 const elBreakETA=document.getElementById('break-eta');
@@ -643,14 +652,40 @@ function stopAlarm(){
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
 }
 
+// Alternating tick(~900Hz)/tock(~650Hz) pair, tan-clipped + noise-heavy for a
+// percussive click rather than a tonal beep. Kept above ~600Hz so small phone
+// speakers (which roll off the low end) still reproduce it clearly.
 function playTick(){
-  zzfx(1,0,1200,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0);
-  setTimeout(()=>zzfx(0.4,0,900,0,0,.015,0,1.5,0,0,0,0,0,0,0,0,.01,1,.005,0),500);
+  zzfx(1,0.05,900,0,0,.012,3,1,0,0,0,0,0,.5,0,0,0,1,.006,0);
+  setTimeout(()=>zzfx(0.5,0.05,650,0,0,.012,3,1,0,0,0,0,0,.45,0,0,0,1,.006,0),500);
 }
 
-// Softer single click for the 20s-6s pre-warning, mixed with noise for a mechanical clock-tick texture.
+// Softer single click for the 20s-6s pre-warning, same mechanical-tick texture as playTick.
 function playClockTick(){
-  zzfx(0.5,0.05,1600,0,0,.015,0,1,0,0,0,0,0,.3,0,0,0,1,.003,0);
+  zzfx(0.55,0.05,900,0,0,.012,3,1,0,0,0,0,0,.5,0,0,0,1,.006,0);
+}
+
+// Plays every sound in the app back-to-back, naming each one on screen as it plays.
+const SOUND_PREVIEW=[
+  {name:'playClockTick',fn:playClockTick,wait:900},
+  {name:'playTick',fn:playTick,wait:1300},
+  {name:'playAlarm',fn:playAlarm,wait:3200},
+];
+let previewRunning=false;
+function previewSounds(){
+  if(previewRunning)return;
+  previewRunning=true;
+  getCtx();
+  elSoundPreviewLabel.style.display='block';
+  let i=0;
+  const step=()=>{
+    if(i>=SOUND_PREVIEW.length){elSoundPreviewLabel.style.display='none';previewRunning=false;return;}
+    const s=SOUND_PREVIEW[i++];
+    elSoundPreviewLabel.textContent=s.name;
+    s.fn();
+    setTimeout(step,s.wait);
+  };
+  step();
 }
 
 // ── Sound check ───────────────────────────────────────────────────
