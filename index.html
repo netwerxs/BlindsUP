@@ -77,12 +77,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
 #btn-help{right:2vw;}
 #btn-install{left:2vw;}
 #btn-check-update{top:auto;bottom:1.5vh;right:2vw;font-size:2.3vh;}
-#btn-preview-sounds{top:auto;bottom:1.5vh;left:2vw;}
-#sound-preview-label{
-  display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  font-size:2.6vh;font-weight:600;letter-spacing:0.1em;text-transform:none;
-  color:var(--accent);pointer-events:none;font-family:'Inter',monospace;z-index:3;
-}
 #menu-tod{
   position:absolute;top:6vh;right:2vw;
   font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
@@ -203,7 +197,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
 }
-#btn-break,#btn-pause{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
+#btn-break,#btn-pause,#btn-soundcheck{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
+#btn-soundcheck{opacity:0.6;font-size:1.8vh;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
   color:rgba(255,255,255,0.45);white-space:nowrap;text-align:center;
@@ -338,8 +333,6 @@ body.no-touch .no-touch-only{display:flex;}
   <button id="btn-install" class="menu-corner-btn" onclick="openInstall()">Install</button>
   <button id="btn-help" class="menu-corner-btn" onclick="openHelp()">Help</button>
   <button id="btn-check-update" class="menu-corner-btn" onclick="checkForUpdates()"></button>
-  <button id="btn-preview-sounds" class="menu-corner-btn" onclick="previewSounds()">Sounds</button>
-  <div id="sound-preview-label"></div>
   <div id="resume-wrap">
     <button id="btn-resume" onclick="resumeGame()">Resume</button>
   </div>
@@ -377,6 +370,7 @@ body.no-touch .no-touch-only{display:flex;}
     <div id="tod">—</div>
     <button class="pill-btn" id="btn-break" onclick="toggleBreak()">Break</button>
     <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
+    <button class="pill-btn" id="btn-soundcheck" onclick="playSoundcheck()">Soundcheck</button>
     <div id="version-label-app"></div>
   </div>
 
@@ -431,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.11';
+const VERSION='v1.12';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -449,7 +443,6 @@ const elBtnPause=document.getElementById('btn-pause');
 const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
-const elSoundPreviewLabel=document.getElementById('sound-preview-label');
 const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
 const elBreakETA=document.getElementById('break-eta');
@@ -670,27 +663,12 @@ function playClockTick(){
   tickClick(0.55,900);
 }
 
-// Plays every sound in the app back-to-back, naming each one on screen as it plays.
-const SOUND_PREVIEW=[
-  {name:'playClockTick',fn:playClockTick,wait:900},
-  {name:'playTick',fn:playTick,wait:1300},
-  {name:'playAlarm',fn:playAlarm,wait:3200},
-];
-let previewRunning=false;
-function previewSounds(){
-  if(previewRunning)return;
-  previewRunning=true;
-  getCtx();
-  elSoundPreviewLabel.style.display='block';
-  let i=0;
-  const step=()=>{
-    if(i>=SOUND_PREVIEW.length){elSoundPreviewLabel.style.display='none';previewRunning=false;return;}
-    const s=SOUND_PREVIEW[i++];
-    elSoundPreviewLabel.textContent=s.name;
-    s.fn();
-    setTimeout(step,s.wait);
-  };
-  step();
+// A smooth ~2s sustained sine pad with a gentle tremolo warble, for gauging
+// device volume after adjusting the hardware buttons. Deliberately unlike any
+// other sound in the app (no percussive click, no arpeggio) so it's never
+// mistaken for a timer event. Purely a sound effect — never touches timer state.
+function playSoundcheck(){
+  zzfx(0.6,0,440,.3,1,.6,0,1,0,0,0,0,.15,0,0,0,0,1,.1,.3);
 }
 
 // ── Sound check ───────────────────────────────────────────────────
