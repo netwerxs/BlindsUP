@@ -425,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.17';
+const VERSION='v1.18';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -659,10 +659,14 @@ function playTick(){
 }
 
 // Pre-warning click for the 30s-6s countdown, same mechanical-tick texture as
-// playTick. Volume ramps evenly from a faint 0.08 at 30s up to full 1.0 by
-// 9s remaining, then stays full through 6s.
+// playTick. Volume ramps evenly from 0.3 at 30s up to full 1.0 by 9s
+// remaining, then stays full through 6s. Floor kept well above 0.08 (an
+// earlier attempt) because a click that quiet is below the audible/perceptible
+// threshold on a phone's small speaker, even though it's clearly audible on a
+// desktop's — it read as "starts at full volume" on iPhone since the early
+// low-amplitude ticks were simply inaudible, not because the ramp was wrong.
 function playClockTick(remSec){
-  const vol=remSec<=9?1:0.08+(30-remSec)/21*0.92;
+  const vol=remSec<=9?1:0.3+(30-remSec)/21*0.7;
   tickClick(vol,900);
 }
 
