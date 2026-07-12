@@ -425,7 +425,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.15';
+const VERSION='v1.16';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -780,10 +780,10 @@ function resumeGame(){
   enterRunningState();
 }
 
-// Pre-warning clock-tick schedule: starts at 30s with a 4s gap, ramps evenly
-// down through 3s and 2s gaps, reaching a steady 1s gap right at 9s, then
-// holds that 1s cadence through 6s (5s and below hand off to playTick()).
-const CLOCK_TICK_SECONDS=new Set([30,26,22,19,16,14,12,10,9,8,7,6]);
+// Pre-warning clock-tick schedule: starts at 25s, one tick each at gaps of
+// 5,4,3,2,1 (25,20,16,13,11,10), then holds a steady 1s gap through 6s
+// (5s and below hand off to playTick()).
+const CLOCK_TICK_SECONDS=new Set([25,20,16,13,11,10,9,8,7,6]);
 function tick(){
   elTod.textContent=fmtClock();
   if(!running||paused||advancing)return;
@@ -795,7 +795,7 @@ function tick(){
     lastTickSec=remSec;
     remSec<=5?playTick():playClockTick();
   }
-  else if(remSec>30)lastTickSec=-1;
+  else if(remSec>25)lastTickSec=-1;
   if(remSec<=0&&!advancing){
     if(level===5){advancing=false;level=6;startBreak();return;}
     advancing=true;
