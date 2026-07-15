@@ -204,7 +204,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
 }
-#btn-break,#btn-pause,#btn-lock,#btn-soundcheck{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
+#btn-pause,#btn-lock,#btn-soundcheck{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
+#btn-lock{display:flex;align-items:center;justify-content:center;}
+#btn-lock svg{width:2.4vh;height:2.4vh;}
 #btn-lock.on{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.7);}
 #btn-soundcheck{opacity:0.6;font-size:1.8vh;line-height:1.4;white-space:normal;}
 #version-label-app{
@@ -378,9 +380,8 @@ body.no-touch .no-touch-only{display:flex;}
 
   <div id="col-right">
     <div id="tod">—</div>
-    <button class="pill-btn" id="btn-break" onclick="toggleBreak()">Break</button>
     <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
-    <button class="pill-btn" id="btn-lock" onclick="toggleLock()">Lock</button>
+    <button class="pill-btn" id="btn-lock" onclick="toggleLock()"></button>
     <button class="pill-btn" id="btn-soundcheck" onclick="playSoundcheck()">SOUND<br/>CHECK</button>
     <div id="version-label-app"></div>
   </div>
@@ -398,7 +399,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Locking</div>
-      <div class="help-body">Tap <b>Lock</b> to disable swipes and clicks on the blinds and countdown, so they can't be changed by accident. Tap <b>Unlock</b> to re-enable them — it re-locks itself after <b>10 seconds</b> of no interaction. Picking a new level from the menu always starts unlocked.</div>
+      <div class="help-body">Tap the padlock to disable swipes and clicks on the blinds and countdown, so they can't be changed by accident. Tap it again to re-enable them — it re-locks itself after <b>10 seconds</b> of no interaction. Picking a new level from the menu always starts unlocked.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Changing Blinds</div>
@@ -410,7 +411,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Blind Schedule</div>
-      <div class="help-body"><b>Levels 1–5</b> (1/2 through 5/10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (starting at 6/12) run for <b>10 minutes</b> each, jumping by +5/+10 from level 16 onward up to 65/130. Use the <b>Break</b> button to start a 15-minute break countdown — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
+      <div class="help-body"><b>Levels 1–5</b> (1/2 through 5/10) run for <b>15 minutes</b> each. <b>Level 6 and up</b> (starting at 6/12) run for <b>10 minutes</b> each, jumping by +5/+10 from level 16 onward up to 65/130. A 15-minute break starts automatically after level 5 — horn and voice announcement fire at 3 and 1 minutes remaining, then again at zero.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Full Screen</div>
@@ -440,7 +441,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.26';
+const VERSION='v1.27';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -884,9 +885,13 @@ function armIdleLock(){
   },IDLE_LOCK_MS);
 }
 
+const ICON_LOCKED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+const ICON_UNLOCKED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>';
+elBtnLock.innerHTML=ICON_UNLOCKED;
+
 function toggleLock(){
   locked=!locked;
-  elBtnLock.textContent=locked?'Unlock':'Lock';
+  elBtnLock.innerHTML=locked?ICON_LOCKED:ICON_UNLOCKED;
   elBtnLock.classList.toggle('on',locked);
   elLayout.classList.toggle('locked',locked);
   if(locked)clearTimeout(idleTO);else armIdleLock();
@@ -937,11 +942,6 @@ function dismissAnnounce(){
   stopAlarm();
   elAnnounce.classList.remove('visible');
   if(announceTO)clearTimeout(announceTO);
-}
-
-function toggleBreak(){
-  if(!running||paused||inBreak)return;
-  startBreak();
 }
 
 function flashBreak(onDone){
