@@ -398,7 +398,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Locking</div>
-      <div class="help-body">Tap <b>Lock</b> to disable swipes and clicks on the blinds and countdown, so they can't be changed by accident. Tap <b>Unlock</b> to re-enable them. Picking a new level from the menu always starts unlocked.</div>
+      <div class="help-body">Tap <b>Lock</b> to disable swipes and clicks on the blinds and countdown, so they can't be changed by accident. Tap <b>Unlock</b> to re-enable them — it re-locks itself after <b>10 seconds</b> of no interaction. Picking a new level from the menu always starts unlocked.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Changing Blinds</div>
@@ -440,7 +440,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.25';
+const VERSION='v1.26';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -708,6 +708,10 @@ function allowSound(){
   render();
 }
 
+// The Wake Lock API silently releases itself whenever the tab/screen goes
+// hidden (app-switch, phone auto-lock) and is never reacquired automatically,
+// so the visibilitychange handler below calls this again on every return
+// to foreground while a level is running.
 async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
 function requestLandscape(){try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}
 
@@ -767,6 +771,7 @@ function enterRunningState(){
   updateBreakETA();
   requestWakeLock();requestLandscape();
   scheduleTick();
+  armIdleLock();
 }
 
 function beginCountdown(){
@@ -866,12 +871,28 @@ bindSwipe(elBlindZone,dx=>adjustLevel(dx>0?1:-1));
 // Swipe countdown: left=+1min, right=-1min (re-snaps seconds to RTC)
 bindSwipe(elCdZone,dx=>adjustTime(dx>0?-1:1));
 
+const IDLE_LOCK_MS=10000;
+let idleTO=null;
+// Re-arms the auto-lock countdown; called on entering the running state,
+// on manual unlock, and on any tap/touch while the app screen is up, so
+// 10s of no interaction always re-engages the lock automatically.
+function armIdleLock(){
+  clearTimeout(idleTO);
+  if(locked)return;
+  idleTO=setTimeout(()=>{
+    if(running&&!paused&&!locked)toggleLock();
+  },IDLE_LOCK_MS);
+}
+
 function toggleLock(){
   locked=!locked;
   elBtnLock.textContent=locked?'Unlock':'Lock';
   elBtnLock.classList.toggle('on',locked);
   elLayout.classList.toggle('locked',locked);
+  if(locked)clearTimeout(idleTO);else armIdleLock();
 }
+elApp.addEventListener('touchstart',armIdleLock,{passive:true});
+elApp.addEventListener('mousedown',armIdleLock);
 
 function adjustLevel(dir){
   if(locked)return;
@@ -1064,6 +1085,7 @@ document.addEventListener('visibilitychange',()=>{
   if(running&&!paused){
     stopTick();
     tick();
+    requestWakeLock();
   }
 });
 </script>
