@@ -143,6 +143,13 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   overflow:hidden;cursor:ew-resize;position:relative;
   border-bottom:1px solid rgba(255,255,255,0.07);
 }
+.lock-badge{
+  display:none;position:absolute;top:1.5vh;left:0;right:0;
+  text-align:center;font-size:1.6vh;font-weight:600;letter-spacing:0.35em;
+  text-transform:uppercase;color:rgba(255,255,255,0.32);pointer-events:none;
+}
+#layout.locked .lock-badge{display:block;}
+#layout.locked #blind-zone,#layout.locked #cd-zone{pointer-events:none;cursor:default;}
 #blind-inner{
   display:flex;align-items:center;justify-content:center;
   height:100%;width:100%;
@@ -197,7 +204,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
 }
-#btn-break,#btn-pause,#btn-soundcheck{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
+#btn-break,#btn-pause,#btn-lock,#btn-soundcheck{font-size:2.2vh;padding:1.8vh 3vw;text-align:center;width:100%;}
+#btn-lock.on{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.7);}
 #btn-soundcheck{opacity:0.6;font-size:1.8vh;line-height:1.4;white-space:normal;}
 #version-label-app{
   font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
@@ -346,6 +354,7 @@ body.no-touch .no-touch-only{display:flex;}
 <div id="layout">
 
   <div id="blind-zone">
+    <div class="lock-badge">Locked</div>
     <div id="blind-inner">
       <span class="b-num" id="bSB">1</span>
       <span class="b-amp">/</span>
@@ -356,6 +365,7 @@ body.no-touch .no-touch-only{display:flex;}
   </div>
 
   <div id="cd-zone">
+    <div class="lock-badge">Locked</div>
     <div id="cd-inner">
       <span class="cd-num" id="cdMin">15</span>
       <span class="cd-colon">:</span>
@@ -370,6 +380,7 @@ body.no-touch .no-touch-only{display:flex;}
     <div id="tod">—</div>
     <button class="pill-btn" id="btn-break" onclick="toggleBreak()">Break</button>
     <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
+    <button class="pill-btn" id="btn-lock" onclick="toggleLock()">Lock</button>
     <button class="pill-btn" id="btn-soundcheck" onclick="playSoundcheck()">SOUND<br/>CHECK</button>
     <div id="version-label-app"></div>
   </div>
@@ -384,6 +395,10 @@ body.no-touch .no-touch-only{display:flex;}
     <div class="help-section">
       <div class="help-heading">Volume</div>
       <div class="help-body">Alarm volume follows your <b>device's hardware volume buttons</b> — there's no in-app slider. Set it to full blast before you start.</div>
+    </div>
+    <div class="help-section">
+      <div class="help-heading">Locking</div>
+      <div class="help-body">Tap <b>Lock</b> to disable swipes and clicks on the blinds and countdown, so they can't be changed by accident. Tap <b>Unlock</b> to re-enable them. Picking a new level from the menu always starts unlocked.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Changing Blinds</div>
@@ -425,7 +440,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.24';
+const VERSION='v1.25';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -440,6 +455,8 @@ const elTod=document.getElementById('tod');
 const elAnnSB=document.getElementById('annSB');
 const elAnnBB=document.getElementById('annBB');
 const elBtnPause=document.getElementById('btn-pause');
+const elBtnLock=document.getElementById('btn-lock');
+const elLayout=document.getElementById('layout');
 const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
@@ -462,6 +479,7 @@ const BLINDS=[
 function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
 
 let level=1,remSec=15*60,pausedRemSec=15*60;
+let locked=false;
 let paused=true,running=false,launchWall=0,pauseSecRTC=0;
 let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let inBreak=false,breakRemSec=0,breakTO=null;
@@ -568,6 +586,7 @@ function cancelSnap(){if(snapTO){clearTimeout(snapTO);snapTO=null;}}
 
 function selectBlind(i){
   if(inBreak){clearInterval(breakTO);breakTO=null;inBreak=false;elBtnResume.classList.remove('on-break');}
+  if(locked)toggleLock();
   level=i; remSec=snapToRTC(maxSec(i)); pausedRemSec=remSec;
   beginCountdown();
 }
@@ -847,7 +866,15 @@ bindSwipe(elBlindZone,dx=>adjustLevel(dx>0?1:-1));
 // Swipe countdown: left=+1min, right=-1min (re-snaps seconds to RTC)
 bindSwipe(elCdZone,dx=>adjustTime(dx>0?-1:1));
 
+function toggleLock(){
+  locked=!locked;
+  elBtnLock.textContent=locked?'Unlock':'Lock';
+  elBtnLock.classList.toggle('on',locked);
+  elLayout.classList.toggle('locked',locked);
+}
+
 function adjustLevel(dir){
+  if(locked)return;
   cancelSnap();advancing=false;
   const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
   if(nv===level)return;
@@ -858,6 +885,7 @@ function adjustLevel(dir){
 }
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
+  if(locked)return;
   cancelSnap();advancing=false;
   // remSec is usually already RTC-snapped, which can sit up to 30s to either
   // side of a clean minute mark. Math.floor would sometimes read that as one
