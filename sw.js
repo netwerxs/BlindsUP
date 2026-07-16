@@ -52,6 +52,15 @@ self.addEventListener('fetch', e => {
   e.respondWith((async () => {
     const cached = await caches.match(e.request);
     if (cached) return cached;
+    // Navigations (e.g. launching from the home-screen icon via manifest
+    // start_url ".") resolve to the directory URL, not literally
+    // ".../index.html", so the exact-match lookup above always misses even
+    // though the page is fully cached. Fall back to the cached shell instead
+    // of hitting the network, otherwise this fails hard offline.
+    if (e.request.mode === 'navigate') {
+      const shell = await caches.match('./index.html');
+      if (shell) return shell;
+    }
     try {
       return await fetch(e.request);
     } catch (err) {
