@@ -441,7 +441,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.30';
+const VERSION='v1.31';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -700,6 +700,7 @@ function startSoundcheck(){
 }
 function allowSound(){
   getCtx();
+  requestFullscreenMode();
   // iOS only truly unmutes audio output when a real sound is started
   // synchronously inside a gesture — resume() alone can report
   // 'running' without actually unlocking playback.
@@ -715,6 +716,21 @@ function allowSound(){
 // to foreground while a level is running.
 async function requestWakeLock(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch(e){}}
 function requestLandscape(){try{screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}
+
+// iPadOS (unlike iPhone) always shows the system status bar (time/battery)
+// over home-screen web apps, even in manifest display:fullscreen — there's
+// no meta-tag-only fix. The Fullscreen API does hide it, but only when
+// invoked inside a real user gesture, so this is called from every tap/click
+// entry point below and retried on each one until it sticks.
+function requestFullscreenMode(){
+  if(document.fullscreenElement)return;
+  const el=document.documentElement;
+  try{
+    const p=el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen?el.webkitRequestFullscreen():null;
+    if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+document.addEventListener('pointerdown',requestFullscreenMode);
 
 function fmtClock(){
   const n=new Date(),h=n.getHours(),m=n.getMinutes();
@@ -770,7 +786,7 @@ function enterRunningState(){
   elBtnPause.textContent='Pause';
   launchWall=Date.now();
   updateBreakETA();
-  requestWakeLock();requestLandscape();
+  requestWakeLock();requestLandscape();requestFullscreenMode();
   scheduleTick();
   armIdleLock();
 }
@@ -1087,6 +1103,7 @@ document.addEventListener('visibilitychange',()=>{
     tick();
     requestWakeLock();
   }
+  requestFullscreenMode();
 });
 </script>
 </body>
