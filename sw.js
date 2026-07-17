@@ -34,8 +34,13 @@ self.addEventListener('fetch', e => {
     e.respondWith((async () => {
       try {
         const res = await fetch('./index.html', { cache: 'no-store' });
-        const cache = await caches.open(CACHE);
-        cache.put('./index.html', res.clone());
+        // Only refresh the cache on a genuine success — a transient 404/500
+        // (or a captive-portal response) must not overwrite the working
+        // offline shell with an error page.
+        if (res.ok) {
+          const cache = await caches.open(CACHE);
+          cache.put('./index.html', res.clone());
+        }
         return res;
       } catch (err) {
         // Offline or unreachable — fail soft to whatever's cached rather
