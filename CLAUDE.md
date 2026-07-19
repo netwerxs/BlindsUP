@@ -38,6 +38,7 @@ All mutable state is global:
 | `remSec` / `pausedRemSec` | Remaining seconds; `pausedRemSec` is the snapshot saved at pause |
 | `paused` / `running` | Timer state |
 | `launchWall` | `Date.now()` at last resume — elapsed time is computed as `(Date.now() - launchWall) / 1000` |
+| `advancing` / `snapTO` | True during the brief window between a level auto-advancing and its RTC-aligned start landing (see RTC alignment below) |
 | `pauseSecRTC` | RTC second-of-minute recorded at pause, used to correct drift on resume |
 | `audioCtx`, `alarmNodes`, `alarmTimeouts` | Web Audio API context and active oscillator nodes / pending sound timeouts |
 | `locked` | Whether swipe/click adjustment is disabled (auto-re-engages after 10s idle) |
@@ -53,19 +54,17 @@ There's no special UI treatment for any level — the menu grid renders levels 1
 
 `maxSec(lv)` encodes the duration rule and is the single source of truth for level length.
 
-**Level advance stays on the countdown screen**, except after level 5. When a level other than 5 finishes, `tick()` auto-advances in place — it does not switch back to the blind chooser and does not show any overlay; it just resets the counter for the new level and calls `cueLevelUp()`, which plays the jingle and flashes the blind display in place.
-
-**Level 5 (5/10) is followed by a break.** When level 5 finishes, `tick()` freezes the countdown (same shape as the Esc-hold reset) and calls `showBreakAnnounce()`, which shows a "Break" overlay (`#announce` — otherwise unused now that normal level-ups don't show it) and plays the jingle twice, back-to-back (`BREAK_JINGLE_GAP` between plays). Once both plays finish (or the overlay is tapped early, via `dismissAnnounce()`), `finishBreak()` sets `level=6`, resets `remSec`/`pausedRemSec`, and returns to the blind chooser (`showMenu(false)`), so the next level is always picked manually from the menu.
+**There is no break.** When level 5 finishes, `tick()` doesn't auto-advance to level 6 — it stops the timer and returns straight to the blind chooser (`level=6;...;showMenu(false);`), same shape as the Esc-hold reset, so the next level is always picked manually from the menu.
 
 ### Timer loop
 
-`tick()` computes elapsed wall-clock time from `launchWall` and derives `remSec` with `Math.ceil(pausedRemSec - elapsed)` — this makes the timer drift-resistant. Rather than polling on a fixed interval, `scheduleTick()` computes the exact ms remaining until the next whole-second boundary and schedules `tick()` to land there via `setTimeout`, then `tick()` calls `scheduleTick()` again at the end — so each digit displays for a consistent ~1s instead of drifting. At `remSec <= 0`, the level auto-advances (or, after level 5, the break sequence starts — see above).
+`tick()` computes elapsed wall-clock time from `launchWall` and derives `remSec` with `Math.ceil(pausedRemSec - elapsed)` — this makes the timer drift-resistant. Rather than polling on a fixed interval, `scheduleTick()` computes the exact ms remaining until the next whole-second boundary and schedules `tick()` to land there via `setTimeout`, then `tick()` calls `scheduleTick()` again at the end — so each digit displays for a consistent ~1s instead of drifting. At `remSec <= 0`, the level auto-advances and `showAnnounce()` fires.
 
-**RTC alignment.** New levels don't just start at their full duration — `snapToRTC()` nudges the start so the countdown lands on `:00` in sync with the wall clock, and `minDriftSec()` computes the minimum correction needed after a pause so a countdown stays RTC-aligned rather than drifting by however long the pause lasted. This snap happens synchronously and immediately, both for a manually-picked level (`selectBlind()`/`adjustLevel()`) and for a level auto-advancing in `tick()` — the countdown starts ticking down right away with no freeze-then-jump.
+**RTC alignment.** New levels don't just start at their full duration — `snapToRTC()` nudges the start so the countdown lands on `:00` in sync with the wall clock, and `minDriftSec()` computes the minimum correction needed after a pause so a countdown stays RTC-aligned rather than drifting by however long the pause lasted. When a level auto-advances, there's a brief `advancing=true` window (guarded by `snapTO`) between the new level's raw duration being shown and its RTC-snapped value landing; `freezeCountdown()` (shared by Pause and level 5 finishing) always clears `advancing` and cancels `snapTO`, so pausing mid-advance can't permanently stall `tick()`/`scheduleTick()` (both bail early while `advancing` is true).
 
 ### Audio
 
-All audio uses the Web Audio API via a small vendored `zzfx()` synthesizer (no samples, no network). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail — used for level-advance (played once, via `cueLevelUp()`, no overlay) and the level-5 break (played twice back-to-back, see `showBreakAnnounce()`). `playWoodClack()` fires three wood-dowel-strike sounds 600ms apart, once at the 11-second mark of a level's countdown. `playSoundcheck()` is a distinct buzzy 2s tone for verifying device volume, deliberately unlike any other sound so it's never mistaken for a timer event. `stopAlarm()` clears `alarmNodes`/`alarmTimeouts` and is called from `freezeCountdown()` (so pausing silences any in-flight alarm or wood-clack) and `dismissAnnounce()`. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
+All audio uses the Web Audio API via a small vendored `zzfx()` synthesizer (no samples, no network). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail — used for level-advance. `playWoodClack()` fires three wood-dowel-strike sounds 600ms apart, once at the 11-second mark of a level's countdown. `playSoundcheck()` is a distinct buzzy 2s tone for verifying device volume, deliberately unlike any other sound so it's never mistaken for a timer event. `stopAlarm()` clears `alarmNodes`/`alarmTimeouts` and is called from `freezeCountdown()` (so pausing silences any in-flight alarm or wood-clack) and `dismissAnnounce()`. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
 
 ### Sync (QR handoff between devices)
 
