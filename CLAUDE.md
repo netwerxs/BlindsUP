@@ -85,3 +85,5 @@ Dark, high-contrast, glanceable-from-across-the-table is the load-bearing constr
 `#col-right` (the right-hand control column) is a dark cherrywood panel — layered `repeating-linear-gradient` grain lines over a reddish-brown `linear-gradient` base, no `backdrop-filter` (an opaque wood texture has nothing to blur).
 
 `#blind-zone` and `#cd-zone` share a medium-green poker-felt background (`#2e8b57`), framed by four large (`.suit`, `18vh`) unicode card-suit glyphs at the four corners of the combined area: clubs (black, top-left) and diamonds (red, top-right) in `#blind-zone`; hearts (red, bottom-left) and spades (black, bottom-right) in `#cd-zone`. All four are `pointer-events:none` so they never intercept the underlying swipe/click zones. There is no "Locked" text badge — `#layout.locked` still disables interaction on both zones (`pointer-events:none`), it's just not labeled on-screen.
+
+The `#announce` overlay (level-up popup) matches the same felt green background and reuses the same four `.suit` corner glyphs, with its text set to white/near-white (rather than the `--dim`/`--dimmer` tones used elsewhere) for contrast against the green.
