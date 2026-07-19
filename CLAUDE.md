@@ -54,7 +54,9 @@ There's no special UI treatment for any level — the menu grid renders levels 1
 
 `maxSec(lv)` encodes the duration rule and is the single source of truth for level length.
 
-**There is no break.** When level 5 finishes, `tick()` doesn't auto-advance to level 6 — it stops the timer and returns straight to the blind chooser (`level=6;...;showMenu(false);`), same shape as the Esc-hold reset, so the next level is always picked manually from the menu.
+**Level advance stays on the countdown screen**, except after level 5. When a level other than 5 finishes, `tick()` auto-advances in place — it does not switch back to the blind chooser; it just resets the counter for the new level and plays the jingle (`showAnnounce()`) as an overlay on top of the still-visible countdown screen.
+
+**Level 5 (5/10) is followed by a break.** When level 5 finishes, `tick()` freezes the countdown (same shape as the Esc-hold reset) and calls `showBreakAnnounce()`, which shows a "Break" overlay and plays the jingle twice, back-to-back (`BREAK_JINGLE_GAP` between plays). Once both plays finish (or the overlay is tapped early), `finishBreak()` sets `level=6`, resets `remSec`/`pausedRemSec`, and returns to the blind chooser (`showMenu(false)`), so the next level is always picked manually from the menu.
 
 ### Timer loop
 
@@ -64,7 +66,7 @@ There's no special UI treatment for any level — the menu grid renders levels 1
 
 ### Audio
 
-All audio uses the Web Audio API via a small vendored `zzfx()` synthesizer (no samples, no network). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail — used for level-advance. `playWoodClack()` fires three wood-dowel-strike sounds 600ms apart, once at the 11-second mark of a level's countdown. `playSoundcheck()` is a distinct buzzy 2s tone for verifying device volume, deliberately unlike any other sound so it's never mistaken for a timer event. `stopAlarm()` clears `alarmNodes`/`alarmTimeouts` and is called from `freezeCountdown()` (so pausing silences any in-flight alarm or wood-clack) and `dismissAnnounce()`. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
+All audio uses the Web Audio API via a small vendored `zzfx()` synthesizer (no samples, no network). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail — used for level-advance (played once) and the level-5 break (played twice back-to-back, see `showBreakAnnounce()`). `playWoodClack()` fires three wood-dowel-strike sounds 600ms apart, once at the 11-second mark of a level's countdown. `playSoundcheck()` is a distinct buzzy 2s tone for verifying device volume, deliberately unlike any other sound so it's never mistaken for a timer event. `stopAlarm()` clears `alarmNodes`/`alarmTimeouts` and is called from `freezeCountdown()` (so pausing silences any in-flight alarm or wood-clack) and `dismissAnnounce()`. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
 
 ### Sync (QR handoff between devices)
 
