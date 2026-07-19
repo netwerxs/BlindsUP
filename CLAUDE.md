@@ -38,7 +38,6 @@ All mutable state is global:
 | `remSec` / `pausedRemSec` | Remaining seconds; `pausedRemSec` is the snapshot saved at pause |
 | `paused` / `running` | Timer state |
 | `launchWall` | `Date.now()` at last resume — elapsed time is computed as `(Date.now() - launchWall) / 1000` |
-| `advancing` / `snapTO` | True during the brief window between a level auto-advancing and its RTC-aligned start landing (see RTC alignment below) |
 | `pauseSecRTC` | RTC second-of-minute recorded at pause, used to correct drift on resume |
 | `audioCtx`, `alarmNodes`, `alarmTimeouts` | Web Audio API context and active oscillator nodes / pending sound timeouts |
 | `locked` | Whether swipe/click adjustment is disabled (auto-re-engages after 10s idle) |
@@ -60,9 +59,9 @@ There's no special UI treatment for any level — the menu grid renders levels 1
 
 ### Timer loop
 
-`tick()` computes elapsed wall-clock time from `launchWall` and derives `remSec` with `Math.ceil(pausedRemSec - elapsed)` — this makes the timer drift-resistant. Rather than polling on a fixed interval, `scheduleTick()` computes the exact ms remaining until the next whole-second boundary and schedules `tick()` to land there via `setTimeout`, then `tick()` calls `scheduleTick()` again at the end — so each digit displays for a consistent ~1s instead of drifting. At `remSec <= 0`, the level auto-advances and `showAnnounce()` fires.
+`tick()` computes elapsed wall-clock time from `launchWall` and derives `remSec` with `Math.ceil(pausedRemSec - elapsed)` — this makes the timer drift-resistant. Rather than polling on a fixed interval, `scheduleTick()` computes the exact ms remaining until the next whole-second boundary and schedules `tick()` to land there via `setTimeout`, then `tick()` calls `scheduleTick()` again at the end — so each digit displays for a consistent ~1s instead of drifting. At `remSec <= 0`, the level auto-advances (or, after level 5, the break sequence starts — see above).
 
-**RTC alignment.** New levels don't just start at their full duration — `snapToRTC()` nudges the start so the countdown lands on `:00` in sync with the wall clock, and `minDriftSec()` computes the minimum correction needed after a pause so a countdown stays RTC-aligned rather than drifting by however long the pause lasted. When a level auto-advances, there's a brief `advancing=true` window (guarded by `snapTO`) between the new level's raw duration being shown and its RTC-snapped value landing; `freezeCountdown()` (shared by Pause and level 5 finishing) always clears `advancing` and cancels `snapTO`, so pausing mid-advance can't permanently stall `tick()`/`scheduleTick()` (both bail early while `advancing` is true).
+**RTC alignment.** New levels don't just start at their full duration — `snapToRTC()` nudges the start so the countdown lands on `:00` in sync with the wall clock, and `minDriftSec()` computes the minimum correction needed after a pause so a countdown stays RTC-aligned rather than drifting by however long the pause lasted. This snap happens synchronously and immediately, both for a manually-picked level (`selectBlind()`/`adjustLevel()`) and for a level auto-advancing in `tick()` — the countdown starts ticking down right away with no freeze-then-jump.
 
 ### Audio
 
