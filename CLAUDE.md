@@ -47,8 +47,8 @@ All mutable state is global:
 
 `BLINDS` is a 25-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
-- Levels 1–15: `sb = level, bb = level*2` (15-minute countdown for 1–5, 10-minute countdown from level 6)
-- Levels 16–25: jump by +5/+10 per level (20/40, 25/50, ... up to 65/130), still 10-minute countdown
+- Levels 1–10: `sb = level, bb = level*2` (15-minute countdown for 1–5, 10-minute countdown from level 6)
+- Levels 11–25: jump by +10/+20 per level (20/40, 30/60, ... up to 160/320), still 10-minute countdown
 
 There's no special UI treatment for any level — the menu grid renders levels 1–24 identically (`Level N` / `sb/bb` / duration); level 25 is only reachable via auto-advance and has no menu card (its slot is given to the Sync card instead — see RTC alignment / Sync below). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
 
