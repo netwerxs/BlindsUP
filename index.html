@@ -1202,7 +1202,7 @@ updateClocks();
 
 // Keyboard path mirroring the swipe gestures, for keyboard/remote input at
 // the table (e.g. a Bluetooth keypad) — mirrors blind-zone up/down and
-// countdown-zone +/-30s/-1min swipes one-for-one.
+// countdown-zone +/-1min swipes one-for-one.
 document.addEventListener('keydown',e=>{
   if(!running||paused||locked)return;
   if(e.key==='ArrowUp'){e.preventDefault();adjustLevel(1);}
