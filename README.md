@@ -10,17 +10,19 @@ A free, no-install poker blinds timer that runs in any browser. Works on phones,
 
 ## Features
 
-- **25 blind levels** — 1/2 through 25/50, automatically sequenced
-- **Alarm** — 7-blast horn synthesized in-browser when blinds go up
-- **Countdown ticks** — accelerating tick sounds for the last 12 seconds
-- **Break screen** — level 5 pauses the countdown with a "Winding Down" screen; tap **Begin Freezeout** when ready
-- **Adjustable timer** — add or subtract 30 seconds on the fly
-- **Volume slider** — live preview; set device volume to max, then dial in with the slider
+- **25 blind levels** — 1/2 through 150/300, automatically sequenced
+- **Alarm** — a warm ascending arpeggio chime synthesized in-browser when blinds go up
+- **Countdown ticks** — three wood-clack sounds at the 11-second mark of each level
+- **Break screen** — level 5 pauses the countdown with a "Break" overlay for about a minute (tap to skip ahead); you then pick the next level from the menu
+- **Adjustable timer** — add or subtract one minute on the fly
+- **QR Sync** — the Lock button doubles as a QR code; scan it from a second device (via the menu's Sync card) to mirror the running timer there, landing on the exact correct time
+- **One-tap updates** — the version label (bottom-right of the menu) checks for and installs updates
 - **Wall clock** — always visible so you're not hunting for your phone
-- **Touch and mouse** — swipe on phones/tablets; click ±zones on desktop
+- **Touch, mouse, and keyboard** — swipe on phones/tablets; click ±zones or use arrow keys on desktop
 - **Full screen + landscape lock** — press F11 on desktop; install to home screen on mobile for true full screen and automatic landscape orientation
 - **Works offline** — installable PWA with service worker
-- **Zero dependencies** — one HTML file, no build step, no backend
+- **No in-app volume control** — alarm level follows your device's hardware volume buttons
+- **No build step, no backend** — one HTML file (two small libraries vendored inline for QR sync)
 
 ## Install as an app (recommended for iPad)
 
@@ -56,21 +58,22 @@ Click the install icon (⊕) in the address bar, or go to the browser menu → *
 
 | Levels | Blinds | Duration |
 |--------|--------|----------|
-| 1–4 | 1/2 → 4/8 | 15 min each |
-| 5 | 5/10 | Break (Winding Down — no countdown) |
-| 6–25 | 6/12 → 25/50 | 10 min each (Freezeout) |
+| 1–5 | 1/2 → 5/10 | 15 min each |
+| — | Break | ~1 min pause after level 5 |
+| 6–25 | 6/12 → 150/300 | 10 min each (levels 12+ jump by +10/+20) |
 
 ## Controls
 
-| Action | Touch | Mouse / Keyboard |
-|--------|-------|-----------------|
-| Go up one blind level | Swipe right on blinds | Click right half of blinds |
-| Go down one blind level | Swipe left on blinds | Click left half of blinds |
-| Add 30 seconds | Swipe left on timer | Click right half of timer |
-| Subtract 30 seconds | Swipe right on timer | Click left half of timer |
-| Pause / Resume | Tap Pause | Click Pause |
-| Full screen | Add to home screen | F11 |
-| Return to menu | Hold Esc 3 seconds | Hold Esc 3 seconds |
+| Action | Touch | Mouse | Keyboard |
+|--------|-------|-------|----------|
+| Go up one blind level | Swipe right on blinds | Click right half of blinds | ↑ |
+| Go down one blind level | Swipe left on blinds | Click left half of blinds | ↓ |
+| Add 1 minute | Swipe left on timer | Click right half of timer | ← |
+| Subtract 1 minute | Swipe right on timer | Click left half of timer | → |
+| Pause / Resume | Tap Pause | Click Pause | — |
+| Lock/unlock adjustments | Tap Lock | Click Lock | — |
+| Full screen | Add to home screen | F11 | — |
+| Return to menu | Hold Esc 3 seconds | Hold Esc 3 seconds | — |
 
 ## Running locally
 
