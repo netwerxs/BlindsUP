@@ -56,11 +56,13 @@ Click the install icon (⊕) in the address bar, or go to the browser menu → *
 
 ## Blind Schedule
 
-| Levels | Blinds | Duration |
-|--------|--------|----------|
-| 1–5 | 1/2 → 5/10 | 15 min each |
-| — | Break | ~1 min pause after level 5 |
-| 6–25 | 6/12 → 150/300 | 10 min each (levels 12+ jump by +10/+20) |
+| Levels | Blinds | Increment | Duration |
+|--------|--------|-----------|----------|
+| 1–5 | 1/2 → 5/10 | +1/+2 per level | 15 min each |
+| — | Break | — | Timer stops; restart manually from the menu |
+| 6–10 | 6/12 → 10/20 | +1/+2 per level | 10 min each |
+| 11 | 15/30 | +5/+10 (step up) | 10 min |
+| 12–25 | 20/40 → 150/300 | +10/+20 per level | 10 min each |
 
 ## Controls
 
