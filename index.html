@@ -751,7 +751,12 @@ function zzfx(vol=1,randomness=.05,frequency=220,attack=0,sustain=0,release=.1,s
   const buf=ctx.createBuffer(1,b.length,R),data=buf.getChannelData(0);
   for(let j=0;j<b.length;j++)data[j]=b[j]*vol;
   const src=ctx.createBufferSource();
-  src.buffer=buf;src.connect(ctx.destination);src.start();
+  src.buffer=buf;src.connect(ctx.destination);
+  // Chrome auto-suspends an idle AudioContext to save power; getCtx()'s resume()
+  // above is fire-and-forget, so after a long silent gap (e.g. the ~10min between
+  // a level's opening jingle and its 11-second wood clack) the context can still
+  // be 'suspended' here — starting on it would silently drop the sound.
+  if(ctx.state==='running')src.start();else ctx.resume().then(()=>src.start()).catch(()=>{});
   return src;
 }
 
