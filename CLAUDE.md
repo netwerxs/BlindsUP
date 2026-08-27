@@ -47,9 +47,11 @@ All mutable state is global:
 
 `BLINDS` is a 29-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
-- Levels 1–10: `sb = level, bb = level*2` (15-minute countdown for 1–5, 10-minute countdown from level 6)
-- Levels 11–13: +5/+10 per level (15/30, 20/40, 25/50), 10-minute countdown
-- Levels 14–29: +10/+20 per level (30/60 up to 180/360), 10-minute countdown
+- Levels 1–10: `sb = level*100, bb = level*200` (15-minute countdown for 1–5, 10-minute countdown from level 6)
+- Levels 11–13: +500/+1000 per level (1500/3000, 2000/4000, 2500/5000), 10-minute countdown
+- Levels 14–29: +1000/+2000 per level (3000/6000 up to 18000/36000), 10-minute countdown
+
+`fmtBlind(v, lv)` is the single display formatter for blind values: raw digits through level 13, abbreviated to `NK` (whole thousands) from level 14 on. Every on-screen blind — the countdown screen, menu cards, the level-up announce, the resume button — goes through it. The `BLINDS` array itself always holds the full integer values.
 
 There's no special UI treatment for any level — the menu grid renders levels 1–28 identically (`Level N` / `sb/bb` / duration); level 29 is only reachable via auto-advance and has no menu card (its slot is given to the Sync card instead — see RTC alignment / Sync below). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
 

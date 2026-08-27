@@ -10,7 +10,7 @@ A free, no-install poker blinds timer that runs in any browser. Works on phones,
 
 ## Features
 
-- **29 blind levels** — 1/2 through 180/360, automatically sequenced
+- **29 blind levels** — 100/200 through 18K/36K, automatically sequenced
 - **Alarm** — a warm ascending arpeggio chime synthesized in-browser when blinds go up
 - **Countdown ticks** — three wood-clack sounds at the 11-second mark of each level
 - **Break screen** — level 5 pauses the countdown with a "Break" overlay for about a minute (tap to skip ahead); you then pick the next level from the menu
@@ -58,11 +58,13 @@ Click the install icon (⊕) in the address bar, or go to the browser menu → *
 
 | Levels | Blinds | Increment | Duration |
 |--------|--------|-----------|----------|
-| 1–5 | 1/2 → 5/10 | +1/+2 per level | 15 min each |
+| 1–5 | 100/200 → 500/1000 | +100/+200 per level | 15 min each |
 | — | Break | — | Timer stops; restart manually from the menu |
-| 6–10 | 6/12 → 10/20 | +1/+2 per level | 10 min each |
-| 11–13 | 15/30 → 25/50 | +5/+10 per level | 10 min each |
-| 14–29 | 30/60 → 180/360 | +10/+20 per level | 10 min each |
+| 6–10 | 600/1200 → 1000/2000 | +100/+200 per level | 10 min each |
+| 11–13 | 1500/3000 → 2500/5000 | +500/+1000 per level | 10 min each |
+| 14–29 | 3K/6K → 18K/36K | +1000/+2000 per level | 10 min each |
+
+From level 14 on, blinds are shown abbreviated in thousands (`3K/6K` … `18K/36K`).
 
 ## Controls
 
