@@ -45,13 +45,14 @@ All mutable state is global:
 
 ### Blind schedule
 
-`BLINDS` is a 25-entry array of explicit `{sb, bb}` pairs. Level semantics:
+`BLINDS` is a 26-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
 - Levels 1–10: `sb = level, bb = level*2` (15-minute countdown for 1–5, 10-minute countdown from level 6)
 - Level 11: 15/30, a step between the 10/20 and 20/40 rungs, 10-minute countdown
-- Levels 12–25: jump by +10/+20 per level (20/40, 30/60, ... up to 150/300), still 10-minute countdown
+- Level 13: 25/50, a step between the 20/40 (level 12) and 30/60 (level 14) rungs, 10-minute countdown
+- Remaining levels (12, 14–26): jump by +10/+20 per level (20/40, 30/60, ... up to 150/300), still 10-minute countdown
 
-There's no special UI treatment for any level — the menu grid renders levels 1–24 identically (`Level N` / `sb/bb` / duration); level 25 is only reachable via auto-advance and has no menu card (its slot is given to the Sync card instead — see RTC alignment / Sync below). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
+There's no special UI treatment for any level — the menu grid renders levels 1–25 identically (`Level N` / `sb/bb` / duration); level 26 is only reachable via auto-advance and has no menu card (its slot is given to the Sync card instead — see RTC alignment / Sync below). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
 
 `maxSec(lv)` encodes the duration rule and is the single source of truth for level length.
 
