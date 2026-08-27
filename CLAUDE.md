@@ -51,7 +51,7 @@ All mutable state is global:
 - Levels 11–13: +500/+1000 per level (1500/3000, 2000/4000, 2500/5000), 10-minute countdown
 - Levels 14–29: +1000/+2000 per level (3000/6000 up to 18000/36000), 10-minute countdown
 
-`fmtBlind(v, lv)` is the single display formatter for blind values: raw digits through level 13, abbreviated to `Nk` (lowercase, whole thousands) from level 14 on. Every on-screen blind — the countdown screen, menu cards, the level-up announce, the resume button — goes through it. The `BLINDS` array itself always holds the full integer values.
+`fmtBlind(v, lv)` is the single display formatter for blind values: raw digits through level 13, abbreviated to `Nk` (lowercase, whole thousands) from level 14 on, with the `k` wrapped in a `.blind-k` span (`0.4em`, i.e. 60% smaller than the numeral). It returns an **HTML fragment**, so every consumer assigns it via `innerHTML` — the countdown screen, menu cards, the level-up announce, the resume button. The `BLINDS` array itself always holds the full integer values.
 
 `fitBlind()` / `fitAnnounce()` (via the shared `fitText()`) shrink `#blind-inner` / `#ann-wrap` from their vh baseline when a wide four-digit pair (e.g. `2000 / 4000`) would overrun the available width, snapping back to full size when it fits. Both containers own the font-size (`.b-num`/`.b-amp`/`#ann-wrap .ann-num`/`.ann-amp` are `1em`); `fitBlind()` is called every `render()` but early-returns unless the text or width changed, and is also wired to `resize`.
 
