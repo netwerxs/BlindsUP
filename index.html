@@ -181,19 +181,6 @@ html,body{width:100%;height:100%;
 .suit-diamonds{top:2vh;right:2vw;color:var(--danger);}
 .suit-hearts{bottom:2vh;left:2vw;color:var(--danger);}
 .suit-spades{bottom:2vh;right:2vw;color:#111;}
-/* "Big Slick" (A/K) backdrop — one image centred on the divider between the
-   two felt zones, painted above the felt but behind the numerals (same
-   negative-z-index layer as .suit). Each zone shows its half; the halves meet
-   flush at the 50% grid line (70vh tall, so screen 15vh..85vh). */
-#blind-zone::before,#cd-zone::before{
-  content:"";position:absolute;inset:0;
-  background-image:url("icons/bigslick.png");
-  background-repeat:no-repeat;
-  background-size:auto 70vh;
-  z-index:-1;pointer-events:none;opacity:0.5;
-}
-#blind-zone::before{background-position:center 15vh;}
-#cd-zone::before{background-position:center -35vh;}
 #blind-inner{
   display:flex;align-items:center;justify-content:center;
   height:100%;width:100%;font-size:34vh;white-space:nowrap;
@@ -481,7 +468,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.89';
+const VERSION='v1.88';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
