@@ -346,17 +346,17 @@ body.no-touch .no-touch-only{display:flex;}
 
 /* ── SPLIT OVERLAY (prize-pool cash-count calculator) ── */
 #split-overlay{cursor:default;gap:4vh;overflow-y:auto;}
-.split-cols{
-  display:grid;grid-template-columns:1fr 1fr;gap:4vw;
-  width:100%;max-width:860px;align-items:center;
+.split-body{
+  display:flex;flex-direction:column;gap:3vh;
+  width:100%;max-width:440px;
 }
-.split-denoms{display:flex;flex-direction:column;gap:1.6vh;}
+.split-denoms{display:flex;flex-direction:column;gap:1.4vh;}
 .denom-row{
-  display:grid;grid-template-columns:2.8em 1fr auto;
-  align-items:center;gap:1.5vw;
+  display:grid;grid-template-columns:2.6em 1fr auto;
+  align-items:center;gap:0.8em;
 }
-.denom-label{font-size:2.8vh;font-weight:700;color:#111;}
-.denom-step{display:flex;align-items:center;gap:0.8vw;}
+.denom-label{font-size:2.6vh;font-weight:700;color:#111;}
+.denom-step{display:flex;align-items:center;gap:0.5em;}
 .denom-step button{
   width:2em;height:2em;border-radius:50%;flex-shrink:0;
   border:1px solid rgba(0,0,0,0.25);background:rgba(0,0,0,0.04);
@@ -374,8 +374,8 @@ body.no-touch .no-touch-only{display:flex;}
 .denom-step input::-webkit-outer-spin-button,
 .denom-step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .denom-sub{
-  font-size:1.9vh;font-weight:400;color:rgba(0,0,0,0.5);
-  text-align:right;min-width:6em;font-variant-numeric:tabular-nums;
+  font-size:1.8vh;font-weight:400;color:rgba(0,0,0,0.5);
+  text-align:right;min-width:5.5em;font-variant-numeric:tabular-nums;
 }
 .split-results{display:flex;flex-direction:column;gap:1.1vh;}
 .split-line{
@@ -383,32 +383,33 @@ body.no-touch .no-touch-only{display:flex;}
   font-size:2.2vh;color:rgba(0,0,0,0.6);
 }
 .split-line .val{font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
-.split-line.pool{
-  border-top:1px solid rgba(0,0,0,0.2);
-  margin-top:0.6vh;padding-top:1.3vh;font-size:2.7vh;color:#111;
-}
+.split-line .hnote{font-size:1.5vh;font-weight:400;color:rgba(0,0,0,0.4);margin-left:0.4em;}
 .split-payouts{
   border-top:1px solid rgba(0,0,0,0.2);
-  margin-top:1.2vh;padding-top:1.2vh;
-  display:flex;flex-direction:column;gap:1.4vh;
+  margin-top:1.2vh;padding-top:1.4vh;
+  display:flex;flex-direction:column;gap:1.8vh;
 }
-.split-payout{
+.split-payout{display:flex;flex-direction:column;gap:0.3vh;}
+.po-head{
   display:flex;align-items:baseline;justify-content:space-between;gap:1em;
 }
-.split-payout .place{
+.po-head .place{
   font-size:1.9vh;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;
   color:rgba(0,0,0,0.55);
 }
-.split-payout .amt{
+.po-head .amt{
   font-size:3.4vh;font-weight:900;color:#111;
   letter-spacing:-0.02em;font-variant-numeric:tabular-nums;
 }
-.split-line.leftover{
-  border-top:1px solid rgba(0,0,0,0.12);
-  margin-top:0.4vh;padding-top:1.2vh;font-size:1.9vh;color:rgba(0,0,0,0.5);
+.po-bills{
+  font-size:1.7vh;font-weight:400;color:rgba(0,0,0,0.5);
+  font-variant-numeric:tabular-nums;letter-spacing:0.02em;
 }
-.split-line.leftover .val{color:rgba(0,0,0,0.7);}
 .split-actions{display:flex;gap:2vw;}
+/* The Split sheet is a single narrow column meant to be photographed in
+   portrait for the payout SMS, so let it show in portrait — suppress the
+   rotate-to-landscape gate while it's open. */
+body.split-open #rotate-prompt{display:none!important;}
 
 </style>
 </head>
@@ -508,7 +509,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Split the Pot</div>
-      <div class="help-body">The <b>Split</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Each payout is rounded <b>down to a whole $5</b> so it can be paid in bills; the small remainder is shown as <b>Leftover</b>. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Split</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Each payout is rounded <b>down to a whole $5</b> so it can be paid in bills, and the small rounding remainder is added to the house cut. Under each payout it lists <b>which bills to hand over</b> (dealt largest-first, 1st place first). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -524,7 +525,7 @@ body.no-touch .no-touch-only{display:flex;}
 <!-- SPLIT (prize-pool cash-count calculator) -->
 <div id="split-overlay" class="overlay">
   <div class="help-title">Split the Pot</div>
-  <div class="split-cols">
+  <div class="split-body">
     <div class="split-denoms" id="split-denoms">
       <div class="denom-row">
         <span class="denom-label">$100</span>
@@ -574,13 +575,20 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="split-results">
       <div class="split-line"><span>Cash counted</span><span class="val" id="sp-gross">$0.00</span></div>
-      <div class="split-line"><span>House (10%)</span><span class="val" id="sp-house">&minus;$0.00</span></div>
-      <div class="split-line pool"><span>Prize pool</span><span class="val" id="sp-pool">$0.00</span></div>
+      <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="val" id="sp-house">$0.00</span></div>
       <div class="split-payouts">
-        <div class="split-payout"><span class="place">1st &middot; 50%</span><span class="amt" id="sp-1st">$0</span></div>
-        <div class="split-payout"><span class="place">2nd &middot; 30%</span><span class="amt" id="sp-2nd">$0</span></div>
-        <div class="split-payout"><span class="place">3rd &middot; 20%</span><span class="amt" id="sp-3rd">$0</span></div>
-        <div class="split-line leftover"><span>Leftover (rounding to $5)</span><span class="val" id="sp-left">$0.00</span></div>
+        <div class="split-payout">
+          <div class="po-head"><span class="place">1st &middot; 50%</span><span class="amt" id="sp-1st">$0</span></div>
+          <div class="po-bills" id="sp-1st-bills">&mdash;</div>
+        </div>
+        <div class="split-payout">
+          <div class="po-head"><span class="place">2nd &middot; 30%</span><span class="amt" id="sp-2nd">$0</span></div>
+          <div class="po-bills" id="sp-2nd-bills">&mdash;</div>
+        </div>
+        <div class="split-payout">
+          <div class="po-head"><span class="place">3rd &middot; 20%</span><span class="amt" id="sp-3rd">$0</span></div>
+          <div class="po-bills" id="sp-3rd-bills">&mdash;</div>
+        </div>
       </div>
     </div>
   </div>
@@ -608,7 +616,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.92';
+const VERSION='v1.93';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -765,9 +773,13 @@ async function nativeInstall(e){
 
 // ── Split the pot (prize-pool cash-count calculator) ──────────────
 // Count the physical bills in the pot by denomination, take 10% off the top
-// for the house, and split what's left 50/30/20 between 1st/2nd/3rd. Pure
-// arithmetic on the input fields — never touches timer state, and the
-// countdown keeps running under the overlay.
+// for the house, and split what's left 50/30/20 between 1st/2nd/3rd. Each
+// payout is floored to a whole $5; the small rounding remainder is folded
+// back into the house cut. Then the counted bills are dealt out — largest
+// first, 1st place then 2nd then 3rd — so each stack can be handed over as
+// physical cash, and the leftover bills are the house's. Pure arithmetic on
+// the input fields — never touches timer state, and the countdown keeps
+// running under the overlay.
 const SPLIT_DENOMS=[100,50,20,10,5];
 
 function fmtMoney(v){
@@ -777,28 +789,37 @@ function fmtWhole(v){return '$'+v.toLocaleString('en-US');}
 
 function splitRecalc(){
   let gross=0;
+  const inv={};
   SPLIT_DENOMS.forEach(d=>{
-    const inp=document.getElementById('sp'+d);
-    let n=parseInt(inp.value,10);
+    let n=parseInt(document.getElementById('sp'+d).value,10);
     if(!Number.isFinite(n)||n<0)n=0;
+    inv[d]=n;
     document.getElementById('sp'+d+'sub').textContent=fmtMoney(n*d);
     gross+=n*d;
   });
-  const house=gross*0.10,pool=gross-house;
-  // Each place's raw share, then floored to a whole $5 so it can be paid out
-  // in actual bills; whatever the three rounded payouts leave on the table
-  // (always under $15) is shown as the leftover.
-  const p1=Math.floor(pool*0.50/5)*5;
-  const p2=Math.floor(pool*0.30/5)*5;
-  const p3=Math.floor(pool*0.20/5)*5;
-  const left=pool-p1-p2-p3;
+  const pool=gross*0.90;
+  const shares=[Math.floor(pool*0.50/5)*5,Math.floor(pool*0.30/5)*5,Math.floor(pool*0.20/5)*5];
+  // House keeps everything not paid out — i.e. the base 10% plus whatever the
+  // $5 rounding left behind.
+  const house=gross-shares[0]-shares[1]-shares[2];
+  const roundLeft=house-gross*0.10;
+
+  const ids=['sp-1st','sp-2nd','sp-3rd'],bids=['sp-1st-bills','sp-2nd-bills','sp-3rd-bills'];
+  shares.forEach((amt,i)=>{
+    let owed=amt;
+    const parts=[];
+    SPLIT_DENOMS.forEach(d=>{
+      const take=Math.min(Math.floor(owed/d),inv[d]);
+      if(take>0){parts.push(take+'×$'+d);owed-=take*d;inv[d]-=take;}
+    });
+    if(owed>0)parts.push('+'+fmtWhole(owed)+' change');
+    document.getElementById(ids[i]).textContent=fmtWhole(amt);
+    document.getElementById(bids[i]).textContent=parts.length?parts.join('  ·  '):'—';
+  });
+
   document.getElementById('sp-gross').textContent=fmtMoney(gross);
-  document.getElementById('sp-house').textContent='−'+fmtMoney(house);
-  document.getElementById('sp-pool').textContent=fmtMoney(pool);
-  document.getElementById('sp-1st').textContent=fmtWhole(p1);
-  document.getElementById('sp-2nd').textContent=fmtWhole(p2);
-  document.getElementById('sp-3rd').textContent=fmtWhole(p3);
-  document.getElementById('sp-left').textContent=fmtMoney(left);
+  document.getElementById('sp-house').textContent=fmtMoney(house);
+  document.getElementById('sp-house-note').textContent=roundLeft>=0.25?'10% + '+fmtMoney(roundLeft):'10%';
 }
 
 function splitClear(){
@@ -809,9 +830,11 @@ function splitClear(){
 function openSplit(){
   splitRecalc();
   elSplitOverlay.classList.add('visible');
+  document.body.classList.add('split-open');
 }
 function closeSplit(){
   elSplitOverlay.classList.remove('visible');
+  document.body.classList.remove('split-open');
 }
 
 (function(){
