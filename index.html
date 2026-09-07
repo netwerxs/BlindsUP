@@ -403,6 +403,11 @@ body.no-touch .no-touch-only{display:flex;}
   font-size:3.4vh;font-weight:900;color:#111;
   letter-spacing:-0.02em;font-variant-numeric:tabular-nums;
 }
+.split-line.leftover{
+  border-top:1px solid rgba(0,0,0,0.12);
+  margin-top:0.4vh;padding-top:1.2vh;font-size:1.9vh;color:rgba(0,0,0,0.5);
+}
+.split-line.leftover .val{color:rgba(0,0,0,0.7);}
 .split-actions{display:flex;gap:2vw;}
 
 </style>
@@ -503,7 +508,7 @@ body.no-touch .no-touch-only{display:flex;}
     </div>
     <div class="help-section">
       <div class="help-heading">Split the Pot</div>
-      <div class="help-body">The <b>Split</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Split</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Each payout is rounded <b>down to a whole $5</b> so it can be paid in bills; the small remainder is shown as <b>Leftover</b>. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -572,9 +577,10 @@ body.no-touch .no-touch-only{display:flex;}
       <div class="split-line"><span>House (10%)</span><span class="val" id="sp-house">&minus;$0.00</span></div>
       <div class="split-line pool"><span>Prize pool</span><span class="val" id="sp-pool">$0.00</span></div>
       <div class="split-payouts">
-        <div class="split-payout"><span class="place">1st &middot; 50%</span><span class="amt" id="sp-1st">$0.00</span></div>
-        <div class="split-payout"><span class="place">2nd &middot; 30%</span><span class="amt" id="sp-2nd">$0.00</span></div>
-        <div class="split-payout"><span class="place">3rd &middot; 20%</span><span class="amt" id="sp-3rd">$0.00</span></div>
+        <div class="split-payout"><span class="place">1st &middot; 50%</span><span class="amt" id="sp-1st">$0</span></div>
+        <div class="split-payout"><span class="place">2nd &middot; 30%</span><span class="amt" id="sp-2nd">$0</span></div>
+        <div class="split-payout"><span class="place">3rd &middot; 20%</span><span class="amt" id="sp-3rd">$0</span></div>
+        <div class="split-line leftover"><span>Leftover (rounding to $5)</span><span class="val" id="sp-left">$0.00</span></div>
       </div>
     </div>
   </div>
@@ -602,7 +608,7 @@ body.no-touch .no-touch-only{display:flex;}
 </div>
 
 <script>
-const VERSION='v1.91';
+const VERSION='v1.92';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -767,6 +773,7 @@ const SPLIT_DENOMS=[100,50,20,10,5];
 function fmtMoney(v){
   return '$'+(Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+function fmtWhole(v){return '$'+v.toLocaleString('en-US');}
 
 function splitRecalc(){
   let gross=0;
@@ -778,12 +785,20 @@ function splitRecalc(){
     gross+=n*d;
   });
   const house=gross*0.10,pool=gross-house;
+  // Each place's raw share, then floored to a whole $5 so it can be paid out
+  // in actual bills; whatever the three rounded payouts leave on the table
+  // (always under $15) is shown as the leftover.
+  const p1=Math.floor(pool*0.50/5)*5;
+  const p2=Math.floor(pool*0.30/5)*5;
+  const p3=Math.floor(pool*0.20/5)*5;
+  const left=pool-p1-p2-p3;
   document.getElementById('sp-gross').textContent=fmtMoney(gross);
   document.getElementById('sp-house').textContent='−'+fmtMoney(house);
   document.getElementById('sp-pool').textContent=fmtMoney(pool);
-  document.getElementById('sp-1st').textContent=fmtMoney(pool*0.50);
-  document.getElementById('sp-2nd').textContent=fmtMoney(pool*0.30);
-  document.getElementById('sp-3rd').textContent=fmtMoney(pool*0.20);
+  document.getElementById('sp-1st').textContent=fmtWhole(p1);
+  document.getElementById('sp-2nd').textContent=fmtWhole(p2);
+  document.getElementById('sp-3rd').textContent=fmtWhole(p3);
+  document.getElementById('sp-left').textContent=fmtMoney(left);
 }
 
 function splitClear(){
