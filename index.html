@@ -513,7 +513,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Each payout is rounded <b>down to a whole $5</b> so it can be paid in bills, and the small rounding remainder is added to the house cut. Under each payout it lists <b>which bills to hand over</b> (dealt largest-first, 1st place first). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Each payout is rounded <b>down to a whole $5</b> so it can be paid in bills, and the small rounding remainder is added to the house cut. Under the House cut and each payout it lists <b>which bills to set aside</b> (dealt largest-first, 1st place first; the house keeps whatever is left). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -579,7 +579,10 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="split-results">
       <div class="split-line"><span>Cash counted</span><span class="val" id="sp-gross">$0.00</span></div>
-      <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="val" id="sp-house">$0.00</span></div>
+      <div class="split-payout">
+        <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="val" id="sp-house">$0.00</span></div>
+        <div class="po-bills" id="sp-house-bills">&mdash;</div>
+      </div>
       <div class="split-payouts">
         <div class="split-payout">
           <div class="po-head"><span class="place">1st &middot; 50%</span><span class="amt" id="sp-1st">$0</span></div>
@@ -620,7 +623,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.95';
+const VERSION='v1.96';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -831,9 +834,14 @@ function splitRecalc(){
     document.getElementById(bids[i]).textContent=parts.length?parts.join('  ·  '):'—';
   });
 
+  // Whatever bills are left in `inv` after the three payouts are the house's.
+  const hparts=[];
+  SPLIT_DENOMS.forEach(d=>{if(inv[d]>0)hparts.push(inv[d]+'×$'+d);});
+
   document.getElementById('sp-gross').textContent=fmtMoney(gross);
   document.getElementById('sp-house').textContent=fmtMoney(house);
   document.getElementById('sp-house-note').textContent=roundLeft>=0.25?'10% + '+fmtMoney(roundLeft):'10%';
+  document.getElementById('sp-house-bills').textContent=hparts.length?hparts.join('  ·  '):'—';
 }
 
 function splitClear(){
