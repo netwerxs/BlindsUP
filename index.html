@@ -345,10 +345,10 @@ body.no-touch .no-touch-only{display:flex;}
 }
 
 /* ── SPLIT OVERLAY (prize-pool cash-count calculator) ── */
-#split-overlay{cursor:default;gap:4vh;overflow-y:auto;}
+#split-overlay{cursor:default;gap:4vh;overflow-y:auto;padding-left:4vw;padding-right:4vw;}
 .split-body{
   display:flex;flex-direction:column;gap:3vh;
-  width:100%;max-width:440px;
+  width:100%;max-width:min(440px,92vw);
 }
 .split-denoms{display:flex;flex-direction:column;gap:1.4vh;}
 .denom-row{
@@ -375,7 +375,7 @@ body.no-touch .no-touch-only{display:flex;}
 .denom-step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .denom-sub{
   font-size:1.8vh;font-weight:400;color:rgba(0,0,0,0.5);
-  text-align:right;min-width:5.5em;font-variant-numeric:tabular-nums;
+  text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;
 }
 .split-results{display:flex;flex-direction:column;gap:1.1vh;}
 .split-line{
@@ -404,12 +404,16 @@ body.no-touch .no-touch-only{display:flex;}
 .po-bills{
   font-size:1.7vh;font-weight:400;color:rgba(0,0,0,0.5);
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;
+  overflow-wrap:break-word;
 }
 .split-actions{display:flex;gap:2vw;}
 /* The Split sheet is a single narrow column meant to be photographed in
    portrait for the payout SMS, so let it show in portrait — suppress the
    rotate-to-landscape gate while it's open. */
 body.split-open #rotate-prompt{display:none!important;}
+/* The dated title ("Payout - September 16 2026") is long; ease off the
+   wide help-title letter-spacing and let it wrap in a narrow portrait. */
+#split-title{letter-spacing:0.12em;text-align:center;text-wrap:balance;line-height:1.35;max-width:100%;}
 
 </style>
 </head>
@@ -508,7 +512,7 @@ body.split-open #rotate-prompt{display:none!important;}
       <div class="help-body">Press <b>F11</b> to enter full screen. Press <b>F11</b> again to exit.</div>
     </div>
     <div class="help-section">
-      <div class="help-heading">Split the Pot</div>
+      <div class="help-heading">Payout</div>
       <div class="help-body">The <b>Split</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest <b>50% / 30% / 20%</b> between 1st, 2nd and 3rd. Each payout is rounded <b>down to a whole $5</b> so it can be paid in bills, and the small rounding remainder is added to the house cut. Under each payout it lists <b>which bills to hand over</b> (dealt largest-first, 1st place first). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
@@ -524,7 +528,7 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- SPLIT (prize-pool cash-count calculator) -->
 <div id="split-overlay" class="overlay">
-  <div class="help-title">Split the Pot</div>
+  <div class="help-title" id="split-title">Payout</div>
   <div class="split-body">
     <div class="split-denoms" id="split-denoms">
       <div class="denom-row">
@@ -616,7 +620,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.93';
+const VERSION='v1.94';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -787,6 +791,16 @@ function fmtMoney(v){
 }
 function fmtWhole(v){return '$'+v.toLocaleString('en-US');}
 
+// Label for the Payout sheet: today's date, or — for a game still running in
+// the small hours — the date the session started (before 5am counts as the
+// previous day). Format: "September 16 2026".
+const SPLIT_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function sessionDateLabel(){
+  const d=new Date();
+  if(d.getHours()<5)d.setDate(d.getDate()-1);
+  return SPLIT_MONTHS[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear();
+}
+
 function splitRecalc(){
   let gross=0;
   const inv={};
@@ -828,6 +842,7 @@ function splitClear(){
 }
 
 function openSplit(){
+  document.getElementById('split-title').textContent='Payout - '+sessionDateLabel();
   splitRecalc();
   elSplitOverlay.classList.add('visible');
   document.body.classList.add('split-open');
