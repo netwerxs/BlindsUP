@@ -45,10 +45,10 @@ of a 25-field.)
 
 ### Final-3 deal presets
 
-If the last three players make a deal, the Payout sheet's **Payout split**
-button offers two alternatives to the standard 3-way. In both, the two named
-players chop their combined money evenly and the third keeps their standard
-share:
+If the last three players make a deal, the Payout sheet's **Other Options**
+button (next to the **Payout split** ratio) offers two alternatives to the
+standard 3-way. In both, the two named players chop their combined money evenly
+and the third keeps their standard share:
 
 | Preset | 1st | 2nd | 3rd |
 |---|---|---|---|
