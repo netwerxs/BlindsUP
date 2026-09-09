@@ -18,9 +18,9 @@ a cash-game term).
 | Buy-in | $20. Buys a 6,500-chip starting stack. |
 | Starting stack | 6,500 chips. |
 | Rebuy | A second $20 buy-in for another 6,500 chips, available **only after a player busts to zero** and **only during the rebuy period**. A player who still has chips cannot rebuy. |
-| Rebuy period | First hand through the rebuy cutoff. |
-| Rebuy cutoff | **TBD — fill in** (a level or a clock time, e.g. "end of level 6" / "first 60 minutes"). After this, no rebuys are sold. |
-| Freezeout | Strictly, a tournament with no rebuys at all. Ours plays freezeout-style **after** the rebuy cutoff: from then on, a bust is elimination. |
+| Rebuy period | Levels 1–5 (100/200 through 500/1000), plus the 1-minute break after level 5. |
+| Rebuy cutoff | **When level 6 (600/1200) begins.** From that point on, no rebuys are sold. |
+| Freezeout | Strictly, a tournament with no rebuys at all. Ours plays freezeout-style from **level 6 (600/1200)** onward: a bust is elimination. |
 | Prize pool | Every buy-in + every rebuy, added together. |
 | Fee (house cut) | 10% of the pool, before payouts. The Payout sheet labels this line **"House"** — same thing. Because each payout is rounded to the nearest $5, the effective cut lands a little **above or below** 10% (the sheet shows the exact figure, e.g. "10% + $4.00" or "10% − $3.00"). |
 | Payout structure | The % split of the post-fee pool to the paid places. |
@@ -58,7 +58,3 @@ enter how many $100 / $50 / $20 / $10 / $5 bills are in the box, and it:
 
 Do not recompute the fee, rounding, or the split by hand — the sheet is the
 source of truth.
-
-## Open item
-
-- [ ] Define the rebuy cutoff (level or clock time) and record it above.
