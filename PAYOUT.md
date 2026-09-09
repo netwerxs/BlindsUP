@@ -43,6 +43,22 @@ No add-on is offered. If one is ever added, it also counts toward the prize pool
 The split does not change with the field. (3 paid is 16.7% of an 18-field, 12%
 of a 25-field.)
 
+### Final-3 deal presets
+
+If the last three players make a deal, the Payout sheet's **Payout split**
+button offers two alternatives to the standard 3-way. In both, the two named
+players chop their combined money evenly and the third keeps their standard
+share:
+
+| Preset | 1st | 2nd | 3rd |
+|---|---|---|---|
+| 3-way (default) | 50% | 30% | 20% |
+| 1st + 2nd (3rd keeps 20%) | 40% | 40% | 20% |
+| 2nd + 3rd (1st keeps 50%) | 50% | 25% | 25% |
+
+Every preset still pays out the full post-fee pool, so the house stays at its
+base 10% (give or take the nearest-$5 rounding).
+
 ## Doing the math
 
 Use the **Payout** button in BlindsUP. It is a **physical cash-count** tool —
