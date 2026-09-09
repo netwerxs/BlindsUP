@@ -345,7 +345,16 @@ body.no-touch .no-touch-only{display:flex;}
 }
 
 /* ── SPLIT OVERLAY (prize-pool cash-count calculator) ── */
-#split-overlay{cursor:default;gap:4vh;overflow-y:auto;padding-left:4vw;padding-right:4vw;}
+/* Anchor to the top (like #help-overlay) rather than inheriting the base
+   overlay's justify-content:center — otherwise every change to the counted
+   totals re-centres the vertically-centred column and the whole sheet jumps
+   while you're tapping the +/- buttons. */
+#split-overlay{
+  cursor:default;gap:4vh;overflow-y:auto;
+  justify-content:flex-start;
+  padding-top:4.5vh;padding-bottom:4.5vh;
+  padding-left:4vw;padding-right:4vw;
+}
 .split-body{
   display:flex;flex-direction:column;gap:3vh;
   width:100%;max-width:min(440px,92vw);
@@ -671,7 +680,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.108';
+const VERSION='v1.109';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
