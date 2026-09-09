@@ -52,7 +52,7 @@ the laddered 3-way each time the sheet opens):
 | Preset | 1st | 2nd | 3rd | Notes |
 |---|---|---|---|---|
 | 3-way (default) | 50% | 30% | 20% | standard ladder |
-| Even 3-way | 33% | 33% | 33% | all three chop equally (⅓ each) |
+| Even split | — | — | — | 90% pool divided equally between X players (X defaults to 3, editable to any whole number); shown as a sentence, not place rows |
 | 1st + 2nd | 40% | 40% | 20% | top two chop evenly, 3rd keeps 20% |
 | 2nd + 3rd | 50% | 25% | 25% | 2nd & 3rd chop evenly, 1st keeps 50% |
 | Custom | 100% | 0% | 0% | winner-take-all |
