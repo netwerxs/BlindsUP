@@ -45,9 +45,9 @@ of a 25-field.)
 
 ### Final-3 deal presets
 
-If the last three players make a deal, the Payout sheet's **Other Options**
-button (next to the **Payout split** ratio) offers three alternatives to the
-standard laddered 3-way:
+If the last three players make a deal, the Payout sheet's **Payout split**
+selector offers three alternatives to the standard laddered 3-way (it resets to
+the laddered 3-way each time the sheet opens):
 
 | Preset | 1st | 2nd | 3rd | Notes |
 |---|---|---|---|---|
