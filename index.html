@@ -675,7 +675,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.112';
+const VERSION='v1.113';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -910,14 +910,16 @@ function splitRecalc(){
     let n=parseInt(document.getElementById('sp-even-n').value,10);
     if(!Number.isFinite(n)||n<1)n=1;
     n=Math.min(n,999);
-    // Split the 90% pool n ways, each share to the nearest $5.
+    // Per-player share: the 90% pool split n ways, rounded to the nearest $5.
     const per=Math.round(pool/n/5)*5;
     // Deal the n stacks out of `inv` so the House leftover stays right.
     let owed=0;
     for(let k=0;k<n;k++)owed+=dealBills(per).short;
     if(owed>0)balanced=false;
     house=gross-per*n;
-    document.getElementById('sp-even-pool').textContent=fmtMoney(pool);
+    // The pool shown is what actually gets handed out = cash counted − house cut
+    // = per*n, so the sentence adds up (n × per).
+    document.getElementById('sp-even-pool').textContent=fmtWhole(per*n);
     document.getElementById('sp-even-amt').textContent=fmtWhole(per);
   }else{
     const pcts=mode.pct;
