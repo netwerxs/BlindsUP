@@ -546,7 +546,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest between 1st, 2nd and 3rd. The <b>Payout split</b> selector offers four presets: <b>50 / 30 / 20</b> (the standard ladder), <b>even split</b> (the prize pool divided equally between a number of players you set &mdash; default 3, any whole number &mdash; shown as a plain sentence in place of the 1st/2nd/3rd rows, with a note on which bills to break if the cash won't divide evenly), <b>40 / 40 / 20</b> (1st and 2nd chop evenly, 3rd keeps 20%), and <b>50 / 25 / 25</b> (2nd and 3rd chop evenly, 1st keeps 50%). It resets to 50 / 30 / 20 each time the sheet opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Under the House cut and each payout it lists <b>which bills to set aside</b> (dealt largest-first, 1st place first; the house keeps whatever is left). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest between 1st, 2nd and 3rd. The <b>Payout split</b> selector offers four presets: <b>50 / 30 / 20</b> (the standard ladder), <b>40 / 40 / 20</b> (1st and 2nd chop evenly, 3rd keeps 20%), <b>50 / 25 / 25</b> (2nd and 3rd chop evenly, 1st keeps 50%), and <b>even split</b> (the prize pool divided equally between a number of players you set &mdash; default 3, any whole number &mdash; shown as a plain sentence in place of the 1st/2nd/3rd rows, with a note on which bills to break if the cash won't divide evenly). It resets to 50 / 30 / 20 each time the sheet opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Under the House cut and each payout it lists <b>which bills to set aside</b> (dealt largest-first, 1st place first; the house keeps whatever is left). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -621,9 +621,9 @@ body.split-open #rotate-prompt{display:none!important;}
           <span class="sp-mode-lbl">Payout split</span>
           <select id="sp-mode" class="sp-mode-sel" aria-label="Payout split">
             <option value="0">50 / 30 / 20 &middot; default</option>
-            <option value="1">even split &middot; X players</option>
-            <option value="2">40 / 40 / 20 &middot; 1st + 2nd</option>
-            <option value="3">50 / 25 / 25 &middot; 2nd + 3rd</option>
+            <option value="1">40 / 40 / 20 &middot; 1st + 2nd</option>
+            <option value="2">50 / 25 / 25 &middot; 2nd + 3rd</option>
+            <option value="3">even split &middot; X players</option>
           </select>
         </div>
         <div class="split-payout">
@@ -671,7 +671,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.107';
+const VERSION='v1.108';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -849,9 +849,9 @@ async function nativeInstall(e){
 const SPLIT_DENOMS=[100,50,20,10,5];
 const SPLIT_MODES=[
   {label:'3-way',      pct:[0.50,0.30,0.20]},
-  {label:'Even split', even:true},
   {label:'1st + 2nd',  pct:[0.40,0.40,0.20]},
   {label:'2nd + 3rd',  pct:[0.50,0.25,0.25]},
+  {label:'Even split', even:true},
 ];
 let splitMode=0;
 
