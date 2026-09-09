@@ -636,10 +636,9 @@ body.split-open #rotate-prompt{display:none!important;}
           <div class="po-bills" id="sp-3rd-bills">&mdash;</div>
         </div>
         <div class="sp-even" id="sp-even">
-          <p class="sp-even-line">The prize pool will be evenly split between
+          <p class="sp-even-line">The prize pool of <span class="sp-even-amt" id="sp-even-pool">$0</span> will be evenly split between
             <input id="sp-even-n" class="sp-even-n" type="number" inputmode="numeric" min="1" step="1" value="3" aria-label="Number of players">
             players, with each getting <span class="sp-even-amt" id="sp-even-amt">$0</span>.</p>
-          <div class="po-bills" id="sp-even-bills">&mdash;</div>
         </div>
       </div>
     </div>
@@ -668,7 +667,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.105';
+const VERSION='v1.106';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -837,9 +836,10 @@ async function nativeInstall(e){
 // base stays 10%. Each payout is rounded to the nearest whole $5; the small
 // difference is settled against the house cut (which can therefore land a
 // little above or below its base 10%). For the fixed splits the raw pre-round
-// figure is shown next to each place. Then the counted bills are dealt out —
-// largest first — so each stack can be handed over as physical cash, and the
-// leftover bills are the house's. Pure arithmetic on the input fields — never
+// figure and a largest-first bill breakdown are shown next to each place; the
+// even split shows only the sentence and its per-player figure. Either way the
+// stacks are dealt out of `inv` internally so the leftover bills reported on
+// the House line stay right. Pure arithmetic on the input fields — never
 // touches timer state, and the countdown keeps running under the overlay.
 const SPLIT_DENOMS=[100,50,20,10,5];
 const SPLIT_MODES=[
@@ -901,11 +901,12 @@ function splitRecalc(){
     n=Math.min(n,999);
     // Split the 90% pool n ways, each share to the nearest $5.
     const per=Math.round(pool/n/5)*5;
-    let firstBills='—';
-    for(let k=0;k<n;k++){const b=dealBills(per);if(k===0)firstBills=b;}
+    // Still deduct the n stacks from `inv` so the House's leftover-bills line
+    // below stays right — we just don't render a per-stack breakdown here.
+    for(let k=0;k<n;k++)dealBills(per);
     house=gross-per*n;
+    document.getElementById('sp-even-pool').textContent=fmtMoney(pool);
     document.getElementById('sp-even-amt').textContent=fmtWhole(per);
-    document.getElementById('sp-even-bills').textContent=gross>0?firstBills:'—';
   }else{
     const pcts=mode.pct;
     const pids=['sp-1st-pct','sp-2nd-pct','sp-3rd-pct'];
