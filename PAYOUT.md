@@ -46,7 +46,7 @@ of a 25-field.)
 ### Final-3 deal presets
 
 If the last three players make a deal, the Payout sheet's **Payout split**
-selector offers three alternatives to the standard laddered 3-way (it resets to
+selector offers four alternatives to the standard laddered 3-way (it resets to
 the laddered 3-way each time the sheet opens):
 
 | Preset | 1st | 2nd | 3rd | Notes |
@@ -55,6 +55,7 @@ the laddered 3-way each time the sheet opens):
 | Even 3-way | 33% | 33% | 33% | all three chop equally (⅓ each) |
 | 1st + 2nd | 40% | 40% | 20% | top two chop evenly, 3rd keeps 20% |
 | 2nd + 3rd | 50% | 25% | 25% | 2nd & 3rd chop evenly, 1st keeps 50% |
+| Custom | 100% | 0% | 0% | winner-take-all |
 
 Every preset still pays out the full post-fee pool, so the house stays at its
 base 10% (give or take the nearest-$5 rounding).
