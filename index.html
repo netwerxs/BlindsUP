@@ -427,13 +427,6 @@ body.no-touch .no-touch-only{display:flex;}
   margin:0.6vh 0 0;font-size:1.6vh;line-height:1.5;color:rgba(0,0,0,0.55);
 }
 .sp-even-note:empty{display:none;}
-.sp-even-dist{display:flex;flex-direction:column;gap:0.35vh;margin-top:0.6vh;}
-.sp-even-dist:empty{display:none;}
-.sp-even-dist-row{
-  display:flex;justify-content:space-between;gap:1em;
-  font-size:1.7vh;color:rgba(0,0,0,0.55);font-variant-numeric:tabular-nums;
-}
-.sp-even-dist-row span:first-child{color:rgba(0,0,0,0.4);}
 .po-head{
   display:flex;align-items:baseline;justify-content:space-between;gap:1em;
 }
@@ -562,7 +555,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest between 1st, 2nd and 3rd. The <b>Payout split</b> selector offers four presets: <b>50 / 30 / 20</b> (the standard ladder), <b>40 / 40 / 20</b> (1st and 2nd chop evenly, 3rd keeps 20%), <b>50 / 25 / 25</b> (2nd and 3rd chop evenly, 1st keeps 50%), and <b>even split</b> (the prize pool divided equally between a number of players you set &mdash; default 3, any whole number &mdash; shown as a plain sentence in place of the 1st/2nd/3rd rows; if the counted bills deal into that many equal stacks it lists each player's bills, otherwise it shows which bills to break). It resets to 50 / 30 / 20 each time the sheet opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Under the House cut and each payout it lists <b>which bills to set aside</b> (dealt largest-first, 1st place first; the house keeps whatever is left). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest between 1st, 2nd and 3rd. The <b>Payout split</b> selector offers four presets: <b>50 / 30 / 20</b> (the standard ladder), <b>40 / 40 / 20</b> (1st and 2nd chop evenly, 3rd keeps 20%), <b>50 / 25 / 25</b> (2nd and 3rd chop evenly, 1st keeps 50%), and <b>even split</b> (the prize pool divided equally between a number of players you set &mdash; default 3, any whole number &mdash; shown as a plain sentence in place of the 1st/2nd/3rd rows, with a note on which bills to break if the cash won't divide evenly). It resets to 50 / 30 / 20 each time the sheet opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Under the House cut and each payout it lists <b>which bills to set aside</b> (dealt largest-first, 1st place first; the house keeps whatever is left). Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -658,7 +651,6 @@ body.split-open #rotate-prompt{display:none!important;}
           <p class="sp-even-line">The prize pool of <span class="sp-even-amt" id="sp-even-pool">$0</span> will be evenly split between
             <input id="sp-even-n" class="sp-even-n" type="number" inputmode="numeric" min="1" step="1" value="3" aria-label="Number of players">
             players, with each getting <span class="sp-even-amt" id="sp-even-amt">$0</span>.</p>
-          <div class="sp-even-dist" id="sp-even-dist"></div>
           <p class="sp-even-note" id="sp-even-note"></p>
         </div>
       </div>
@@ -688,7 +680,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.110';
+const VERSION='v1.109';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -852,14 +844,14 @@ async function nativeInstall(e){
 // third keeps their standard share (1st+2nd chop with 3rd on 20% = 40/40/20, or
 // 2nd+3rd chop with 1st on 50% = 50/25/25). The fourth, "even split", divides
 // the 90% pool equally between an editable number of players (default 3) and
-// shows a plain-language line instead of the 1st/2nd/3rd rows. When the counted
-// bills deal into that many equal stacks it lists each player's bills; when
-// they don't it hides that and shows a note on which leftover bills to break.
-// Every preset still distributes the whole 90%, so the house base stays 10%.
-// Each payout is rounded to the nearest whole $5; the small difference is
-// settled against the house cut (which can therefore land a little above or
-// below its base 10%). For the fixed splits the raw pre-round figure and a
-// largest-first bill breakdown are shown next to each place. Either way the
+// shows a plain-language line instead of the 1st/2nd/3rd rows — plus, when the
+// counted bills can't form that many equal stacks, a note on which leftover
+// bills to break. Every preset still distributes the whole 90%, so the house
+// base stays 10%. Each payout is rounded to the nearest whole $5; the small
+// difference is settled against the house cut (which can therefore land a
+// little above or below its base 10%). For the fixed splits the raw pre-round
+// figure and a largest-first bill breakdown are shown next to each place; the
+// even split shows only the sentence and its per-player figure. Either way the
 // stacks are dealt out of `inv` internally so the leftover bills reported on
 // the House line stay right. Pure arithmetic on the input fields — never
 // touches timer state, and the countdown keeps running under the overlay.
@@ -944,28 +936,15 @@ function splitRecalc(){
     n=Math.min(n,999);
     // Split the 90% pool n ways, each share to the nearest $5.
     const per=Math.round(pool/n/5)*5;
-    // Deal the n stacks out of `inv` (keeps the House leftover-bills line right);
-    // keep each stack's bill breakdown and total up anything the counted bills
-    // couldn't cover.
-    let owed=0;const stacks=[];
-    for(let k=0;k<n;k++){const r=dealBills(per);owed+=r.short;stacks.push(r.text);}
+    // Deduct the n stacks from `inv` (keeps the House leftover-bills line right)
+    // and total up whatever couldn't be paid in the bills as counted.
+    let owed=0;
+    for(let k=0;k<n;k++)owed+=dealBills(per).short;
     house=gross-per*n;
     document.getElementById('sp-even-pool').textContent=fmtMoney(pool);
     document.getElementById('sp-even-amt').textContent=fmtWhole(per);
-    // If the bills divide cleanly, list what each recipient gets; if they don't,
-    // hide the deal and show which bills to break instead.
-    const distEl=document.getElementById('sp-even-dist');
-    const noteEl=document.getElementById('sp-even-note');
-    if(gross>0&&owed>0){
-      distEl.innerHTML='';
-      noteEl.textContent=evenBreakNote(n,per,owed,inv);
-    }else if(gross>0){
-      noteEl.textContent='';
-      distEl.innerHTML=stacks.map((t,k)=>
-        '<div class="sp-even-dist-row"><span>Player '+(k+1)+'</span><span>'+t+'</span></div>').join('');
-    }else{
-      distEl.innerHTML='';noteEl.textContent='';
-    }
+    document.getElementById('sp-even-note').textContent=
+      (gross>0&&owed>0)?evenBreakNote(n,per,owed,inv):'';
   }else{
     const pcts=mode.pct;
     const pids=['sp-1st-pct','sp-2nd-pct','sp-3rd-pct'];
