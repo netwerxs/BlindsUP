@@ -412,6 +412,7 @@ body.no-touch .no-touch-only{display:flex;}
 .split-payout{display:flex;flex-direction:column;gap:0.3vh;}
 #sp-custom-rows{display:flex;flex-direction:column;gap:1.4vh;}
 .sp-custom-n-row{display:flex;align-items:center;gap:0.6em;}
+.sp-custom-n-row[hidden]{display:none;}
 .sp-pct-input:disabled{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.55);}
 .sp-custom-n-lbl{
   font-size:1.5vh;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
@@ -668,7 +669,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.115';
+const VERSION='v1.116';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
