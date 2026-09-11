@@ -410,19 +410,24 @@ body.no-touch .no-touch-only{display:flex;}
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;
 }
 .split-payout{display:flex;flex-direction:column;gap:0.3vh;}
-.sp-even{display:flex;flex-direction:column;gap:0.6vh;}
-.split-payouts:not(.mode-even) .sp-even{display:none;}
-.split-payouts.mode-even .split-payout{display:none;}
-.sp-even-line{
-  margin:0;font-size:2vh;line-height:1.55;color:rgba(0,0,0,0.7);
+.sp-custom{display:flex;flex-direction:column;gap:1.4vh;}
+.sp-custom-n-row{display:flex;align-items:center;gap:0.6em;}
+.sp-custom-n-lbl{
+  font-size:1.5vh;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
+  color:rgba(0,0,0,0.45);
 }
-.sp-even-n{
+.sp-num-input{
   width:4em;text-align:center;
   font-family:inherit;font-size:1.9vh;font-weight:700;color:#111;
   border:1px solid rgba(0,0,0,0.3);border-radius:0.4rem;
   padding:0.2vh 0.3em;background:#fff;font-variant-numeric:tabular-nums;
 }
-.sp-even-amt{font-weight:900;color:#111;font-variant-numeric:tabular-nums;}
+.sp-pct-input{
+  width:3.4em;text-align:center;margin-left:0.5em;
+  font-family:inherit;font-size:1.7vh;font-weight:700;color:#111;
+  border:1px solid rgba(0,0,0,0.3);border-radius:0.4rem;
+  padding:0.1vh 0.2em;background:#fff;font-variant-numeric:tabular-nums;
+}
 .po-head{
   display:flex;align-items:baseline;justify-content:space-between;gap:1em;
 }
@@ -551,7 +556,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash, takes <b>10% for the house</b>, and splits the rest between 1st, 2nd and 3rd. The <b>Payout split</b> selector offers four presets: <b>50 / 30 / 20</b> (the standard ladder), <b>40 / 40 / 20</b> (1st and 2nd chop evenly, 3rd keeps 20%), <b>50 / 25 / 25</b> (2nd and 3rd chop evenly, 1st keeps 50%), and <b>even split</b> (the prize pool divided equally between a number of players you set &mdash; default 3, any whole number &mdash; shown as a plain sentence in place of the 1st/2nd/3rd rows). It resets to 50 / 30 / 20 each time the sheet opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. When the counted bills cover every payout exactly it lists <b>which bills to set aside</b> under each payout and the House cut (dealt largest-first, 1st place first; the house keeps whatever is left); if any payout would need change, those bill lists are hidden. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash and takes <b>10% for the house</b>. Pick <b>Custom</b> from the <b>Payout split</b> selector to split the rest: a <b>Payees</b> field sets how many places get paid (default 4), and each place from 1st to last gets its own editable percentage &mdash; defaulting to <b>50 / 25 / 15 / 10</b> for 4 payees, or an even split for any other count. Changing one place's percentage automatically rescales the places after it (proportionally, keeping their ratio to each other) so the set always sums to 100%; changing the last place instead rescales the places before it. It resets to the default 4-payee split each time the sheet opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. When the counted bills cover every payout exactly it lists <b>which bills to set aside</b> under each payout and the House cut (dealt largest-first, 1st place first; the house keeps whatever is left); if any payout would need change, those bill lists are hidden. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -625,28 +630,16 @@ body.split-open #rotate-prompt{display:none!important;}
         <div class="sp-mode-row">
           <span class="sp-mode-lbl">Payout split</span>
           <select id="sp-mode" class="sp-mode-sel" aria-label="Payout split">
-            <option value="0">50 / 30 / 20 &middot; default</option>
-            <option value="1">40 / 40 / 20 &middot; 1st + 2nd</option>
-            <option value="2">50 / 25 / 25 &middot; 2nd + 3rd</option>
-            <option value="3">even split &middot; X players</option>
+            <option value="" disabled selected>Select&hellip;</option>
+            <option value="custom">Custom</option>
           </select>
         </div>
-        <div class="split-payout">
-          <div class="po-head"><span class="place">1st &middot; <span id="sp-1st-pct">50%</span><span class="po-raw" id="sp-1st-raw"></span></span><span class="amt" id="sp-1st">$0</span></div>
-          <div class="po-bills" id="sp-1st-bills">&mdash;</div>
-        </div>
-        <div class="split-payout">
-          <div class="po-head"><span class="place">2nd &middot; <span id="sp-2nd-pct">30%</span><span class="po-raw" id="sp-2nd-raw"></span></span><span class="amt" id="sp-2nd">$0</span></div>
-          <div class="po-bills" id="sp-2nd-bills">&mdash;</div>
-        </div>
-        <div class="split-payout">
-          <div class="po-head"><span class="place">3rd &middot; <span id="sp-3rd-pct">20%</span><span class="po-raw" id="sp-3rd-raw"></span></span><span class="amt" id="sp-3rd">$0</span></div>
-          <div class="po-bills" id="sp-3rd-bills">&mdash;</div>
-        </div>
-        <div class="sp-even" id="sp-even">
-          <p class="sp-even-line">The prize pool of <span class="sp-even-amt" id="sp-even-pool">$0</span> will be evenly split between
-            <input id="sp-even-n" class="sp-even-n" type="number" inputmode="numeric" min="1" step="1" value="3" aria-label="Number of players">
-            players, with each getting <span class="sp-even-amt" id="sp-even-amt">$0</span>.</p>
+        <div class="sp-custom" id="sp-custom" hidden>
+          <div class="sp-custom-n-row">
+            <span class="sp-custom-n-lbl">Payees</span>
+            <input id="sp-custom-n" class="sp-num-input" type="number" inputmode="numeric" min="1" max="20" step="1" value="4" aria-label="Number of payees">
+          </div>
+          <div id="sp-custom-rows"></div>
         </div>
       </div>
     </div>
@@ -675,7 +668,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.113';
+const VERSION='v1.114';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -696,7 +689,6 @@ const elSoundcheckScreen=document.getElementById('soundcheck-screen');
 const elAnnounce=document.getElementById('announce');
 const elBtnResume=document.getElementById('btn-resume');
 const elSplitOverlay=document.getElementById('split-overlay');
-const elSplitPayouts=document.querySelector('.split-payouts');
 
 document.getElementById('btn-check-update').textContent=VERSION;
 document.getElementById('version-label-app').textContent=VERSION;
@@ -833,31 +825,60 @@ async function nativeInstall(e){
 
 // ── Split the pot (prize-pool cash-count calculator) ──────────────
 // Count the physical bills in the pot by denomination, take 10% off the top
-// for the house, and split what's left. The "Payout split" selector picks one
-// of four presets. Three are fixed 3-place splits of the 90% pool: the standard
-// laddered 3-way 50/30/20, or a deal where two players chop evenly and the
-// third keeps their standard share (1st+2nd chop with 3rd on 20% = 40/40/20, or
-// 2nd+3rd chop with 1st on 50% = 50/25/25). The fourth, "even split", divides
-// the 90% pool equally between an editable number of players (default 3) and
-// shows a plain-language line instead of the 1st/2nd/3rd rows. Every preset
-// still distributes the whole 90%, so the house base stays 10%. Each payout is
-// rounded to the nearest whole $5; the small difference is settled against the
-// house cut (which can therefore land a little above or below its base 10%),
-// and for the fixed splits the raw pre-round figure is shown next to each
-// place. Every stack is dealt out of `inv` internally (largest-first) so the
-// House dollar figure is always right; the *bill* breakdowns — per place and
-// the House leftover — are only rendered when every payout comes out exact,
-// and hidden everywhere the moment any stack would need change. Pure arithmetic
-// on the input fields — never touches timer state, and the countdown keeps
-// running under the overlay.
+// for the house, and split what's left. The "Payout split" selector only
+// offers a placeholder (nothing computed yet) and "Custom" — picking Custom
+// reveals a payee-count chooser (default 4) and one percentage field per
+// place, 1st..Nth. Defaults are 50/25/15/10 for the default N=4, or an even
+//100/N split (largest-remainder rounded) for any other N — see defaultPcts().
+// Editing a percentage field proportionally rescales every place *after* it
+// (keeping their ratios to each other) so the set still sums to 100%; editing
+// the last place has nothing after it to rescale, so it instead rescales every
+// place *before* it — see editPct(). Every place still distributes the whole
+// 90% pool, so the house base stays 10%. Each payout is rounded to the nearest
+// whole $5; the small difference is settled against the house cut (which can
+// therefore land a little above or below its base 10%), and the raw pre-round
+// figure is shown next to each place. Every stack is dealt out of `inv`
+// internally (largest-first) so the House dollar figure is always right; the
+// *bill* breakdowns — per place and the House leftover — are only rendered
+// when every payout comes out exact, and hidden everywhere the moment any
+// stack would need change. Pure arithmetic on the input fields — never
+// touches timer state, and the countdown keeps running under the overlay.
 const SPLIT_DENOMS=[100,50,20,10,5];
-const SPLIT_MODES=[
-  {label:'3-way',      pct:[0.50,0.30,0.20]},
-  {label:'1st + 2nd',  pct:[0.40,0.40,0.20]},
-  {label:'2nd + 3rd',  pct:[0.50,0.25,0.25]},
-  {label:'Even split', even:true},
-];
-let splitMode=0;
+let splitMode='';       // '' = nothing picked yet, 'custom' = the only real mode
+let customN=4;
+let customPcts=null;    // set by defaultPcts() — array of integers summing to 100
+
+// Split `total` (an integer) across `weights` proportionally, rounding with
+// the largest-remainder method so the result is exact integers that still sum
+// to `total`. All-zero weights (or an empty rest-of-list) fall back to an even
+// split, with any remainder handed to the earliest slots.
+function distributeInt(total,weights){
+  const n=weights.length;
+  if(n===0)return [];
+  total=Math.round(total);
+  const wsum=weights.reduce((a,b)=>a+b,0);
+  if(wsum<=0){
+    const base=Math.floor(total/n),rem=total-base*n;
+    return weights.map((_,i)=>base+(i<rem?1:0));
+  }
+  const raw=weights.map(w=>w*total/wsum);
+  const floors=raw.map(Math.floor);
+  const used=floors.reduce((a,b)=>a+b,0);
+  const rem=total-used;
+  const order=raw.map((v,i)=>({i,frac:v-Math.floor(v)})).sort((a,b)=>b.frac-a.frac||a.i-b.i);
+  const result=floors.slice();
+  for(let k=0;k<rem;k++)result[order[k].i]+=1;
+  return result;
+}
+function defaultPcts(n){
+  if(n===4)return [50,25,15,10];
+  return distributeInt(100,new Array(n).fill(1));
+}
+function ordinal(n){
+  const v=n%100;
+  if(v>=11&&v<=13)return n+'th';
+  return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th');
+}
 
 function fmtMoney(v){
   return '$'+(Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -874,6 +895,60 @@ function sessionDateLabel(){
   return SPLIT_MONTHS[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear();
 }
 
+// Build (or rebuild) the N payout rows inside #sp-custom-rows for the current
+// customN, each with its own percentage input. Called only when the payee
+// count changes — editing a single percentage just updates the existing rows
+// in place (see editPct/renderCustomPcts) rather than rebuilding the DOM.
+function buildCustomRows(){
+  const box=document.getElementById('sp-custom-rows');
+  box.innerHTML='';
+  for(let i=0;i<customN;i++){
+    const row=document.createElement('div');
+    row.className='split-payout';
+    row.dataset.idx=i;
+    row.innerHTML=`<div class="po-head"><span class="place">${ordinal(i+1)} &middot;
+      <input type="number" class="sp-pct-input" min="0" max="100" step="1" value="${customPcts[i]}" aria-label="${ordinal(i+1)} place percentage">%<span class="po-raw"></span></span><span class="amt">$0</span></div>
+      <div class="po-bills">&mdash;</div>`;
+    box.appendChild(row);
+  }
+  box.querySelectorAll('.sp-pct-input').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      editPct(+e.target.closest('.split-payout').dataset.idx,+e.target.value);
+    });
+  });
+}
+
+// Push customPcts into the row DOM (percentage inputs), skipping whichever
+// index the user is actively typing in so its caret/value isn't disturbed.
+function renderCustomPcts(skipIdx){
+  document.querySelectorAll('#sp-custom-rows .split-payout').forEach(row=>{
+    const i=+row.dataset.idx;
+    if(i===skipIdx)return;
+    row.querySelector('.sp-pct-input').value=customPcts[i];
+  });
+}
+
+// Edit place `index` to `newVal`%, then dynamically rescale the rest so the
+// set still sums to 100%. Places before `index` are untouched; places after
+// it are rescaled proportionally to their old ratio (see distributeInt()). If
+// `index` is the last place, there's nothing after it to absorb the change,
+// so every place *before* it is rescaled instead.
+function editPct(index,newVal){
+  newVal=Math.max(0,Math.min(100,Math.round(newVal)||0));
+  if(index===customPcts.length-1){
+    const prior=customPcts.slice(0,index);
+    customPcts=[...distributeInt(100-newVal,prior),newVal];
+  }else{
+    const fixedSum=customPcts.slice(0,index).reduce((a,b)=>a+b,0);
+    newVal=Math.min(newVal,100-fixedSum);
+    const restOld=customPcts.slice(index+1);
+    const restNew=distributeInt(100-fixedSum-newVal,restOld);
+    customPcts=[...customPcts.slice(0,index),newVal,...restNew];
+  }
+  renderCustomPcts(index);
+  splitRecalc();
+}
+
 function splitRecalc(){
   let gross=0;
   const inv={};
@@ -885,9 +960,6 @@ function splitRecalc(){
     gross+=n*d;
   });
   const pool=gross*0.90;
-  const mode=SPLIT_MODES[splitMode];
-  const isEven=!!mode.even;
-  elSplitPayouts.classList.toggle('mode-even',isEven);
 
   // dealBills(amount): pull `amount` from `inv` largest-first, mutating `inv`.
   // Returns {text:"2×$100 · 1×$20" breakdown (with a "+$X change" tail when the
@@ -902,46 +974,33 @@ function splitRecalc(){
     return {text:parts.length?parts.join('  ·  '):'—',short:owed};
   }
 
-  // The bill breakdowns (per place / the House leftover) are only shown when the
-  // counted cash covers every payout exactly — if any stack needs change the
-  // whole distribution is unreliable, so it's hidden everywhere.
-  let house,balanced=true;
-  if(isEven){
-    let n=parseInt(document.getElementById('sp-even-n').value,10);
-    if(!Number.isFinite(n)||n<1)n=1;
-    n=Math.min(n,999);
-    // Per-player share: the 90% pool split n ways, rounded to the nearest $5.
-    const per=Math.round(pool/n/5)*5;
-    // Deal the n stacks out of `inv` so the House leftover stays right.
-    let owed=0;
-    for(let k=0;k<n;k++)owed+=dealBills(per).short;
-    if(owed>0)balanced=false;
-    house=gross-per*n;
-    // The pool shown is what actually gets handed out = cash counted − house cut
-    // = per*n, so the sentence adds up (n × per).
-    document.getElementById('sp-even-pool').textContent=fmtWhole(per*n);
-    document.getElementById('sp-even-amt').textContent=fmtWhole(per);
-  }else{
-    const pcts=mode.pct;
-    const pids=['sp-1st-pct','sp-2nd-pct','sp-3rd-pct'];
-    pcts.forEach((p,i)=>{document.getElementById(pids[i]).textContent=Math.round(p*100)+'%';});
-    const rawShares=pcts.map(p=>pool*p);
-    // Each payout rounds to the nearest $5 (ties up) so it can be paid in bills.
-    const shares=rawShares.map(r=>Math.round(r/5)*5);
-    house=gross-shares[0]-shares[1]-shares[2];
-    // Deal all three stacks first so we know whether every one balances.
-    const dealt=shares.map(amt=>dealBills(amt));
-    if(dealt.some(d=>d.short>0))balanced=false;
-    const ids=['sp-1st','sp-2nd','sp-3rd'],bids=['sp-1st-bills','sp-2nd-bills','sp-3rd-bills'],
-          rids=['sp-1st-raw','sp-2nd-raw','sp-3rd-raw'];
-    shares.forEach((amt,i)=>{
-      document.getElementById(ids[i]).textContent=fmtWhole(amt);
-      document.getElementById(bids[i]).textContent=(balanced&&gross>0)?dealt[i].text:'—';
-      const raw=rawShares[i];
-      const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
-      document.getElementById(rids[i]).textContent=gross>0?fmtMoney(raw)+' '+dir:'';
-    });
+  document.getElementById('sp-gross').textContent=fmtMoney(gross);
+
+  if(splitMode!=='custom'){
+    // Nothing picked yet — just show cash counted and a flat 10% house cut.
+    document.getElementById('sp-house').textContent=fmtMoney(gross*0.10);
+    document.getElementById('sp-house-note').textContent='10%';
+    document.getElementById('sp-house-bills').textContent='—';
+    return;
   }
+
+  const rawShares=customPcts.map(p=>pool*p/100);
+  // Each payout rounds to the nearest $5 (ties up) so it can be paid in bills.
+  const shares=rawShares.map(r=>Math.round(r/5)*5);
+  const house=gross-shares.reduce((a,b)=>a+b,0);
+  // Deal every stack first so we know whether all of them balance.
+  const dealt=shares.map(amt=>dealBills(amt));
+  const balanced=!dealt.some(d=>d.short>0);
+  const rows=document.querySelectorAll('#sp-custom-rows .split-payout');
+  shares.forEach((amt,i)=>{
+    const row=rows[i];
+    row.querySelector('.amt').textContent=fmtWhole(amt);
+    row.querySelector('.po-bills').textContent=(balanced&&gross>0)?dealt[i].text:'—';
+    const raw=rawShares[i];
+    const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
+    row.querySelector('.po-raw').textContent=gross>0?' '+fmtMoney(raw)+' '+dir:'';
+  });
+
   // House keeps everything not paid out — the base 10%, adjusted by whatever
   // the nearest-$5 rounding added or removed (so this can dip below 10%).
   const roundLeft=house-gross*0.10;
@@ -950,7 +1009,6 @@ function splitRecalc(){
   const hparts=[];
   SPLIT_DENOMS.forEach(d=>{if(inv[d]>0)hparts.push(inv[d]+'×$'+d);});
 
-  document.getElementById('sp-gross').textContent=fmtMoney(gross);
   document.getElementById('sp-house').textContent=fmtMoney(house);
   document.getElementById('sp-house-note').textContent=
     roundLeft>=0.05?'10% + '+fmtMoney(roundLeft):
@@ -965,15 +1023,26 @@ function splitClear(){
 }
 
 function setSplitMode(m){
-  splitMode=((m%SPLIT_MODES.length)+SPLIT_MODES.length)%SPLIT_MODES.length;
-  document.getElementById('sp-mode').value=String(splitMode);
+  splitMode=m==='custom'?'custom':'';
+  document.getElementById('sp-mode').value=splitMode;
+  document.getElementById('sp-custom').hidden=splitMode!=='custom';
+  splitRecalc();
+}
+
+function setCustomN(n){
+  if(!Number.isFinite(n)||n<1)n=1;
+  n=Math.min(n,20);
+  customN=n;
+  document.getElementById('sp-custom-n').value=String(n);
+  customPcts=defaultPcts(n);
+  buildCustomRows();
   splitRecalc();
 }
 
 function openSplit(){
   document.getElementById('split-title').textContent='Payout - '+sessionDateLabel();
-  document.getElementById('sp-even-n').value='3';
-  setSplitMode(0);
+  setCustomN(4);
+  setSplitMode('');
   elSplitOverlay.classList.add('visible');
   document.body.classList.add('split-open');
 }
@@ -995,8 +1064,8 @@ function closeSplit(){
     inp.value=String(n);
     splitRecalc();
   });
-  document.getElementById('sp-mode').addEventListener('change',e=>setSplitMode(+e.target.value));
-  document.getElementById('sp-even-n').addEventListener('input',splitRecalc);
+  document.getElementById('sp-mode').addEventListener('change',e=>setSplitMode(e.target.value));
+  document.getElementById('sp-custom-n').addEventListener('input',e=>setCustomN(parseInt(e.target.value,10)));
 })();
 
 // ── Build menu grid ───────────────────────────────────────────────
