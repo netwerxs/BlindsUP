@@ -350,16 +350,16 @@ body.no-touch .no-touch-only{display:flex;}
    totals re-centres the vertically-centred column and the whole sheet jumps
    while you're tapping the +/- buttons. */
 #split-overlay{
-  cursor:default;gap:4vh;overflow-y:auto;
+  cursor:default;gap:2.2vh;overflow-y:auto;
   justify-content:flex-start;
-  padding-top:4.5vh;padding-bottom:4.5vh;
+  padding-top:2.5vh;padding-bottom:2.5vh;
   padding-left:4vw;padding-right:4vw;
 }
 .split-body{
-  display:flex;flex-direction:column;gap:3vh;
+  display:flex;flex-direction:column;gap:1.8vh;
   width:100%;max-width:min(440px,92vw);
 }
-.split-denoms{display:flex;flex-direction:column;gap:1.4vh;}
+.split-denoms{display:flex;flex-direction:column;gap:0.9vh;}
 .denom-row{
   display:grid;grid-template-columns:2.6em 1fr auto;
   align-items:center;gap:0.8em;
@@ -377,7 +377,7 @@ body.no-touch .no-touch-only{display:flex;}
   width:3.4em;text-align:center;
   font-size:2.4vh;font-weight:700;color:#111;
   border:1px solid rgba(0,0,0,0.25);border-radius:0.5rem;
-  padding:0.5vh 0;background:#fff;font-variant-numeric:tabular-nums;
+  padding:0.3vh 0;background:#fff;font-variant-numeric:tabular-nums;
   -moz-appearance:textfield;
 }
 .denom-step input::-webkit-outer-spin-button,
@@ -386,7 +386,7 @@ body.no-touch .no-touch-only{display:flex;}
   font-size:1.8vh;font-weight:400;color:rgba(0,0,0,0.5);
   text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;
 }
-.split-results{display:flex;flex-direction:column;gap:1.1vh;}
+.split-results{display:flex;flex-direction:column;gap:0.7vh;}
 .split-line{
   display:flex;align-items:baseline;justify-content:space-between;gap:1em;
   font-size:2.2vh;color:rgba(0,0,0,0.6);
@@ -395,8 +395,8 @@ body.no-touch .no-touch-only{display:flex;}
 .split-line .hnote{font-size:1.5vh;font-weight:400;color:rgba(0,0,0,0.4);margin-left:0.4em;}
 .split-payouts{
   border-top:1px solid rgba(0,0,0,0.2);
-  margin-top:1.2vh;padding-top:1.4vh;
-  display:flex;flex-direction:column;gap:1.8vh;
+  margin-top:0.8vh;padding-top:0.9vh;
+  display:flex;flex-direction:column;gap:1vh;
 }
 .sp-mode-row{display:flex;align-items:center;gap:0.6em;margin-bottom:-0.4vh;}
 .sp-mode-lbl{
@@ -409,11 +409,11 @@ body.no-touch .no-touch-only{display:flex;}
   font-family:inherit;font-size:1.7vh;font-weight:700;color:#111;cursor:pointer;
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;
 }
-.split-payout{display:flex;flex-direction:column;gap:0.3vh;}
-#sp-custom-rows{display:flex;flex-direction:column;gap:1.4vh;}
+.split-payout{display:flex;flex-direction:column;gap:0.2vh;}
+#sp-custom-rows{display:flex;flex-direction:column;gap:0.8vh;}
 .sp-custom-n-row{display:flex;align-items:center;gap:0.6em;}
 .sp-custom-n-row[hidden]{display:none;}
-.sp-pct-input:disabled{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.55);}
+.sp-pct-text{margin-left:0.5em;font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
 .sp-custom-n-lbl{
   font-size:1.5vh;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
   color:rgba(0,0,0,0.45);
@@ -558,7 +558,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom</b>. Custom adds a <b>Payees</b> field setting how many places get paid (default 5), and each place from 1st to last gets its own editable percentage &mdash; defaulting to an even split of the payees. Changing one place's percentage automatically rescales the places after it (proportionally, keeping their ratio to each other) so the set always sums to 100%; changing the last place instead rescales the places before it. The sheet remembers your last split, payee count and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. When the counted bills cover every payout exactly it lists <b>which bills to set aside</b> under each payout and the House cut (dealt largest-first, 1st place first; the house keeps whatever is left); if any payout would need change, those bill lists are hidden. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom</b>. Custom adds a <b>Payees</b> field setting how many places get paid (default 5), and each place from 1st to last gets its own editable percentage &mdash; defaulting to an even split of the payees. Changing one place's percentage automatically rescales the places after it (proportionally, keeping their ratio to each other) so the set always sums to 100%; changing the last place instead rescales the places before it. The sheet remembers your last split, payee count and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't shows how much it's short and a suggested fix (e.g. <b>"break a $20 bill"</b>). The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -669,7 +669,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.116';
+const VERSION='v1.117';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -930,8 +930,8 @@ function loadPayoutSettings(){
 }
 
 // Build (or rebuild) the payout rows inside #sp-custom-rows for the active
-// scheme. Top 3 / Top 4 render fixed, disabled percentage fields; Custom
-// renders editable ones wired to editPct(). Called whenever the mode or payee
+// scheme. Top 3 / Top 4 render the percentage as plain text; Custom renders
+// an editable field wired to editPct(). Called whenever the mode or payee
 // count changes — editing a single percentage just updates the existing rows
 // in place (see editPct/renderCustomPcts) rather than rebuilding the DOM.
 function buildCustomRows(){
@@ -943,8 +943,11 @@ function buildCustomRows(){
     const row=document.createElement('div');
     row.className='split-payout';
     row.dataset.idx=i;
+    const pctHtml=editable
+      ?`<input type="number" class="sp-pct-input" min="0" max="100" step="1" value="${p}" aria-label="${ordinal(i+1)} place percentage">%`
+      :`<span class="sp-pct-text">${p}%</span>`;
     row.innerHTML=`<div class="po-head"><span class="place">${ordinal(i+1)} &middot;
-      <input type="number" class="sp-pct-input" min="0" max="100" step="1" value="${p}"${editable?'':' disabled'} aria-label="${ordinal(i+1)} place percentage">%<span class="po-raw"></span></span><span class="amt">$0</span></div>
+      ${pctHtml}<span class="po-raw"></span></span><span class="amt">$0</span></div>
       <div class="po-bills">&mdash;</div>`;
     box.appendChild(row);
   });
@@ -1003,16 +1006,24 @@ function splitRecalc(){
   const pool=gross*0.90;
 
   // dealBills(amount): pull `amount` from `inv` largest-first, mutating `inv`.
-  // Returns {text:"2×$100 · 1×$20" breakdown (with a "+$X change" tail when the
-  // counted bills can't cover it), short:$ still owed after exhausting inv}.
+  // Returns {text:"2×$100 · 1×$20" breakdown, short:$ still owed after
+  // exhausting inv, fix: a suggestion for closing that shortfall}. Every
+  // payout is a multiple of $5, so a shortfall can always be closed by
+  // breaking a large-enough bill into $5s — fix names the smallest bill still
+  // on hand that's big enough to cover it (it must be "too big" rather than
+  // "not enough", since anything ≤ the shortfall would already have been used).
   function dealBills(amount){
     let owed=amount;const parts=[];
     SPLIT_DENOMS.forEach(d=>{
       const take=Math.min(Math.floor(owed/d),inv[d]);
       if(take>0){parts.push(take+'×$'+d);owed-=take*d;inv[d]-=take;}
     });
-    if(owed>0)parts.push('+'+fmtWhole(owed)+' change');
-    return {text:parts.length?parts.join('  ·  '):'—',short:owed};
+    let fix=null;
+    if(owed>0){
+      const breakable=SPLIT_DENOMS.filter(d=>d>owed&&inv[d]>0);
+      fix=breakable.length?'break a $'+Math.min(...breakable)+' bill':'not enough cash counted';
+    }
+    return {text:parts.length?parts.join('  ·  '):'—',short:owed,fix};
   }
 
   document.getElementById('sp-gross').textContent=fmtMoney(gross);
@@ -1028,7 +1039,8 @@ function splitRecalc(){
   shares.forEach((amt,i)=>{
     const row=rows[i];
     row.querySelector('.amt').textContent=fmtWhole(amt);
-    row.querySelector('.po-bills').textContent=(balanced&&gross>0)?dealt[i].text:'—';
+    row.querySelector('.po-bills').textContent=gross<=0?'—':
+      dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)+' — '+dealt[i].fix):dealt[i].text;
     const raw=rawShares[i];
     const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
     row.querySelector('.po-raw').textContent=gross>0?' '+fmtMoney(raw)+' '+dir:'';
