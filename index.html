@@ -451,6 +451,7 @@ body.no-touch .no-touch-only{display:flex;}
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;
   overflow-wrap:break-word;
 }
+.po-bills b{font-weight:700;color:#111;}
 .split-actions{display:flex;gap:2vw;}
 /* The Split sheet is a single narrow column meant to be photographed in
    portrait for the payout SMS, so let it show in portrait — suppress the
@@ -669,7 +670,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.117';
+const VERSION='v1.118';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1039,8 +1040,8 @@ function splitRecalc(){
   shares.forEach((amt,i)=>{
     const row=rows[i];
     row.querySelector('.amt').textContent=fmtWhole(amt);
-    row.querySelector('.po-bills').textContent=gross<=0?'—':
-      dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)+' — '+dealt[i].fix):dealt[i].text;
+    row.querySelector('.po-bills').innerHTML=gross<=0?'—':
+      dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)+' — <b>'+dealt[i].fix+'</b>'):dealt[i].text;
     const raw=rawShares[i];
     const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
     row.querySelector('.po-raw').textContent=gross>0?' '+fmtMoney(raw)+' '+dir:'';
