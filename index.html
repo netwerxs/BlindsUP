@@ -664,7 +664,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.124';
+const VERSION='v1.125';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -921,6 +921,55 @@ function breakBillHint(breakDenom,owed){
   return 'Break a $'+breakDenom+' with '+joinList(parts)+'.';
 }
 
+// Owed remaining on `amount` after a largest-first greedy take from `inv`,
+// without mutating it — used to probe whether a break is still needed.
+function greedyOwed(inv,amount){
+  let owed=amount;
+  SPLIT_DENOMS.forEach(d=>{
+    const take=Math.min(Math.floor(owed/d),inv[d]);
+    owed-=take*d;
+  });
+  return owed;
+}
+
+// Walk every payout in order against a scratch copy of the counted
+// inventory, breaking a bill (largest-first choice, same as dealBills)
+// whenever the current payout would otherwise come up short, then folding
+// the resulting small bills back in before moving to the next payout. This
+// mirrors what actually happens if you pre-break every bill you'll need at
+// the cage before dealing anything out, so it surfaces every break required
+// — not just the first — in one pass instead of one shortfall at a time.
+// Returns {breaks:[{breakDenom,owed}], resolved} — resolved is false only if
+// some payout can't be closed even after breaking everything on hand.
+function simulateBreaks(shares,inv0){
+  const sim={...inv0};
+  const breaks=[];
+  for(const amt of shares){
+    let owed=greedyOwed(sim,amt);
+    while(owed>0){
+      const breakable=SPLIT_DENOMS.filter(d=>d>owed&&sim[d]>0);
+      const breakDenom=breakable.length?Math.min(...breakable):null;
+      if(!breakDenom)return {breaks,resolved:false};
+      sim[breakDenom]-=1;
+      // Split into the owed portion and the change, same as breakBillHint —
+      // not a generic breakdown of the whole bill — so the owed piece is
+      // guaranteed usable rather than landing back in one lump bill.
+      const change=breakDenom-owed;
+      [...billBreakdown(owed,breakDenom),...billBreakdown(change,breakDenom)].forEach(([d,n])=>{
+        sim[d]=(sim[d]||0)+n;
+      });
+      breaks.push({breakDenom,owed});
+      owed=greedyOwed(sim,amt);
+    }
+    let take=amt;
+    SPLIT_DENOMS.forEach(d=>{
+      const t=Math.min(Math.floor(take/d),sim[d]);
+      sim[d]-=t;take-=t*d;
+    });
+  }
+  return {breaks,resolved:true};
+}
+
 function fmtMoney(v){
   return '$'+(Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
@@ -1054,6 +1103,7 @@ function splitRecalc(){
     gross+=n*d;
   });
   const pool=gross*0.90;
+  const inv0={...inv};
 
   // dealBills(amount): pull `amount` from `inv` largest-first, mutating `inv`.
   // Returns {text:"2×$100 · 1×$20" breakdown, short:$ still owed after
@@ -1096,15 +1146,15 @@ function splitRecalc(){
     row.querySelector('.po-raw').textContent=gross>0?fmtMoney(raw)+' '+dir:'';
   });
 
-  // Rather than repeat a "short / break a bill" note under every shorted
-  // place, surface one consolidated instruction for the first shortfall
-  // encountered — fixing it is the actionable next step regardless of how
-  // many places end up short.
-  const firstShort=dealt.find(d=>d.short>0);
+  // Rather than surface one shortfall, fix it, and discover another on the
+  // next recalc, simulate breaking bills for every payout up front (see
+  // simulateBreaks) so all the breaks needed are listed together in one go.
+  const sim=balanced?null:simulateBreaks(shares,inv0);
   document.getElementById('sp-break-hint').textContent=
-    gross<=0||!firstShort?'':
-    firstShort.breakDenom?breakBillHint(firstShort.breakDenom,firstShort.short):
-    'Not enough cash counted to cover every payout.';
+    gross<=0||balanced?'':
+    !sim.resolved?'Not enough cash counted to cover every payout.':
+    sim.breaks.length===1?breakBillHint(sim.breaks[0].breakDenom,sim.breaks[0].owed):
+    sim.breaks.map((b,i)=>(i+1)+') '+breakBillHint(b.breakDenom,b.owed)).join('  ');
 
   // House keeps everything not paid out — the base 10%, adjusted by whatever
   // the nearest-$5 rounding added or removed (so this can dip below 10%).
