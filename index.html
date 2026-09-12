@@ -409,6 +409,11 @@ body.no-touch .no-touch-only{display:flex;}
   font-family:inherit;font-size:1.7vh;font-weight:700;color:#111;cursor:pointer;
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;
 }
+.sp-break-hint{
+  font-size:1.7vh;font-weight:700;color:var(--danger);
+  line-height:1.4;
+}
+.sp-break-hint:empty{display:none;}
 .split-payout{display:flex;flex-direction:column;gap:0.2vh;}
 #sp-custom-rows{display:flex;flex-direction:column;gap:0.8vh;}
 .sp-pct-text{margin-left:0.5em;font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
@@ -440,7 +445,6 @@ body.no-touch .no-touch-only{display:flex;}
   font-variant-numeric:tabular-nums;letter-spacing:0.02em;
   overflow-wrap:break-word;
 }
-.po-bills b{font-weight:700;color:#111;}
 .split-actions{display:flex;gap:2vw;}
 /* The Split sheet is a single narrow column meant to be photographed in
    portrait for the payout SMS, so let it show in portrait — suppress the
@@ -548,7 +552,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't shows how much it's short and a suggested fix (e.g. <b>"break a $20 bill"</b>). The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't just shows how much it's short. If any place is short, one bold red line under the <b>Payout split</b> selector states exactly what to do about the first shortfall, e.g. <b>"Break a $20 with a $10 and 2 $5's."</b> The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -631,6 +635,7 @@ body.split-open #rotate-prompt{display:none!important;}
             <option value="custom7">Custom 7 Paid</option>
           </select>
         </div>
+        <div class="sp-break-hint" id="sp-break-hint"></div>
         <div id="sp-custom-rows"></div>
       </div>
     </div>
@@ -659,7 +664,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.123';
+const VERSION='v1.124';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -885,6 +890,37 @@ function ordinal(n){
   return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th');
 }
 
+// Break `amount` into denominations smaller than `belowDenom`, largest-first.
+// Only ever called with amounts that are multiples of $5 (shortfalls and
+// their change are always a multiple of the $5 payout rounding), so this
+// always resolves exactly since $5 is the smallest denomination.
+function billBreakdown(amount,belowDenom){
+  let rem=amount;const counts=[];
+  SPLIT_DENOMS.filter(d=>d<belowDenom).forEach(d=>{
+    const take=Math.floor(rem/d);
+    if(take>0){counts.push([d,take]);rem-=take*d;}
+  });
+  return counts;
+}
+function fmtBillCount(d,n){return n===1?('a $'+d):(n+" $"+d+"'s");}
+function joinList(parts){
+  if(parts.length<=1)return parts.join('');
+  if(parts.length===2)return parts.join(' and ');
+  return parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1];
+}
+// A shortfall of `owed` is closed by breaking one `breakDenom` bill — that
+// covers the owed amount and leaves change of (breakDenom-owed). State the
+// exact result as one line, e.g. "Break a $20 with a $10 and 2 $5's."
+function breakBillHint(breakDenom,owed){
+  const change=breakDenom-owed;
+  const merged=new Map();
+  [...billBreakdown(owed,breakDenom),...billBreakdown(change,breakDenom)].forEach(([d,n])=>{
+    merged.set(d,(merged.get(d)||0)+n);
+  });
+  const parts=[...merged.entries()].sort((a,b)=>b[0]-a[0]).map(([d,n])=>fmtBillCount(d,n));
+  return 'Break a $'+breakDenom+' with '+joinList(parts)+'.';
+}
+
 function fmtMoney(v){
   return '$'+(Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
@@ -1021,23 +1057,23 @@ function splitRecalc(){
 
   // dealBills(amount): pull `amount` from `inv` largest-first, mutating `inv`.
   // Returns {text:"2×$100 · 1×$20" breakdown, short:$ still owed after
-  // exhausting inv, fix: a suggestion for closing that shortfall}. Every
-  // payout is a multiple of $5, so a shortfall can always be closed by
-  // breaking a large-enough bill into $5s — fix names the smallest bill still
-  // on hand that's big enough to cover it (it must be "too big" rather than
-  // "not enough", since anything ≤ the shortfall would already have been used).
+  // exhausting inv, breakDenom: the smallest bill still on hand big enough to
+  // break to close that shortfall}. Every payout is a multiple of $5, so a
+  // shortfall can always be closed by breaking a large-enough bill into $5s —
+  // breakDenom must be "too big" rather than "not enough", since anything ≤
+  // the shortfall would already have been used.
   function dealBills(amount){
     let owed=amount;const parts=[];
     SPLIT_DENOMS.forEach(d=>{
       const take=Math.min(Math.floor(owed/d),inv[d]);
       if(take>0){parts.push(take+'×$'+d);owed-=take*d;inv[d]-=take;}
     });
-    let fix=null;
+    let breakDenom=null;
     if(owed>0){
       const breakable=SPLIT_DENOMS.filter(d=>d>owed&&inv[d]>0);
-      fix=breakable.length?'break a $'+Math.min(...breakable)+' bill':'not enough cash counted';
+      breakDenom=breakable.length?Math.min(...breakable):null;
     }
-    return {text:parts.length?parts.join('  ·  '):'—',short:owed,fix};
+    return {text:parts.length?parts.join('  ·  '):'—',short:owed,breakDenom};
   }
 
   document.getElementById('sp-gross').textContent=fmtMoney(gross);
@@ -1053,12 +1089,22 @@ function splitRecalc(){
   shares.forEach((amt,i)=>{
     const row=rows[i];
     row.querySelector('.amt').textContent=fmtWhole(amt);
-    row.querySelector('.po-bills').innerHTML=gross<=0?'—':
-      dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)+' — <b>'+dealt[i].fix+'</b>'):dealt[i].text;
+    row.querySelector('.po-bills').textContent=gross<=0?'—':
+      dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)):dealt[i].text;
     const raw=rawShares[i];
     const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
     row.querySelector('.po-raw').textContent=gross>0?fmtMoney(raw)+' '+dir:'';
   });
+
+  // Rather than repeat a "short / break a bill" note under every shorted
+  // place, surface one consolidated instruction for the first shortfall
+  // encountered — fixing it is the actionable next step regardless of how
+  // many places end up short.
+  const firstShort=dealt.find(d=>d.short>0);
+  document.getElementById('sp-break-hint').textContent=
+    gross<=0||!firstShort?'':
+    firstShort.breakDenom?breakBillHint(firstShort.breakDenom,firstShort.short):
+    'Not enough cash counted to cover every payout.';
 
   // House keeps everything not paid out — the base 10%, adjusted by whatever
   // the nearest-$5 rounding added or removed (so this can dip below 10%).
