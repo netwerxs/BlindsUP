@@ -411,35 +411,24 @@ body.no-touch .no-touch-only{display:flex;}
 }
 .split-payout{display:flex;flex-direction:column;gap:0.2vh;}
 #sp-custom-rows{display:flex;flex-direction:column;gap:0.8vh;}
-.sp-custom-n-row{display:flex;align-items:center;gap:0.6em;}
-.sp-custom-n-row[hidden]{display:none;}
 .sp-pct-text{margin-left:0.5em;font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
-.sp-custom-n-lbl{
-  font-size:1.5vh;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
-  color:rgba(0,0,0,0.45);
-}
-.sp-num-input{
-  width:4em;text-align:center;
-  font-family:inherit;font-size:1.9vh;font-weight:700;color:#111;
-  border:1px solid rgba(0,0,0,0.3);border-radius:0.4rem;
-  padding:0.2vh 0.3em;background:#fff;font-variant-numeric:tabular-nums;
-}
-.sp-pct-input{
-  width:3.4em;text-align:center;margin-left:0.5em;
-  font-family:inherit;font-size:1.7vh;font-weight:700;color:#111;
-  border:1px solid rgba(0,0,0,0.3);border-radius:0.4rem;
-  padding:0.1vh 0.2em;background:#fff;font-variant-numeric:tabular-nums;
-}
 .po-head{
   display:flex;align-items:baseline;justify-content:space-between;gap:1em;
 }
+.po-step{display:flex;align-items:center;gap:0.6em;}
+.po-step button{
+  width:1.9em;height:1.9em;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(0,0,0,0.25);background:rgba(0,0,0,0.04);
+  font-size:1.7vh;font-weight:700;color:#111;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.po-step button:active{background:rgba(0,0,0,0.12);}
 .po-head .place{
   font-size:1.9vh;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;
   color:rgba(0,0,0,0.55);
 }
-.po-head .place .po-raw{
-  margin-left:0.6em;font-size:1.5vh;font-weight:400;
-  text-transform:none;letter-spacing:normal;
+.po-raw{
+  font-size:1.5vh;font-weight:400;
   color:rgba(0,0,0,0.4);font-variant-numeric:tabular-nums;
 }
 .po-head .amt{
@@ -559,7 +548,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the cash and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom</b>. Custom adds a <b>Payees</b> field setting how many places get paid (default 5), and each place from 1st to last gets its own editable percentage &mdash; defaulting to an even split of the payees. Changing one place's percentage automatically rescales the places after it (proportionally, keeping their ratio to each other) so the set always sums to 100%; changing the last place instead rescales the places before it. The sheet remembers your last split, payee count and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't shows how much it's short and a suggested fix (e.g. <b>"break a $20 bill"</b>). The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't shows how much it's short and a suggested fix (e.g. <b>"break a $20 bill"</b>). The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -624,7 +613,7 @@ body.split-open #rotate-prompt{display:none!important;}
       </div>
     </div>
     <div class="split-results">
-      <div class="split-line"><span>Cash counted</span><span class="val" id="sp-gross">$0.00</span></div>
+      <div class="split-line"><span>Prize Pool</span><span class="val" id="sp-gross">$0.00</span></div>
       <div class="split-payout">
         <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="val" id="sp-house">$0.00</span></div>
         <div class="po-bills" id="sp-house-bills">&mdash;</div>
@@ -635,12 +624,12 @@ body.split-open #rotate-prompt{display:none!important;}
           <select id="sp-mode" class="sp-mode-sel" aria-label="Payout split">
             <option value="top3">Top 3 &middot; 50 / 30 / 20</option>
             <option value="top4">Top 4 &middot; 50 / 25 / 15 / 10</option>
-            <option value="custom">Custom</option>
+            <option value="custom3">Custom 3 Paid</option>
+            <option value="custom4">Custom 4 Paid</option>
+            <option value="custom5">Custom 5 Paid</option>
+            <option value="custom6">Custom 6 Paid</option>
+            <option value="custom7">Custom 7 Paid</option>
           </select>
-        </div>
-        <div class="sp-custom-n-row" id="sp-payees-row" hidden>
-          <span class="sp-custom-n-lbl">Payees</span>
-          <input id="sp-custom-n" class="sp-num-input" type="number" inputmode="numeric" min="1" max="20" step="1" value="5" aria-label="Number of payees">
         </div>
         <div id="sp-custom-rows"></div>
       </div>
@@ -670,7 +659,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.118';
+const VERSION='v1.123';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -828,21 +817,22 @@ async function nativeInstall(e){
 // ── Split the pot (prize-pool cash-count calculator) ──────────────
 // Count the physical bills in the pot by denomination, take 10% off the top
 // for the house, and split what's left. The "Payout split" selector offers
-// two fixed presets — Top 3 (50/30/20) and Top 4 (50/25/15/10) — plus Custom,
-// which reveals a payee-count chooser (default 5) and one editable percentage
-// field per place, 1st..Nth (default: an even 100/N split, largest-remainder
-// rounded — see defaultPcts()). Editing a percentage field proportionally
-// rescales every place *after* it (keeping their ratios to each other) so the
-// set still sums to 100%; editing the last place has nothing after it to
-// rescale, so it instead rescales every place *before* it — see editPct().
-// The current mode, payee count and custom percentages are persisted to
-// localStorage (see save/loadPayoutSettings()) and restored the next time the
-// sheet opens, including across app restarts. Every place still distributes
-// the whole 90% pool, so the house base stays 10%. Each payout is rounded to
-// the nearest whole $5; the small difference is settled against the house cut
-// (which can therefore land a little above or below its base 10%), and the
-// raw pre-round figure is shown next to each place. Every stack is dealt out
-// of `inv` internally (largest-first) so the House dollar figure is always
+// two fixed presets — Top 3 (50/30/20) and Top 4 (50/25/15/10) — plus Custom
+// 3..7 Paid, each a fixed payee count whose percentages default to 1st = 50%,
+// remaining 50% split evenly across the rest (largest-remainder rounded —
+// see defaultPcts()), and are then editable per place via +/− steps of 1%
+// (see stepPct()). Stepping a place's percentage redistributes the places
+// *below* it to evenly split whatever balance is left (places above are
+// unaffected); stepping the *last* place — nothing below it to absorb the
+// change — instead redistributes the places *before* it the same way. The
+// current mode and custom percentages are persisted to localStorage (see
+// save/loadPayoutSettings()) and restored the next time the sheet opens,
+// including across app restarts. Every place still distributes the whole 90%
+// pool, so the house base stays 10%. Each payout is rounded to the nearest
+// whole $5; the small difference is settled against the house cut (which can
+// therefore land a little above or below its base 10%), and the raw
+// pre-round figure is shown next to each place. Every stack is dealt out of
+// `inv` internally (largest-first) so the House dollar figure is always
 // right; the *bill* breakdowns — per place and the House leftover — are only
 // rendered when every payout comes out exact, and hidden everywhere the
 // moment any stack would need change. Pure arithmetic on the input fields —
@@ -850,10 +840,17 @@ async function nativeInstall(e){
 // overlay.
 const SPLIT_DENOMS=[100,50,20,10,5];
 const PAYOUT_PRESETS={top3:[50,30,20],top4:[50,25,15,10]};
+const CUSTOM_SIZES={custom3:3,custom4:4,custom5:5,custom6:6,custom7:7};
 const PAYOUT_STORE_KEY='bu-payout-scheme';
-let splitMode='top3';   // 'top3' | 'top4' | 'custom'
-let customN=5;
-let customPcts=null;    // Custom mode's percentages — array of integers summing to 100
+let splitMode='top3';   // 'top3' | 'top4' | 'custom3'..'custom7'
+let customPcts=null;    // active Custom mode's percentages — integers summing to 100
+
+function isCustomMode(){
+  return Object.prototype.hasOwnProperty.call(CUSTOM_SIZES,splitMode);
+}
+function isValidMode(m){
+  return m==='top3'||m==='top4'||Object.prototype.hasOwnProperty.call(CUSTOM_SIZES,m);
+}
 
 // Split `total` (an integer) across `weights` proportionally, rounding with
 // the largest-remainder method so the result is exact integers that still sum
@@ -877,9 +874,10 @@ function distributeInt(total,weights){
   for(let k=0;k<rem;k++)result[order[k].i]+=1;
   return result;
 }
+// 1st place defaults to 50%; the remaining 50% splits evenly across the rest.
 function defaultPcts(n){
-  if(n===4)return [50,25,15,10];
-  return distributeInt(100,new Array(n).fill(1));
+  if(n<=1)return [100];
+  return [50,...distributeInt(50,new Array(n-1).fill(1))];
 }
 function ordinal(n){
   const v=n%100;
@@ -903,94 +901,109 @@ function sessionDateLabel(){
 }
 
 // The percentages currently in effect: the fixed preset array for top3/top4,
-// or the editable customPcts for Custom.
+// or the editable customPcts for a Custom N Paid mode.
 function activePcts(){
-  return splitMode==='custom'?customPcts:PAYOUT_PRESETS[splitMode];
+  return isCustomMode()?customPcts:PAYOUT_PRESETS[splitMode];
 }
 
-// Persist the current scheme (mode, payee count, custom percentages) so the
+// Persist the current scheme (mode and, for Custom modes, percentages) so the
 // sheet can restore it the next time it opens — including after the app is
 // closed and reopened, since this is a PWA. Silently no-ops if storage is
 // unavailable (private browsing, etc).
 function savePayoutSettings(){
   try{
-    localStorage.setItem(PAYOUT_STORE_KEY,JSON.stringify({mode:splitMode,customN,customPcts}));
+    localStorage.setItem(PAYOUT_STORE_KEY,JSON.stringify({mode:splitMode,customPcts:isCustomMode()?customPcts:null}));
   }catch(e){}
 }
 function loadPayoutSettings(){
   let s=null;
   try{s=JSON.parse(localStorage.getItem(PAYOUT_STORE_KEY));}catch(e){}
-  if(s&&(s.mode==='top3'||s.mode==='top4'||s.mode==='custom'))splitMode=s.mode;
-  if(s&&Number.isInteger(s.customN)&&s.customN>=1&&s.customN<=20)customN=s.customN;
-  if(s&&Array.isArray(s.customPcts)&&s.customPcts.length===customN&&
-     s.customPcts.every(Number.isFinite)&&s.customPcts.reduce((a,b)=>a+b,0)===100){
-    customPcts=s.customPcts.slice();
-  }else{
-    customPcts=defaultPcts(customN);
+  if(s&&isValidMode(s.mode))splitMode=s.mode;
+  if(isCustomMode()){
+    const n=CUSTOM_SIZES[splitMode];
+    if(s&&Array.isArray(s.customPcts)&&s.customPcts.length===n&&
+       s.customPcts.every(Number.isFinite)&&s.customPcts.reduce((a,b)=>a+b,0)===100){
+      customPcts=s.customPcts.slice();
+    }else{
+      customPcts=defaultPcts(n);
+    }
   }
 }
 
 // Build (or rebuild) the payout rows inside #sp-custom-rows for the active
-// scheme. Top 3 / Top 4 render the percentage as plain text; Custom renders
-// an editable field wired to editPct(). Called whenever the mode or payee
-// count changes — editing a single percentage just updates the existing rows
-// in place (see editPct/renderCustomPcts) rather than rebuilding the DOM.
+// scheme. Top 3 / Top 4 render the percentage as plain text; a Custom N Paid
+// mode adds +/− stepper buttons wired to stepPct(). Called whenever the mode
+// changes — stepping a single percentage just updates the existing rows in
+// place (see stepPct/renderCustomPcts) rather than rebuilding the DOM.
 function buildCustomRows(){
   const box=document.getElementById('sp-custom-rows');
   box.innerHTML='';
   const arr=activePcts();
-  const editable=splitMode==='custom';
+  const editable=isCustomMode();
   arr.forEach((p,i)=>{
     const row=document.createElement('div');
     row.className='split-payout';
     row.dataset.idx=i;
     const pctHtml=editable
-      ?`<input type="number" class="sp-pct-input" min="0" max="100" step="1" value="${p}" aria-label="${ordinal(i+1)} place percentage">%`
+      ?`<span class="pct-val">${p}%</span>`
       :`<span class="sp-pct-text">${p}%</span>`;
-    row.innerHTML=`<div class="po-head"><span class="place">${ordinal(i+1)} &middot;
-      ${pctHtml}<span class="po-raw"></span></span><span class="amt">$0</span></div>
+    const placeHtml=`<span class="place">${ordinal(i+1)} &middot; ${pctHtml}</span>`;
+    const headHtml=editable
+      ?`<span class="po-step">
+          <button type="button" class="po-minus" aria-label="Decrease ${ordinal(i+1)} place percentage">&minus;</button>
+          ${placeHtml}
+          <button type="button" class="po-plus" aria-label="Increase ${ordinal(i+1)} place percentage">+</button>
+        </span>`
+      :placeHtml;
+    row.innerHTML=`<div class="po-head">${headHtml}<span class="amt">$0</span></div>
+      <div class="po-raw"></div>
       <div class="po-bills">&mdash;</div>`;
     box.appendChild(row);
   });
   if(editable){
-    box.querySelectorAll('.sp-pct-input').forEach(inp=>{
-      inp.addEventListener('input',e=>{
-        editPct(+e.target.closest('.split-payout').dataset.idx,+e.target.value);
+    box.querySelectorAll('.po-minus').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        stepPct(+e.target.closest('.split-payout').dataset.idx,-1);
+      });
+    });
+    box.querySelectorAll('.po-plus').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        stepPct(+e.target.closest('.split-payout').dataset.idx,1);
       });
     });
   }
 }
 
-// Push customPcts into the row DOM (percentage inputs), skipping whichever
-// index the user is actively typing in so its caret/value isn't disturbed.
-function renderCustomPcts(skipIdx){
+// Push customPcts into the row DOM (percentage text) after a step.
+function renderCustomPcts(){
   document.querySelectorAll('#sp-custom-rows .split-payout').forEach(row=>{
     const i=+row.dataset.idx;
-    if(i===skipIdx)return;
-    row.querySelector('.sp-pct-input').value=customPcts[i];
+    const span=row.querySelector('.pct-val');
+    if(span)span.textContent=customPcts[i]+'%';
   });
 }
 
-// Edit place `index` to `newVal`%, then dynamically rescale the rest so the
-// set still sums to 100%. Places before `index` are untouched; places after
-// it are rescaled proportionally to their old ratio (see distributeInt()). If
+// Step place `index` by `delta` (+1 or −1)%, then redistribute the rest so
+// the set still sums to 100%. Places before `index` are untouched; places
+// after it are redistributed to evenly split whatever balance is left. If
 // `index` is the last place, there's nothing after it to absorb the change,
-// so every place *before* it is rescaled instead.
-function editPct(index,newVal){
-  if(splitMode!=='custom')return;
-  newVal=Math.max(0,Math.min(100,Math.round(newVal)||0));
-  if(index===customPcts.length-1){
-    const prior=customPcts.slice(0,index);
-    customPcts=[...distributeInt(100-newVal,prior),newVal];
+// so every place *before* it is redistributed instead.
+function stepPct(index,delta){
+  if(!isCustomMode())return;
+  const n=customPcts.length;
+  if(index===n-1){
+    const newVal=Math.max(0,Math.min(100,customPcts[index]+delta));
+    const before=distributeInt(100-newVal,new Array(index).fill(1));
+    customPcts=[...before,newVal];
   }else{
-    const fixedSum=customPcts.slice(0,index).reduce((a,b)=>a+b,0);
-    newVal=Math.min(newVal,100-fixedSum);
-    const restOld=customPcts.slice(index+1);
-    const restNew=distributeInt(100-fixedSum-newVal,restOld);
-    customPcts=[...customPcts.slice(0,index),newVal,...restNew];
+    const priorSum=customPcts.slice(0,index).reduce((a,b)=>a+b,0);
+    const newVal=Math.max(0,Math.min(100-priorSum,customPcts[index]+delta));
+    const afterCount=n-index-1;
+    const after=distributeInt(100-priorSum-newVal,new Array(afterCount).fill(1));
+    customPcts=[...customPcts.slice(0,index),newVal,...after];
   }
   savePayoutSettings();
-  renderCustomPcts(index);
+  renderCustomPcts();
   splitRecalc();
 }
 
@@ -1044,7 +1057,7 @@ function splitRecalc(){
       dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)+' — <b>'+dealt[i].fix+'</b>'):dealt[i].text;
     const raw=rawShares[i];
     const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
-    row.querySelector('.po-raw').textContent=gross>0?' '+fmtMoney(raw)+' '+dir:'';
+    row.querySelector('.po-raw').textContent=gross>0?fmtMoney(raw)+' '+dir:'';
   });
 
   // House keeps everything not paid out — the base 10%, adjusted by whatever
@@ -1068,29 +1081,22 @@ function splitClear(){
   splitRecalc();
 }
 
-// Re-render the mode select, Payees field/visibility and payout rows from the
-// current splitMode/customN/customPcts state — used both when that state is
-// loaded fresh (openSplit) and after it changes (setSplitMode/setCustomN).
+// Re-render the mode select and payout rows from the current
+// splitMode/customPcts state — used both when that state is loaded fresh
+// (openSplit) and after it changes (setSplitMode).
 function renderPayoutUI(){
   document.getElementById('sp-mode').value=splitMode;
-  document.getElementById('sp-payees-row').hidden=splitMode!=='custom';
-  document.getElementById('sp-custom-n').value=String(customN);
   buildCustomRows();
   splitRecalc();
 }
 
 function setSplitMode(m){
-  if(m!=='top3'&&m!=='top4'&&m!=='custom')return;
+  if(!isValidMode(m))return;
   splitMode=m;
-  savePayoutSettings();
-  renderPayoutUI();
-}
-
-function setCustomN(n){
-  if(!Number.isFinite(n)||n<1)n=1;
-  n=Math.min(n,20);
-  customN=n;
-  customPcts=defaultPcts(n);
+  if(isCustomMode()){
+    const n=CUSTOM_SIZES[m];
+    if(!customPcts||customPcts.length!==n)customPcts=defaultPcts(n);
+  }
   savePayoutSettings();
   renderPayoutUI();
 }
@@ -1121,7 +1127,6 @@ function closeSplit(){
     splitRecalc();
   });
   document.getElementById('sp-mode').addEventListener('change',e=>setSplitMode(e.target.value));
-  document.getElementById('sp-custom-n').addEventListener('input',e=>setCustomN(parseInt(e.target.value,10)));
 })();
 
 // ── Build menu grid ───────────────────────────────────────────────
