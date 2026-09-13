@@ -689,7 +689,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.136';
+const VERSION='v1.137';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -856,9 +856,11 @@ async function nativeInstall(e){
 // change — instead redistributes the places *before* it the same way. Each
 // Custom mode's percentages are persisted to localStorage (see
 // save/loadPayoutSettings()) and restored if that mode is picked again,
-// including across app restarts — but the mode selector itself always
-// defaults back to Top 3 whenever the sheet opens. Every place still
-// distributes the whole 90%
+// including across app restarts. The mode selector itself defaults back to
+// Top 3 each time the app is freshly opened, but once the user picks a mode
+// from the selector during a session (`splitModeTouched`), that choice
+// sticks for the rest of the session rather than reverting on next open.
+// Every place still distributes the whole 90%
 // pool, so the house base stays 10%. Each payout is rounded to the nearest
 // whole $5; the small difference is settled against the house cut (which can
 // therefore land a little above or below its base 10%), and the raw
@@ -1253,9 +1255,12 @@ function renderPayoutUI(){
   splitRecalc();
 }
 
+let splitModeTouched=false; // user picked a mode from the selector this session — keep it on next open
+
 function setSplitMode(m){
   if(!isValidMode(m))return;
   splitMode=m;
+  splitModeTouched=true;
   if(isCustomMode()){
     const n=CUSTOM_SIZES[m];
     if(!customPcts||customPcts.length!==n)customPcts=defaultPcts(n);
@@ -1267,7 +1272,7 @@ function setSplitMode(m){
 function openSplit(){
   document.getElementById('split-title').textContent='Payout - '+sessionDateLabel();
   loadPayoutSettings();
-  splitMode='top3';
+  if(!splitModeTouched)splitMode='top3';
   renderPayoutUI();
   elSplitOverlay.classList.add('visible');
   document.body.classList.add('split-open');
