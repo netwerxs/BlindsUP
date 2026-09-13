@@ -664,7 +664,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.128';
+const VERSION='v1.129';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -894,7 +894,7 @@ function fmtBillCount(d,n){return n===1?('a $'+d):(n+" $"+d+"'s");}
 function joinList(parts){
   if(parts.length<=1)return parts.join('');
   if(parts.length===2)return parts.join(' and ');
-  return parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1];
+  return parts.slice(0,-1).join(', ')+', and '+parts[parts.length-1];
 }
 // The one greedy largest-first "hand out `amount` in bills" primitive that
 // every bill-counting helper below builds on (dealing a payout, checking
