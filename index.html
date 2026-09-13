@@ -12,14 +12,15 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --bg:#080808;--border:rgba(255,255,255,0.07);
-  --white:#fff;--dim:rgba(255,255,255,0.32);--dimmer:rgba(255,255,255,0.14);
-  --accent:#e8c84a;--danger:#e84a4a;
+  --white:#fff;--dim:rgba(255,255,255,0.34);--dimmer:rgba(255,255,255,0.12);
+  --accent:#f2c94c;--accent-rgb:242,201,76;--danger:#ef4444;
   /* Frame-only depth tokens for chrome (buttons, panels, menu grid) — never
      applied to the blind/countdown numerals, which stay flat for glanceability. */
   --glass-bg:rgba(255,255,255,0.045);--glass-blur:20px;
   --shadow-elev1:0 2px 12px rgba(0,0,0,0.35);
   --shadow-elev2:0 8px 32px rgba(0,0,0,0.45);
   --inset-hi:inset 0 1px 0 rgba(255,255,255,0.08);
+  --glow-active:0 0 16px rgba(var(--accent-rgb),0.35);
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;}
@@ -88,7 +89,7 @@ html,body{width:100%;height:100%;
   padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;
   transition:transform 0.08s,background 0.18s,border-color 0.18s;
 }
-.menu-corner-btn:active{transform:scale(0.94);}
+.menu-corner-btn:active{transform:scale(0.94);box-shadow:var(--glow-active),var(--inset-hi);}
 #btn-help{right:2vw;}
 #btn-install{left:2vw;}
 #btn-check-update{top:auto;bottom:1.5vh;right:2vw;font-size:2.3vh;}
@@ -119,13 +120,18 @@ html,body{width:100%;height:100%;
   border-color:rgba(255,255,255,0.35);
 }
 .blind-card.current{
-  border-color:rgba(232,200,74,0.6);
-  background:rgba(232,200,74,0.08);
-  box-shadow:0 0 24px rgba(232,200,74,0.22),var(--shadow-elev1);
+  border-color:rgba(var(--accent-rgb),0.6);
+  background:rgba(var(--accent-rgb),0.08);
+  box-shadow:0 0 24px rgba(var(--accent-rgb),0.22),var(--shadow-elev1);
   transform:scale(1.04);
+  animation:cardpulse 2.6s ease-in-out infinite;
+}
+@keyframes cardpulse{
+  0%,100%{box-shadow:0 0 24px rgba(var(--accent-rgb),0.22),var(--shadow-elev1);}
+  50%{box-shadow:0 0 38px rgba(var(--accent-rgb),0.4),var(--shadow-elev1);}
 }
 .blind-card.current .card-blinds{color:var(--accent);}
-.blind-card.current .card-label{color:rgba(232,200,74,0.65);}
+.blind-card.current .card-label{color:rgba(var(--accent-rgb),0.65);}
 .card-label{
   font-size:1.2vh;font-weight:300;
   letter-spacing:0.25em;text-transform:uppercase;
@@ -133,15 +139,15 @@ html,body{width:100%;height:100%;
 }
 .card-blinds{
   font-size:3.5vh;font-weight:900;
-  letter-spacing:-0.02em;color:var(--white);
+  letter-spacing:-0.03em;color:var(--white);
 }
 .card-time{
   font-size:1.1vh;font-weight:300;
-  letter-spacing:0.15em;color:var(--dim);
+  letter-spacing:0.15em;color:var(--dimmer);
 }
-.exit-card{border-color:rgba(232,200,74,0.35);}
-.exit-card:hover,.exit-card:active{border-color:rgba(232,200,74,0.6);}
-.exit-card .card-blinds{color:var(--accent);text-shadow:0 0 16px rgba(232,200,74,0.3);}
+.exit-card{border-color:rgba(var(--accent-rgb),0.35);}
+.exit-card:hover,.exit-card:active{border-color:rgba(var(--accent-rgb),0.6);}
+.exit-card .card-blinds{color:var(--accent);text-shadow:0 0 16px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
 #app{display:none;width:100vw;height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
@@ -163,14 +169,18 @@ html,body{width:100%;height:100%;
   cursor:pointer;transition:background 0.2s,border-color 0.2s,transform 0.08s;white-space:nowrap;
 }
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
-.pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);}
+.pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
+/* The felt itself gets a soft radial vignette — brightest behind the
+   numerals, darker toward the edges — for depth; the numerals stay flat. */
 #blind-zone{
   grid-column:1;grid-row:1;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
   border-bottom:1px solid rgba(255,255,255,0.07);
   background:#2e8b57;
+  background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
+  box-shadow:inset 0 0 14vh rgba(0,0,0,0.28);
 }
 .suit{
   position:absolute;font-size:18vh;line-height:1;
@@ -193,6 +203,8 @@ html,body{width:100%;height:100%;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
   background:#2e8b57;
+  background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
+  box-shadow:inset 0 0 14vh rgba(0,0,0,0.28);
 }
 #cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
 .cd-num{font-size:32vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
@@ -217,7 +229,7 @@ html,body{width:100%;height:100%;
       rgba(255,130,90,0.05) 0px, rgba(255,130,90,0.05) 1px,
       transparent 1px, transparent 11px),
     linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
-  box-shadow:inset 1px 0 0 rgba(0,0,0,0.4);
+  box-shadow:inset 1px 0 0 rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,180,140,0.15);
 }
 #tod{
   font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
@@ -245,6 +257,19 @@ html,body{width:100%;height:100%;
   gap:1vh;cursor:pointer;
 }
 #announce.visible{display:flex;}
+/* A soft glow behind the numerals (not on them) marks the moment — sits at
+   the same z-index tier as the corner suits so it stays behind all text. */
+#announce::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;
+  background:radial-gradient(ellipse 46vh 20vh at 50% 42%,rgba(var(--accent-rgb),0.16) 0%,rgba(var(--accent-rgb),0) 65%);
+  opacity:0;
+}
+#announce.visible::before{opacity:1;animation:annglow 1.4s ease-out;}
+@keyframes annglow{
+  0%{opacity:0;transform:scale(0.55);}
+  45%{opacity:1;transform:scale(1.12);}
+  100%{opacity:1;transform:scale(1);}
+}
 .ann-label{font-size:2vh;font-weight:200;letter-spacing:0.5em;text-transform:uppercase;color:var(--white);animation:fadein 0.4s ease;}
 #ann-wrap{display:flex;align-items:center;justify-content:center;font-size:40vh;white-space:nowrap;animation:pop 0.38s cubic-bezier(0.34,1.56,0.64,1);}
 .ann-num{font-size:40vh;font-weight:900;color:var(--white);letter-spacing:-0.04em;line-height:0.85;}
@@ -664,7 +689,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.132';
+const VERSION='v1.133';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
