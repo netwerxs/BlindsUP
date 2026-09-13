@@ -689,7 +689,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.135';
+const VERSION='v1.136';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -853,10 +853,12 @@ async function nativeInstall(e){
 // (see stepPct()). Stepping a place's percentage redistributes the places
 // *below* it to evenly split whatever balance is left (places above are
 // unaffected); stepping the *last* place — nothing below it to absorb the
-// change — instead redistributes the places *before* it the same way. The
-// current mode and custom percentages are persisted to localStorage (see
-// save/loadPayoutSettings()) and restored the next time the sheet opens,
-// including across app restarts. Every place still distributes the whole 90%
+// change — instead redistributes the places *before* it the same way. Each
+// Custom mode's percentages are persisted to localStorage (see
+// save/loadPayoutSettings()) and restored if that mode is picked again,
+// including across app restarts — but the mode selector itself always
+// defaults back to Top 3 whenever the sheet opens. Every place still
+// distributes the whole 90%
 // pool, so the house base stays 10%. Each payout is rounded to the nearest
 // whole $5; the small difference is settled against the house cut (which can
 // therefore land a little above or below its base 10%), and the raw
@@ -1265,6 +1267,7 @@ function setSplitMode(m){
 function openSplit(){
   document.getElementById('split-title').textContent='Payout - '+sessionDateLabel();
   loadPayoutSettings();
+  splitMode='top3';
   renderPayoutUI();
   elSplitOverlay.classList.add('visible');
   document.body.classList.add('split-open');
