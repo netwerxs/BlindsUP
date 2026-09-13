@@ -664,14 +664,13 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.130';
+const VERSION='v1.131';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
 const elBBB=document.getElementById('bBB');
 const elCdMin=document.getElementById('cdMin');
 const elCdSec=document.getElementById('cdSec');
-const elCdInner=document.getElementById('cd-inner');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
 const elBlindInner=document.getElementById('blind-inner');
@@ -733,7 +732,7 @@ function fitBlind(){
 }
 function fitAnnounce(){fitText(document.getElementById('ann-wrap'),window.innerWidth*0.94);}
 
-let level=1,remSec=15*60,pausedRemSec=15*60;
+let level=1,remSec=maxSec(1),pausedRemSec=maxSec(1);
 
 // ── Sync (deep-link handoff to a second device) ───────────────────────────
 // A ?lv=&t= URL encodes the current level plus an absolute wall-clock end
@@ -1704,7 +1703,7 @@ document.addEventListener('keydown',e=>{
         dismissAnnounce();
         stopTick();
         running=false;paused=true;advancing=false;cancelSnap();
-        level=1;remSec=15*60;pausedRemSec=15*60;
+        level=1;remSec=maxSec(1);pausedRemSec=maxSec(1);
         elBtnPause.textContent='Pause';
         elApp.classList.remove('visible');
         showMenu(false);render();

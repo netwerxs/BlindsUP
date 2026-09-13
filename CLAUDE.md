@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-BlindsUP is a single-file poker blinds timer — all HTML, CSS, and JavaScript live in `index.html` (plus a small `sw.js` service worker for offline caching). There is no build step, no package manager, and no test framework. Two small third-party libraries (qrcode-generator, jsQR) are vendored inline, minified, near the end of `index.html`, ahead of the app's own `<script>` block.
+BlindsUP is a single-file poker blinds timer — all HTML, CSS, and JavaScript live in `index.html` (plus a small `sw.js` service worker for offline caching). There is no build step, no package manager, and no test framework, and no vendored third-party libraries — the entire app is hand-written JS in one inline `<script>` block, including a small adapted synth (`zzfx`) for sound effects.
 
 ## Workflow
 
@@ -41,7 +41,6 @@ All mutable state is global:
 | `advancing` / `snapTO` | True during the brief window between a level auto-advancing and its RTC-aligned start landing (see RTC alignment below) |
 | `pauseSecRTC` | RTC second-of-minute recorded at pause, used to correct drift on resume |
 | `audioCtx`, `alarmNodes`, `alarmTimeouts` | Web Audio API context and active oscillator nodes / pending sound timeouts |
-| `locked` | Whether swipe/click adjustment is disabled (auto-re-engages after 10s idle) |
 
 ### Blind schedule
 
@@ -55,7 +54,7 @@ Blind values are always shown as full integers (no `k`/thousands abbreviation) �
 
 `fitBlind()` / `fitAnnounce()` (via the shared `fitText()`) shrink `#blind-inner` / `#ann-wrap` from their vh baseline when a wide pair (e.g. `18000 / 36000`) would overrun the available width, snapping back to full size when it fits. Both containers own the font-size (`.b-num`/`.b-amp`/`#ann-wrap .ann-num`/`.ann-amp` are `1em`); `fitBlind()` is called every `render()` but early-returns unless the text or width changed, and is also wired to `resize`.
 
-There's no special UI treatment for any level — the menu grid renders levels 1–28 identically (`Level N` / `sb/bb` / duration); level 29 is only reachable via auto-advance and has no menu card (its slot is given to the Sync card instead — see RTC alignment / Sync below). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
+There's no special UI treatment for any level — the menu grid renders levels 1–28 identically (`Level N` / `sb/bb` / duration); level 29 is only reachable via auto-advance and has no menu card (its slot is given to the EXIT card instead). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
 
 `maxSec(lv)` encodes the duration rule and is the single source of truth for level length.
 
@@ -69,11 +68,17 @@ There's no special UI treatment for any level — the menu grid renders levels 1
 
 ### Audio
 
-All audio uses the Web Audio API via a small vendored `zzfx()` synthesizer (no samples, no network). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail — used for level-advance and the level-5 break (each played once, see `showBreakAnnounce()`). `playWoodClack()` fires three wood-dowel-strike sounds 600ms apart, once at the 11-second mark of a level's countdown. `playSoundcheck()` is a distinct buzzy 2s tone for verifying device volume, deliberately unlike any other sound so it's never mistaken for a timer event. `stopAlarm()` clears `alarmNodes`/`alarmTimeouts` and is called from `freezeCountdown()` (so pausing silences any in-flight alarm or wood-clack) and `dismissAnnounce()`. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
+All audio uses the Web Audio API via a small adapted `zzfx()` synthesizer (no samples, no network). `playAlarm()` synthesizes a warm ascending triangle-wave arpeggio (C5-E5-G5-C6) resolving into a shimmering two-note chime tail — used for level-advance and the level-5 break (each played once, see `showBreakAnnounce()`). `playWoodClack()` fires three wood-dowel-strike sounds 600ms apart, once at the 11-second mark of a level's countdown. `playSoundcheck()` is a distinct buzzy 2s tone for verifying device volume, deliberately unlike any other sound so it's never mistaken for a timer event. `stopAlarm()` clears `alarmNodes`/`alarmTimeouts` and is called from `freezeCountdown()` (so pausing silences any in-flight alarm or wood-clack) and `dismissAnnounce()`. There is no in-app volume control — alarm level follows the device's hardware volume buttons.
 
-### Sync (QR handoff between devices)
+### Sync (deep-link handoff between devices)
 
-While unlocked, the Lock button doubles as a QR code (`renderLockButton()`) encoding the current level plus an absolute wall-clock end time — scanning it (via the menu's Sync card → `openScanner()`, which decodes camera frames with the vendored `jsQR`) opens the same countdown on a second device via `startSynced()`, landing on the correct remaining time regardless of scan/load delay. A URL carrying `?lv=&t=` params is parsed once at startup into `pendingSync` and consumed after the soundcheck gate resolves.
+A `?lv=&t=` URL — level plus an absolute wall-clock end time, not a raw seconds-remaining count — is parsed once at startup into `pendingSync`, and consumed by `startSynced()` after the soundcheck gate resolves either way. `startSynced()` computes `remSec` from `pendingSync.t - Date.now()`, so the receiving device lands on the correct remaining time regardless of how long the link took to open. There is no QR code or camera scanning involved — sharing the link (however it reaches the second device) is the entire handoff. **Nothing in the current code generates this link** — an older Lock-button/QR mechanism apparently used to build and display it, but that generator is gone; only the receiving half (`pendingSync`/`startSynced()`) remains. As it stands, Sync can't actually be triggered from within the app.
+
+### Payout (prize-pool cash-count calculator)
+
+The **Payout** button opens `#split-overlay`, a calculator wholly separate from timer state (the countdown keeps running underneath) driven by `splitRecalc()`. The user enters how many bills of each denomination (`SPLIT_DENOMS = [100,50,20,10,5]`) are in the pot; the total is the **Prize Pool** (`gross`), 90% of which (`pool`) splits across paid places per the **Payout split** selector — fixed presets Top 3 (50/30/20) and Top 4 (50/25/15/10), or Custom 3–7 Paid, whose percentages default to 1st = 50% with the rest split evenly (`defaultPcts()`/`distributeInt()`, largest-remainder rounding) and are then step-adjustable per place by 1% (`stepPct()`), redistributing whichever places are unaffected by that step so the set always sums to 100%. The active mode and any Custom percentages persist to `localStorage` (`save/loadPayoutSettings()`) across app restarts.
+
+Each payout rounds to the nearest whole $5 so it can be paid in bills; the rounding difference is absorbed by the **House** cut (`gross` minus all payouts), which can therefore land a little above or below its base 10%. `greedyTake()` — the one largest-first "hand out `amount` in bills" primitive — backs both dealing a payout from the counted bills (`dealBills()`) and describing a bill breakdown (`billBreakdown()`, an unlimited-supply variant used when breaking change). A payout that can't be dealt exactly from the counted bills is a shortfall; `planBreaks()` resolves every shortfall in one pass (largest first, so a break's change carries forward to smaller ones) and reports the minimal set of bills to break — e.g. "Break 2 $20's with 2 $10's and 4 $5's." — shown as one bold red line under the Payout split selector. The House's own bill breakdown only renders once every payout balances exactly, since otherwise some of what's "left over" is really still owed to a shorted place.
 
 ### Updates
 
@@ -91,6 +96,6 @@ Dark, high-contrast, glanceable-from-across-the-table is the load-bearing constr
 
 `#col-right` (the right-hand control column) is a dark cherrywood panel — layered `repeating-linear-gradient` grain lines over a reddish-brown `linear-gradient` base, no `backdrop-filter` (an opaque wood texture has nothing to blur).
 
-`#blind-zone` and `#cd-zone` share a medium-green poker-felt background (`#2e8b57`), framed by four large (`.suit`, `18vh`) unicode card-suit glyphs at the four corners of the combined area: clubs (black, top-left) and diamonds (red, top-right) in `#blind-zone`; hearts (red, bottom-left) and spades (black, bottom-right) in `#cd-zone`. All four are `pointer-events:none` so they never intercept the underlying swipe/click zones, and sit at `z-index:-1` behind the numerals — the zones (`#blind-zone`/`#cd-zone`) carry `z-index:0` so the glyphs still paint above the felt, just under the blind/countdown digits where they overlap. The blind `/` separator carries a small `em` side margin (`.b-amp`, `.ann-amp`), matching the countdown's spaced `:` (`.cd-colon`). There is no "Locked" text badge — `#layout.locked` still disables interaction on both zones (`pointer-events:none`), it's just not labeled on-screen.
+`#blind-zone` and `#cd-zone` share a medium-green poker-felt background (`#2e8b57`), framed by four large (`.suit`, `18vh`) unicode card-suit glyphs at the four corners of the combined area: clubs (black, top-left) and diamonds (red, top-right) in `#blind-zone`; hearts (red, bottom-left) and spades (black, bottom-right) in `#cd-zone`. All four are `pointer-events:none` so they never intercept the underlying swipe/click zones, and sit at `z-index:-1` behind the numerals — the zones (`#blind-zone`/`#cd-zone`) carry `z-index:0` so the glyphs still paint above the felt, just under the blind/countdown digits where they overlap. The blind `/` separator carries a small `em` side margin (`.b-amp`, `.ann-amp`), matching the countdown's spaced `:` (`.cd-colon`).
 
 The `#announce` overlay (level-up popup) matches the same felt green background and reuses the same four `.suit` corner glyphs, with its text set to white/near-white (rather than the `--dim`/`--dimmer` tones used elsewhere) for contrast against the green.
