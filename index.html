@@ -664,7 +664,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.126';
+const VERSION='v1.127';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -891,6 +891,23 @@ function ordinal(n){
 }
 
 function fmtBillCount(d,n){return n===1?('a $'+d):(n+" $"+d+"'s");}
+function joinList(parts){
+  if(parts.length<=1)return parts.join('');
+  if(parts.length===2)return parts.join(' and ');
+  return parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1];
+}
+// Break `amount` into denominations smaller than `belowDenom`, largest-first
+// — how a bank actually hands back change, preferring $10's over $5's
+// wherever the amount allows it. Only ever called with multiples of $5, so
+// this always resolves exactly since $5 is the smallest denomination.
+function billBreakdown(amount,belowDenom){
+  let rem=amount;const counts=[];
+  SPLIT_DENOMS.filter(d=>d<belowDenom).forEach(d=>{
+    const take=Math.floor(rem/d);
+    if(take>0){counts.push([d,take]);rem-=take*d;}
+  });
+  return counts;
+}
 
 // Greedy largest-first take of `amount` from a *copy* of `inv` (never
 // mutates the original). Returns the owed remainder plus the leftover —
@@ -907,32 +924,42 @@ function greedyTry(inv,amount){
 }
 
 // Find the minimal set of bills to break so every shortfall in `shorts` can
-// be paid, and return it as one consolidated plan instead of one shortfall
-// at a time. Two things make this actually minimal rather than repeating
-// the same break for every payout that happens to need one:
+// be paid, and merge same-source-denomination breaks into one consolidated
+// plan instead of repeating an identical instruction per payout that needed
+// one. Two things make this actually minimal rather than one break per
+// shortfall:
 //  - Shortfalls are resolved largest-first, so a break made to cover a big
 //    one leaves the most possible change behind to cover smaller ones.
 //  - `breakable` is computed from `greedyTry`'s *leftover*, not the raw
 //    inventory — a bill this pass already spoke for towards `amount`
 //    directly is not also up for grabs to break.
-//  - Every break goes entirely to $5's (the base unit), maximizing how much
-//    of it later shortfalls can reuse, rather than only whatever fraction a
-//    single owed/change split happened to leave over.
-// Returns {breakCounts:{denom:howMany}, resolved} — resolved is false only
-// if some shortfall can't be closed even after breaking everything on hand.
+// Each break itself splits into an owed portion and change the way a bank
+// would hand it back — mostly $10's, with only as many $5's as a
+// shortfall's odd-$5 remainder actually forces — rather than flattening
+// straight to $5's, so the plan never asks for more small bills than are
+// genuinely needed.
+// Returns {breakCounts:{denom:howMany}, produced:{denom:{smallerDenom:qty}},
+// resolved} — resolved is false only if some shortfall can't be closed even
+// after breaking everything on hand.
 function planBreaks(shorts,inv0){
   const sim={...inv0};
   const breakCounts={};
+  const produced={};
   const sorted=[...shorts].sort((a,b)=>b-a);
   for(const amt of sorted){
     let {owed,leftover}=greedyTry(sim,amt);
     while(owed>0){
       const breakable=SPLIT_DENOMS.filter(d=>d>owed&&leftover[d]>0);
       const breakDenom=breakable.length?Math.min(...breakable):null;
-      if(!breakDenom)return {breakCounts,resolved:false};
+      if(!breakDenom)return {breakCounts,produced,resolved:false};
       sim[breakDenom]-=1;
-      sim[5]=(sim[5]||0)+breakDenom/5;
       breakCounts[breakDenom]=(breakCounts[breakDenom]||0)+1;
+      const change=breakDenom-owed;
+      const p=produced[breakDenom]||(produced[breakDenom]={});
+      [...billBreakdown(owed,breakDenom),...billBreakdown(change,breakDenom)].forEach(([d,n])=>{
+        sim[d]=(sim[d]||0)+n;
+        p[d]=(p[d]||0)+n;
+      });
       ({owed,leftover}=greedyTry(sim,amt));
     }
     let take=amt;
@@ -941,7 +968,7 @@ function planBreaks(shorts,inv0){
       sim[d]-=t;take-=t*d;
     });
   }
-  return {breakCounts,resolved:true};
+  return {breakCounts,produced,resolved:true};
 }
 
 function fmtMoney(v){
@@ -1129,7 +1156,9 @@ function splitRecalc(){
     if(!plan.resolved)return 'Not enough cash counted to cover every payout.';
     return Object.keys(plan.breakCounts).map(Number).sort((a,b)=>b-a).map(d=>{
       const n=plan.breakCounts[d];
-      return 'Break '+fmtBillCount(d,n)+' into '+fmtBillCount(5,n*d/5)+'.';
+      const parts=Object.entries(plan.produced[d]).map(([pd,pn])=>[+pd,pn])
+        .sort((a,b)=>b[0]-a[0]).map(([pd,pn])=>fmtBillCount(pd,pn));
+      return 'Break '+fmtBillCount(d,n)+' with '+joinList(parts)+'.';
     }).join('  ');
   })();
 
