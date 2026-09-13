@@ -689,7 +689,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.134';
+const VERSION='v1.135';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -974,6 +974,39 @@ function greedyTry(inv,amount){
 // shortfall's odd-$5 remainder actually forces — rather than flattening
 // straight to $5's, so the plan never asks for more small bills than are
 // genuinely needed.
+// If breaking a $20 (say) for one shortfall happens to produce a $10 that a
+// later shortfall then has to break again on its own, that's two lines
+// ("Break a $20 with 2 $10's." then "Break a $10 with 2 $5's.") describing
+// what a cage would treat as one: just break the $20 down to include the
+// $5's from the start. $10 is the only denomination this can be resolved
+// unambiguously for — it only ever breaks one way (2 $5's) — so fold any
+// $10-break event into the earliest not-yet-claimed $10 an *earlier* event
+// produced, in place of reporting it separately.
+function reconcileTenChains(events){
+  const kept=[];
+  events.forEach(({denom,parts})=>{
+    if(denom===10){
+      const source=kept.find(k=>(k.parts[10]||0)>0);
+      if(source){
+        source.parts[10]-=1;
+        if(source.parts[10]<=0)delete source.parts[10];
+        source.parts[5]=(source.parts[5]||0)+2;
+        return;
+      }
+    }
+    kept.push({denom,parts:{...parts}});
+  });
+  return kept;
+}
+function eventsToProduced(events){
+  const produced={};
+  events.forEach(({denom,parts})=>{
+    const p=produced[denom]||(produced[denom]={});
+    Object.entries(parts).forEach(([d,n])=>{p[d]=(p[d]||0)+n;});
+  });
+  return produced;
+}
+
 // Returns {produced:{denom:{smallerDenom:qty}}, resolved} — resolved is
 // false only if some shortfall can't be closed even after breaking
 // everything on hand. How many `denom` bills got broken isn't tracked
@@ -981,26 +1014,27 @@ function greedyTry(inv,amount){
 // since every break's owed+change sums to exactly one bill's value.
 function planBreaks(shorts,inv0){
   const sim={...inv0};
-  const produced={};
+  const events=[]; // {denom, parts} per bill broken, in the order broken
   const sorted=[...shorts].sort((a,b)=>b-a);
   for(const amt of sorted){
     let {owed,leftover}=greedyTry(sim,amt);
     while(owed>0){
       const breakable=SPLIT_DENOMS.filter(d=>d>owed&&leftover[d]>0);
       const breakDenom=breakable.length?Math.min(...breakable):null;
-      if(!breakDenom)return {produced,resolved:false};
+      if(!breakDenom)return {produced:eventsToProduced(reconcileTenChains(events)),resolved:false};
       sim[breakDenom]-=1;
       const change=breakDenom-owed;
-      const p=produced[breakDenom]||(produced[breakDenom]={});
+      const parts={};
       [...billBreakdown(owed,breakDenom),...billBreakdown(change,breakDenom)].forEach(([d,n])=>{
         sim[d]=(sim[d]||0)+n;
-        p[d]=(p[d]||0)+n;
+        parts[d]=(parts[d]||0)+n;
       });
+      events.push({denom:breakDenom,parts});
       ({owed,leftover}=greedyTry(sim,amt));
     }
     greedyTake(sim,amt);
   }
-  return {produced,resolved:true};
+  return {produced:eventsToProduced(reconcileTenChains(events)),resolved:true};
 }
 // Number of `denom` bills broken, recovered from what they produced —
 // every break's owed+change sums to exactly one bill's value.
