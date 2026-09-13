@@ -577,7 +577,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded <b>down to the nearest whole $5</b> so it can be paid in bills; the leftover always goes to the house cut (so the cut can land a little above 10%, but never below), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't just shows how much it's short. If any place is short, one bold red line under the <b>Payout split</b> selector states exactly what to do about the first shortfall, e.g. <b>"Break a $20 with a $10 and 2 $5's."</b> The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't just shows how much it's short. If any place is short, one bold red line under the <b>Payout split</b> selector states exactly what to do about the first shortfall, e.g. <b>"Break a $20 with a $10 and 2 $5's."</b> The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -689,7 +689,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.139';
+const VERSION='v1.138';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -861,10 +861,10 @@ async function nativeInstall(e){
 // from the selector during a session (`splitModeTouched`), that choice
 // sticks for the rest of the session rather than reverting on next open.
 // Every place still distributes the whole 90%
-// pool, so the house base stays 10%. Each payout is rounded DOWN to the
-// nearest whole $5 — never up — so the leftover always settles in the
-// house's favor (the cut can land above its base 10%, never below), and the
-// raw pre-round figure is shown next to each place. Every stack is dealt out of
+// pool, so the house base stays 10%. Each payout is rounded to the nearest
+// whole $5; the small difference is settled against the house cut (which can
+// therefore land a little above or below its base 10%), and the raw
+// pre-round figure is shown next to each place. Every stack is dealt out of
 // `inv` internally (largest-first) so the House dollar figure is always
 // right; the *bill* breakdowns — per place and the House leftover — are only
 // rendered when every payout comes out exact, and hidden everywhere the
@@ -1192,10 +1192,8 @@ function splitRecalc(){
   document.getElementById('sp-gross').textContent=fmtMoney(gross);
 
   const rawShares=activePcts().map(p=>pool*p/100);
-  // Each payout rounds DOWN to a whole $5 so it can be paid in bills — never up,
-  // so the sum of payouts never exceeds the pool. Any leftover always goes to
-  // the house, which therefore never rounds down below its 10% base.
-  const shares=rawShares.map(r=>Math.floor(r/5)*5);
+  // Each payout rounds to the nearest $5 (ties up) so it can be paid in bills.
+  const shares=rawShares.map(r=>Math.round(r/5)*5);
   const house=gross-shares.reduce((a,b)=>a+b,0);
   // Deal every stack first so we know whether all of them balance.
   const dealt=shares.map(amt=>dealBills(amt));
@@ -1207,7 +1205,7 @@ function splitRecalc(){
     row.querySelector('.po-bills').textContent=gross<=0?'—':
       dealt[i].short>0?('Short '+fmtWhole(dealt[i].short)):dealt[i].text;
     const raw=rawShares[i];
-    const dir=gross<=0?'':amt<raw-0.005?'rounded down':'exact';
+    const dir=gross<=0?'':amt>raw+0.005?'rounded up':amt<raw-0.005?'rounded down':'exact';
     row.querySelector('.po-raw').textContent=gross>0?fmtMoney(raw)+' '+dir:'';
   });
 
@@ -1227,9 +1225,8 @@ function splitRecalc(){
     }).join('  ');
   })();
 
-  // House keeps everything not paid out — the base 10% plus whatever the
-  // round-down-to-$5 payouts left on the table. Since payouts only ever round
-  // down, this is never negative — the house never comes in under its 10%.
+  // House keeps everything not paid out — the base 10%, adjusted by whatever
+  // the nearest-$5 rounding added or removed (so this can dip below 10%).
   const roundLeft=house-gross*0.10;
 
   // Whatever bills are left in `inv` after the payouts are the house's.
@@ -1238,7 +1235,8 @@ function splitRecalc(){
 
   document.getElementById('sp-house').textContent=fmtMoney(house);
   document.getElementById('sp-house-note').textContent=
-    roundLeft>=0.05?'10% + '+fmtMoney(roundLeft):'10%';
+    roundLeft>=0.05?'10% + '+fmtMoney(roundLeft):
+    roundLeft<=-0.05?'10% − '+fmtMoney(-roundLeft):'10%';
   document.getElementById('sp-house-bills').textContent=
     (balanced&&gross>0&&hparts.length)?hparts.join('  ·  '):'—';
 }
