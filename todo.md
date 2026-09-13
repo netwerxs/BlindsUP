@@ -6,7 +6,7 @@
 
 ## Look and feel
 
-- [ ] Review current CSS and propose concrete modernization changes (within or challenging the existing dark/high-contrast/no-blur-on-numerals constraint from CLAUDE.md), then implement in `index.html` — _added 2026-09-12_
+- [x] Review current CSS and propose concrete modernization changes (within or challenging the existing dark/high-contrast/no-blur-on-numerals constraint from CLAUDE.md), then implement in `index.html` — _added 2026-09-12, done 2026-09-12: felt/announce depth, button/card press feedback, cherrywood highlight, richer accent/danger colors_
 
 ## Sync (device handoff)
 
