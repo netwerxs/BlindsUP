@@ -664,7 +664,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.125';
+const VERSION='v1.126';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -890,76 +890,50 @@ function ordinal(n){
   return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th');
 }
 
-// Break `amount` into denominations smaller than `belowDenom`, largest-first.
-// Only ever called with amounts that are multiples of $5 (shortfalls and
-// their change are always a multiple of the $5 payout rounding), so this
-// always resolves exactly since $5 is the smallest denomination.
-function billBreakdown(amount,belowDenom){
-  let rem=amount;const counts=[];
-  SPLIT_DENOMS.filter(d=>d<belowDenom).forEach(d=>{
-    const take=Math.floor(rem/d);
-    if(take>0){counts.push([d,take]);rem-=take*d;}
-  });
-  return counts;
-}
 function fmtBillCount(d,n){return n===1?('a $'+d):(n+" $"+d+"'s");}
-function joinList(parts){
-  if(parts.length<=1)return parts.join('');
-  if(parts.length===2)return parts.join(' and ');
-  return parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1];
-}
-// A shortfall of `owed` is closed by breaking one `breakDenom` bill — that
-// covers the owed amount and leaves change of (breakDenom-owed). State the
-// exact result as one line, e.g. "Break a $20 with a $10 and 2 $5's."
-function breakBillHint(breakDenom,owed){
-  const change=breakDenom-owed;
-  const merged=new Map();
-  [...billBreakdown(owed,breakDenom),...billBreakdown(change,breakDenom)].forEach(([d,n])=>{
-    merged.set(d,(merged.get(d)||0)+n);
-  });
-  const parts=[...merged.entries()].sort((a,b)=>b[0]-a[0]).map(([d,n])=>fmtBillCount(d,n));
-  return 'Break a $'+breakDenom+' with '+joinList(parts)+'.';
-}
 
-// Owed remaining on `amount` after a largest-first greedy take from `inv`,
-// without mutating it — used to probe whether a break is still needed.
-function greedyOwed(inv,amount){
+// Greedy largest-first take of `amount` from a *copy* of `inv` (never
+// mutates the original). Returns the owed remainder plus the leftover —
+// whatever `inv` wasn't touched, i.e. genuinely spare to break, as opposed
+// to a bill this same pass already earmarked to pay part of `amount`.
+function greedyTry(inv,amount){
+  const leftover={...inv};
   let owed=amount;
   SPLIT_DENOMS.forEach(d=>{
-    const take=Math.min(Math.floor(owed/d),inv[d]);
-    owed-=take*d;
+    const take=Math.min(Math.floor(owed/d),leftover[d]);
+    owed-=take*d;leftover[d]-=take;
   });
-  return owed;
+  return {owed,leftover};
 }
 
-// Walk every payout in order against a scratch copy of the counted
-// inventory, breaking a bill (largest-first choice, same as dealBills)
-// whenever the current payout would otherwise come up short, then folding
-// the resulting small bills back in before moving to the next payout. This
-// mirrors what actually happens if you pre-break every bill you'll need at
-// the cage before dealing anything out, so it surfaces every break required
-// — not just the first — in one pass instead of one shortfall at a time.
-// Returns {breaks:[{breakDenom,owed}], resolved} — resolved is false only if
-// some payout can't be closed even after breaking everything on hand.
-function simulateBreaks(shares,inv0){
+// Find the minimal set of bills to break so every shortfall in `shorts` can
+// be paid, and return it as one consolidated plan instead of one shortfall
+// at a time. Two things make this actually minimal rather than repeating
+// the same break for every payout that happens to need one:
+//  - Shortfalls are resolved largest-first, so a break made to cover a big
+//    one leaves the most possible change behind to cover smaller ones.
+//  - `breakable` is computed from `greedyTry`'s *leftover*, not the raw
+//    inventory — a bill this pass already spoke for towards `amount`
+//    directly is not also up for grabs to break.
+//  - Every break goes entirely to $5's (the base unit), maximizing how much
+//    of it later shortfalls can reuse, rather than only whatever fraction a
+//    single owed/change split happened to leave over.
+// Returns {breakCounts:{denom:howMany}, resolved} — resolved is false only
+// if some shortfall can't be closed even after breaking everything on hand.
+function planBreaks(shorts,inv0){
   const sim={...inv0};
-  const breaks=[];
-  for(const amt of shares){
-    let owed=greedyOwed(sim,amt);
+  const breakCounts={};
+  const sorted=[...shorts].sort((a,b)=>b-a);
+  for(const amt of sorted){
+    let {owed,leftover}=greedyTry(sim,amt);
     while(owed>0){
-      const breakable=SPLIT_DENOMS.filter(d=>d>owed&&sim[d]>0);
+      const breakable=SPLIT_DENOMS.filter(d=>d>owed&&leftover[d]>0);
       const breakDenom=breakable.length?Math.min(...breakable):null;
-      if(!breakDenom)return {breaks,resolved:false};
+      if(!breakDenom)return {breakCounts,resolved:false};
       sim[breakDenom]-=1;
-      // Split into the owed portion and the change, same as breakBillHint —
-      // not a generic breakdown of the whole bill — so the owed piece is
-      // guaranteed usable rather than landing back in one lump bill.
-      const change=breakDenom-owed;
-      [...billBreakdown(owed,breakDenom),...billBreakdown(change,breakDenom)].forEach(([d,n])=>{
-        sim[d]=(sim[d]||0)+n;
-      });
-      breaks.push({breakDenom,owed});
-      owed=greedyOwed(sim,amt);
+      sim[5]=(sim[5]||0)+breakDenom/5;
+      breakCounts[breakDenom]=(breakCounts[breakDenom]||0)+1;
+      ({owed,leftover}=greedyTry(sim,amt));
     }
     let take=amt;
     SPLIT_DENOMS.forEach(d=>{
@@ -967,7 +941,7 @@ function simulateBreaks(shares,inv0){
       sim[d]-=t;take-=t*d;
     });
   }
-  return {breaks,resolved:true};
+  return {breakCounts,resolved:true};
 }
 
 function fmtMoney(v){
@@ -1103,7 +1077,6 @@ function splitRecalc(){
     gross+=n*d;
   });
   const pool=gross*0.90;
-  const inv0={...inv};
 
   // dealBills(amount): pull `amount` from `inv` largest-first, mutating `inv`.
   // Returns {text:"2×$100 · 1×$20" breakdown, short:$ still owed after
@@ -1147,14 +1120,18 @@ function splitRecalc(){
   });
 
   // Rather than surface one shortfall, fix it, and discover another on the
-  // next recalc, simulate breaking bills for every payout up front (see
-  // simulateBreaks) so all the breaks needed are listed together in one go.
-  const sim=balanced?null:simulateBreaks(shares,inv0);
-  document.getElementById('sp-break-hint').textContent=
-    gross<=0||balanced?'':
-    !sim.resolved?'Not enough cash counted to cover every payout.':
-    sim.breaks.length===1?breakBillHint(sim.breaks[0].breakDenom,sim.breaks[0].owed):
-    sim.breaks.map((b,i)=>(i+1)+') '+breakBillHint(b.breakDenom,b.owed)).join('  ');
+  // next recalc, plan every break up front (see planBreaks) so the fewest
+  // bills get broken and each denomination is named once with a count,
+  // instead of repeating the same break once per payout that needed it.
+  document.getElementById('sp-break-hint').textContent=(()=>{
+    if(gross<=0||balanced)return '';
+    const plan=planBreaks(dealt.filter(d=>d.short>0).map(d=>d.short),inv);
+    if(!plan.resolved)return 'Not enough cash counted to cover every payout.';
+    return Object.keys(plan.breakCounts).map(Number).sort((a,b)=>b-a).map(d=>{
+      const n=plan.breakCounts[d];
+      return 'Break '+fmtBillCount(d,n)+' into '+fmtBillCount(5,n*d/5)+'.';
+    }).join('  ');
+  })();
 
   // House keeps everything not paid out — the base 10%, adjusted by whatever
   // the nearest-$5 rounding added or removed (so this can dip below 10%).
