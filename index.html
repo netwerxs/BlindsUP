@@ -174,9 +174,25 @@ html,body{width:100%;height:100%;
    other three and the whole frame (border + panel) reads as one piece. */
 #felt-frame{
   grid-column:1;position:relative;
-  display:grid;grid-template-rows:1fr 1fr;
   padding:0.25in;
   border-radius:16px;overflow:hidden;
+}
+/* One continuous felt surface behind both halves, filling #felt-frame's
+   content box exactly — the vignette/edge shadow lives here rather than on
+   #blind-zone/#cd-zone individually (which have no padding of their own to
+   throw the shadow's anchor off), so there's no seam where the two halves
+   meet in the middle. */
+#felt-surface{
+  width:100%;height:100%;
+  display:grid;grid-template-rows:1fr 1fr;
+  background:#2e8b57;
+  background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
+  box-shadow:
+    inset 0 0 14vh rgba(0,0,0,0.28),
+    inset 0 10px 14px -8px rgba(0,0,0,0.55),
+    inset 0 -10px 14px -8px rgba(0,0,0,0.55),
+    inset 10px 0 14px -8px rgba(0,0,0,0.55),
+    inset -10px 0 14px -8px rgba(0,0,0,0.55);
 }
 /* A warm glow tracing the rounded seam where the raised wood frame steps
    down to the recessed felt — a separate layer (rather than a box-shadow on
@@ -202,21 +218,13 @@ html,body{width:100%;height:100%;
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
-/* The felt itself gets a soft radial vignette — brightest behind the
-   numerals, darker toward the edges — for depth; the numerals stay flat. */
+/* The felt itself (#felt-surface) gets a soft radial vignette — brightest
+   behind the numerals, darker toward the edges — for depth; the numerals
+   stay flat. #blind-zone/#cd-zone are just transparent content panes over
+   that shared surface, so there's no seam between them. */
 #blind-zone{
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
-  background:#2e8b57;
-  background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
-  /* The broad ambient vignette, plus a tighter dark shadow hugging the top,
-     left and right edges — the raised wood frame casting a shadow onto this
-     recessed corner of the felt. */
-  box-shadow:
-    inset 0 0 14vh rgba(0,0,0,0.28),
-    inset 0 10px 14px -8px rgba(0,0,0,0.55),
-    inset 10px 0 14px -8px rgba(0,0,0,0.55),
-    inset -10px 0 14px -8px rgba(0,0,0,0.55);
 }
 .suit{
   position:absolute;font-size:18vh;line-height:1;
@@ -237,15 +245,6 @@ html,body{width:100%;height:100%;
 #cd-zone{
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
-  background:#2e8b57;
-  background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
-  /* Same frame-shadow treatment as #blind-zone, but hugging the bottom,
-     left and right edges (this is the lower half of the felt area). */
-  box-shadow:
-    inset 0 0 14vh rgba(0,0,0,0.28),
-    inset 0 -10px 14px -8px rgba(0,0,0,0.55),
-    inset 10px 0 14px -8px rgba(0,0,0,0.55),
-    inset -10px 0 14px -8px rgba(0,0,0,0.55);
 }
 #cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
 .cd-num{font-size:32vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
@@ -580,6 +579,7 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="layout">
 
   <div id="felt-frame">
+  <div id="felt-surface">
   <div id="blind-zone">
     <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
     <span class="suit suit-diamonds" aria-hidden="true">&#9830;</span>
@@ -602,6 +602,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"></div>
+  </div>
   </div>
   </div>
 
@@ -758,7 +759,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.146';
+const VERSION='v1.147';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
