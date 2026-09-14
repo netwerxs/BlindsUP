@@ -266,7 +266,7 @@ html,body{width:100%;height:100%;
   grid-column:2;
   display:flex;flex-direction:column;align-items:center;
   justify-content:space-evenly;
-  padding:2vh 1.5vw;
+  padding:2vh 0.8vw;
   /* No background of its own — #layout's wood surface shows straight through,
      so the panel is visibly the same piece of wood as the border rather than
      a separate texture butted up against it. Only a thin top highlight here
@@ -312,13 +312,13 @@ html,body{width:100%;height:100%;
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
   writing-mode:vertical-rl;
-  padding:2.2vh 1.6vh;border-radius:100px;border:1px solid rgba(0,0,0,0.55);
+  padding:2.2vh 1vh;border-radius:100px;border:1px solid rgba(0,0,0,0.55);
 }
 /* Clock, Pause and Sound Check are rotated to read top-to-bottom down the
    cherrywood column (writing-mode, so the column reflows narrow around them
    rather than the elements overlapping their siblings). */
 #btn-pause,#btn-soundcheck,#btn-split{
-  font-size:2.2vh;padding:3vh 1.6vh;text-align:center;
+  font-size:2.2vh;padding:3vh 1vh;text-align:center;
   writing-mode:vertical-rl;
 }
 #btn-soundcheck{font-size:1.8vh;line-height:1.4;white-space:normal;}
@@ -770,7 +770,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.153';
+const VERSION='v1.154';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
