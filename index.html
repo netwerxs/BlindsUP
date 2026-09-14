@@ -269,8 +269,12 @@ html,body{width:100%;height:100%;
   padding:2vh 1.5vw;
   /* No background of its own — #layout's wood surface shows straight through,
      so the panel is visibly the same piece of wood as the border rather than
-     a separate texture butted up against it. */
-  box-shadow:inset 0 1px 0 rgba(255,180,140,0.15),inset 0 -40px 40px -36px rgba(0,0,0,0.5);
+     a separate texture butted up against it. Only a thin top highlight here
+     (no extra bottom darkening) — that shading isn't on the plain wood
+     border margin either, and having it only on the panel made the shared
+     wood read a shade darker toward the bottom of the panel than the border
+     right next to it. */
+  box-shadow:inset 0 1px 0 rgba(255,180,140,0.15);
 }
 /* The rail buttons — and the clock — read as wells routed into the wood,
    like a slot for storing chips or dice, rather than chips sitting on top
@@ -766,7 +770,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.148';
+const VERSION='v1.149';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
