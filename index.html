@@ -150,13 +150,45 @@ html,body{width:100%;height:100%;
 .exit-card .card-blinds{color:var(--accent);text-shadow:0 0 16px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
-#app{display:none;width:100vw;height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+#app{
+  display:none;width:100vw;height:100vh;position:relative;
+  padding:
+    calc(env(safe-area-inset-top) + 0.25in)
+    env(safe-area-inset-right)
+    calc(env(safe-area-inset-bottom) + 0.25in)
+    calc(env(safe-area-inset-left) + 0.25in);
+  /* Same cherrywood texture as #col-right, so the new frame border reads as
+     one continuous panel with the side panel rather than a different chrome. */
+  background:
+    repeating-linear-gradient(94deg,
+      rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
+      transparent 1px, transparent 5px),
+    repeating-linear-gradient(94deg,
+      rgba(255,130,90,0.05) 0px, rgba(255,130,90,0.05) 1px,
+      transparent 1px, transparent 11px),
+    linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
+}
 #app.visible{display:block;}
+/* A warm glow tracing the rounded seam where the raised wood frame steps
+   down to the recessed felt/panel — a separate layer (rather than a
+   box-shadow on #layout itself) because #layout's own overflow:hidden
+   (needed to round its corners) would clip a box-shadow on that same
+   element. ::after so it paints after/above #layout's content. */
+#app::after{
+  content:'';position:absolute;pointer-events:none;z-index:5;
+  top:calc(env(safe-area-inset-top) + 0.25in);
+  left:calc(env(safe-area-inset-left) + 0.25in);
+  right:env(safe-area-inset-right);
+  bottom:calc(env(safe-area-inset-bottom) + 0.25in);
+  border-radius:16px;
+  box-shadow:0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5);
+}
 #layout{
   width:100%;height:100%;
   display:grid;
   grid-template-columns:1fr auto;
   grid-template-rows:50% 50%;
+  border-radius:16px;overflow:hidden;
 }
 
 .pill-btn{
@@ -180,7 +212,13 @@ html,body{width:100%;height:100%;
   border-bottom:1px solid rgba(255,255,255,0.07);
   background:#2e8b57;
   background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
-  box-shadow:inset 0 0 14vh rgba(0,0,0,0.28);
+  /* The broad ambient vignette, plus a tighter dark shadow hugging the top
+     and left edges — the raised wood frame casting a shadow onto this
+     recessed corner of the felt. */
+  box-shadow:
+    inset 0 0 14vh rgba(0,0,0,0.28),
+    inset 0 10px 14px -8px rgba(0,0,0,0.55),
+    inset 10px 0 14px -8px rgba(0,0,0,0.55);
 }
 .suit{
   position:absolute;font-size:18vh;line-height:1;
@@ -204,7 +242,12 @@ html,body{width:100%;height:100%;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
   background:#2e8b57;
   background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
-  box-shadow:inset 0 0 14vh rgba(0,0,0,0.28);
+  /* Same frame-shadow treatment as #blind-zone, but hugging the bottom and
+     left edges (this is the lower-left corner of the felt area). */
+  box-shadow:
+    inset 0 0 14vh rgba(0,0,0,0.28),
+    inset 0 -10px 14px -8px rgba(0,0,0,0.55),
+    inset 10px 0 14px -8px rgba(0,0,0,0.55);
 }
 #cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
 .cd-num{font-size:32vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
@@ -229,7 +272,18 @@ html,body{width:100%;height:100%;
       rgba(255,130,90,0.05) 0px, rgba(255,130,90,0.05) 1px,
       transparent 1px, transparent 11px),
     linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
-  box-shadow:inset 1px 0 0 rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,180,140,0.15);
+  /* Raised-panel bevel: a highlight along the near-top lip facing the felt,
+     shading down into the panel for depth, frame-shadows hugging the top and
+     bottom seams (shared with the border frame above/below), and a drop
+     shadow cast leftward onto the felt so the panel reads as sitting above
+     it rather than flush with it. */
+  box-shadow:
+    inset 1px 0 0 rgba(255,190,150,0.25),
+    inset 0 1px 0 rgba(255,180,140,0.15),
+    inset 0 -40px 40px -36px rgba(0,0,0,0.5),
+    inset 0 10px 14px -8px rgba(0,0,0,0.5),
+    inset 0 -10px 14px -8px rgba(0,0,0,0.5),
+    -14px 0 22px -8px rgba(0,0,0,0.55);
 }
 #tod{
   font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
@@ -689,7 +743,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.138';
+const VERSION='v1.141';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
