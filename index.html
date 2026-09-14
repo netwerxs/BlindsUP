@@ -175,16 +175,22 @@ html,body{width:100%;height:100%;
 #felt-frame{
   grid-column:1;position:relative;
   padding:0.25in;
-  border-radius:16px;overflow:hidden;
+  /* Outer radius = inner radius + the 0.25in margin, so this curve and
+     #felt-surface's are concentric (a true picture-frame corner) instead of
+     the wood curving at one radius while the felt underneath stays square
+     0.25in further in. */
+  border-radius:calc(16px + 0.25in);overflow:hidden;
 }
 /* One continuous felt surface behind both halves, filling #felt-frame's
    content box exactly — the vignette/edge shadow lives here rather than on
    #blind-zone/#cd-zone individually (which have no padding of their own to
    throw the shadow's anchor off), so there's no seam where the two halves
-   meet in the middle. */
+   meet in the middle. border-radius+overflow round the felt's own corners
+   to match #felt-frame's concentrically. */
 #felt-surface{
   width:100%;height:100%;
   display:grid;grid-template-rows:1fr 1fr;
+  border-radius:16px;overflow:hidden;
   background:#2e8b57;
   background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
   box-shadow:
@@ -196,9 +202,10 @@ html,body{width:100%;height:100%;
 }
 /* A warm glow tracing the rounded seam where the raised wood frame steps
    down to the recessed felt — a separate layer (rather than a box-shadow on
-   #felt-frame itself) because #felt-frame's own overflow:hidden (needed to
-   round its corners) would clip a box-shadow on that same element. ::after
-   so it paints after/above the felt's own content. */
+   #felt-surface itself) because #felt-surface's own overflow:hidden (needed
+   to round its corners) would clip a box-shadow on that same element.
+   ::after so it paints after/above the felt's own content. Radius matches
+   #felt-surface exactly since this traces that same box. */
 #felt-frame::after{
   content:'';position:absolute;pointer-events:none;z-index:5;
   top:0.25in;left:0.25in;right:0.25in;bottom:0.25in;
@@ -759,7 +766,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.147';
+const VERSION='v1.148';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
