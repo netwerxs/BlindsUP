@@ -193,19 +193,12 @@ html,body{width:100%;height:100%;
   border-radius:16px;overflow:hidden;
   background:#2e8b57;
   background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
-  /* Depth (how far the felt sits below the wood), not width (how much wood
-     surrounds it) — the frame margin itself stays a thin 0.25in, but the
-     shadow the wood's edge throws onto the felt is drawn as if that edge
-     were a tall wall: a crisp dark crease right at the seam (inset 0 0 0),
-     then a much longer, darker falloff than a shallow lip would cast,
-     reaching well into the felt before settling into the ambient vignette. */
   box-shadow:
     inset 0 0 14vh rgba(0,0,0,0.28),
-    inset 0 0 0 3px rgba(0,0,0,0.6),
-    inset 0 40px 46px -18px rgba(0,0,0,0.85),
-    inset 0 -40px 46px -18px rgba(0,0,0,0.85),
-    inset 40px 0 46px -18px rgba(0,0,0,0.85),
-    inset -40px 0 46px -18px rgba(0,0,0,0.85);
+    inset 0 10px 14px -8px rgba(0,0,0,0.55),
+    inset 0 -10px 14px -8px rgba(0,0,0,0.55),
+    inset 10px 0 14px -8px rgba(0,0,0,0.55),
+    inset -10px 0 14px -8px rgba(0,0,0,0.55);
 }
 /* A warm glow tracing the rounded seam where the raised wood frame steps
    down to the recessed felt — a separate layer (rather than a box-shadow on
@@ -217,11 +210,7 @@ html,body{width:100%;height:100%;
   content:'';position:absolute;pointer-events:none;z-index:5;
   top:0.25in;left:0.25in;right:0.25in;bottom:0.25in;
   border-radius:16px;
-  /* Tightened, more opaque than before so the wood's top edge (where it
-     catches light right before dropping away) and the dark crease right
-     below it both read as sharp lines rather than a soft diffuse blur —
-     a shallow lip glows, a tall wall creases. */
-  box-shadow:0 0 5px 1px rgba(255,200,150,0.4),0 2px 4px rgba(0,0,0,0.65);
+  box-shadow:0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5);
 }
 
 .pill-btn{
@@ -781,7 +770,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.152';
+const VERSION='v1.153';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
