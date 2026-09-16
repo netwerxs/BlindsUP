@@ -296,6 +296,14 @@ html,body{width:100%;height:100%;
 /* Primary buttons on both screens read top-to-bottom down the cherrywood
    column, matching the narrow sidebar. */
 .side-panel .pill-btn-primary{writing-mode:vertical-rl;padding:1.6vh 0.2vh;}
+/* The clock is plain text at the top of the panel, rotated to match the
+   buttons below it rather than a wood-well control. */
+#tod,#menu-tod{
+  writing-mode:vertical-rl;
+  font-size:2.2vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  white-space:nowrap;width:100%;flex-shrink:0;padding:1vh 0;
+}
 /* The version number is plain, non-interactive text — the Update *action*
    lives in the Menu overlay now, so this is just a label, not a link. */
 #version-label-app{
@@ -571,6 +579,7 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="menu-side-panel" class="side-panel">
+    <div id="menu-tod">&mdash;</div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
     </div>
@@ -617,6 +626,7 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="col-right" class="side-panel">
+    <div id="tod">&mdash;</div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
       <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
@@ -782,7 +792,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.166';
+const VERSION='v1.167';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -801,6 +811,8 @@ const elSoundcheckScreen=document.getElementById('soundcheck-screen');
 const elAnnounce=document.getElementById('announce');
 const elBtnMenuPause=document.getElementById('btn-menu-pause');
 const elSplitOverlay=document.getElementById('split-overlay');
+const elTod=document.getElementById('tod');
+const elMenuTod=document.getElementById('menu-tod');
 
 // Menu screen's Update link shows the version as its own label; the timer
 // screen shows the version as separate plain text (#version-label-app) and
@@ -1600,6 +1612,16 @@ function requestFullscreenMode(){
   }catch(e){}
 }
 document.addEventListener('pointerdown',requestFullscreenMode);
+
+// Clock
+function fmtTime(d){
+  const h=d.getHours(),m=d.getMinutes();
+  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
+}
+function fmtClock(){return fmtTime(new Date());}
+function updateClocks(){const t=fmtClock();elTod.textContent=t;elMenuTod.textContent=t;}
+setInterval(updateClocks,1000);
+updateClocks();
 
 function render(){
   const lv=Math.min(level,BLINDS.length),bl=BLINDS[lv-1];
