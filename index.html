@@ -65,38 +65,42 @@ html,body{width:100%;height:100%;
   width:100%;flex:1;
   align-content:center;
 }
-/* Level cards read as poker chips: a striped rim (repeating-conic-gradient,
-   the classic chip edge-marking look) around a solid inner disc (::before),
-   showing just the blinds — no label, no duration. */
+/* Level cards read as the same cherrywood pill buttons as the side panel,
+   but raised (embossed) rather than carved into the wood — a drop shadow
+   below and a highlight along the top edge, since these are things you
+   tap to choose rather than a slot routed into the frame. Every card is
+   the same size (the grid's equal-width columns + one shared aspect-ratio
+   take care of that), sized to comfortably fit the widest blinds pair
+   (18000/36000) on one line. */
 .blind-card{
-  position:relative;
-  aspect-ratio:1/1;width:100%;max-width:11vh;margin:0 auto;
-  border-radius:50%;
-  background:repeating-conic-gradient(rgba(255,255,255,0.16) 0deg 15deg,rgba(255,255,255,0.04) 15deg 30deg);
-  padding:0.6vh;
+  width:100%;aspect-ratio:2.4/1;
+  border-radius:100px;
+  background:radial-gradient(130% 160% at 50% 28%,#3a1d12 0%,#2c150d 55%,#1a0d08 100%);
+  border:1px solid rgba(0,0,0,0.5);
+  box-shadow:
+    0 3px 6px rgba(0,0,0,0.5),
+    inset 0 1px 1px rgba(255,255,255,0.12),
+    inset 0 -3px 4px rgba(0,0,0,0.3);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:transform 0.15s;
 }
-.blind-card::before{
-  content:'';position:absolute;inset:0.6vh;border-radius:50%;
-  background:rgba(20,20,20,0.55);
-  box-shadow:inset 0 2px 5px rgba(0,0,0,0.45),inset 0 -1px 2px rgba(255,255,255,0.06);
-}
-.blind-card:hover,.blind-card:active{transform:scale(1.05);}
+.blind-card:hover,.blind-card:active{transform:scale(1.04);}
 .blind-card.current{
-  background:repeating-conic-gradient(rgba(var(--accent-rgb),0.9) 0deg 15deg,rgba(var(--accent-rgb),0.35) 15deg 30deg);
-  box-shadow:0 0 18px rgba(var(--accent-rgb),0.35),var(--shadow-elev1);
-  transform:scale(1.08);
+  border-color:rgba(var(--accent-rgb),0.7);
+  box-shadow:
+    0 3px 6px rgba(0,0,0,0.5),
+    inset 0 1px 1px rgba(255,255,255,0.12),
+    inset 0 -3px 4px rgba(0,0,0,0.3),
+    0 0 16px rgba(var(--accent-rgb),0.35);
 }
-.blind-card.current::before{background:rgba(var(--accent-rgb),0.14);}
 .blind-card.current .card-blinds{color:var(--accent);}
 .card-blinds{
-  position:relative;z-index:1;
-  font-size:1.7vh;font-weight:800;
+  font-size:2.6vh;font-weight:800;
   letter-spacing:-0.02em;color:var(--white);
-  text-align:center;line-height:1.05;padding:0 0.4vh;
+  text-align:center;white-space:nowrap;padding:0 0.8vh;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;
 }
-.exit-card{background:repeating-conic-gradient(rgba(var(--accent-rgb),0.55) 0deg 15deg,rgba(var(--accent-rgb),0.2) 15deg 30deg);}
+.exit-card{border-color:rgba(var(--accent-rgb),0.5);}
 .exit-card .card-blinds{color:var(--accent);text-shadow:0 0 12px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
@@ -757,7 +761,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.161';
+const VERSION='v1.162';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
