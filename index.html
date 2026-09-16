@@ -114,7 +114,7 @@ html,body{width:100%;height:100%;
 .wood-layout{
   width:100%;height:100%;
   display:grid;
-  grid-template-columns:1fr clamp(90px,9vw,120px);
+  grid-template-columns:1fr clamp(70px,7vw,95px);
   background:
     repeating-linear-gradient(94deg,
       rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
@@ -187,13 +187,14 @@ html,body{width:100%;height:100%;
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
-/* Side-panel layout: Install/Help/Update sit as plain text links pinned
-   to the bottom (.panel-link), and the primary gameplay buttons
-   (Pause/Payout/Sound Check, or Unpause) cluster as one group centered —
-   both vertically and horizontally — in the rest of the panel. */
+/* Side-panel layout: the primary gameplay buttons (Pause/Payout/Menu on
+   the timer screen, Unpause on the menu screen) cluster as one group
+   centered — both vertically and horizontally — in the panel. On the menu
+   screen, Install/Help/Update additionally sit as plain text links
+   (.panel-link) pinned to the bottom. */
 .panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;flex:1;width:100%;}
 .panel-utility{display:flex;flex-direction:column;align-items:center;gap:0.8vh;flex-shrink:0;width:100%;}
-.pill-btn-primary{font-size:2.2vh;padding:1.8vh 0.4vw;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;}
+.pill-btn-primary{font-size:2vh;padding:1.6vh 0.2vw;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;}
 /* Install/Help/Update read as plain text links, not buttons — no well,
    no border, just dim uppercase text that brightens on hover/tap. */
 .panel-link{
@@ -294,8 +295,13 @@ html,body{width:100%;height:100%;
 }
 /* Primary buttons on both screens read top-to-bottom down the cherrywood
    column, matching the narrow sidebar. */
-.side-panel .pill-btn-primary{writing-mode:vertical-rl;padding:2.4vh 0.8vh;}
-#btn-soundcheck{font-size:1.8vh;line-height:1.4;white-space:normal;}
+.side-panel .pill-btn-primary{writing-mode:vertical-rl;padding:2vh 0.4vh;}
+/* The version number is plain, non-interactive text — the Update *action*
+   lives in the Menu overlay now, so this is just a label, not a link. */
+#version-label-app{
+  writing-mode:vertical-rl;font-size:1.3vh;font-weight:400;letter-spacing:0.1em;
+  color:rgba(255,255,255,0.4);white-space:nowrap;flex-shrink:0;
+}
 /* Unpause blinks to draw the eye back to it after a pause — the one
    deliberate animated accent left on the menu screen. */
 #btn-menu-pause{animation:unpauseBlink 1.1s ease-in-out infinite;}
@@ -397,6 +403,12 @@ body.no-touch .no-touch-only{display:flex;}
 #install-overlay{gap:2.5vh;}
 #install-body{display:flex;flex-direction:column;align-items:center;gap:2vh;max-width:520px;width:100%;}
 #install-body .pill-btn{margin-top:1vh;}
+
+/* ── APP MENU OVERLAY ── */
+.app-menu-list{
+  display:flex;flex-direction:column;gap:2vh;
+  width:100%;max-width:320px;
+}
 .install-steps{
   list-style:none;padding:0;margin:0;
   display:flex;flex-direction:column;gap:1.6vh;width:100%;
@@ -607,13 +619,9 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
       <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
-      <button class="pill-btn pill-btn-primary" id="btn-soundcheck" onclick="playSoundcheck()">SOUND CHECK</button>
+      <button class="pill-btn pill-btn-primary" id="btn-app-menu" onclick="openAppMenu()">Menu</button>
     </div>
-    <div class="panel-utility">
-      <button class="panel-link" id="btn-install-app" onclick="openInstall()">Install</button>
-      <button class="panel-link" id="btn-help-app" onclick="openHelp()">Help</button>
-      <button class="panel-link" id="btn-check-update-app" onclick="checkForUpdates()"></button>
-    </div>
+    <div id="version-label-app"></div>
   </div>
 
 </div>
@@ -659,6 +667,18 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="install-overlay" class="overlay" onclick="closeInstall()">
   <div id="install-title" class="help-title">Install as App</div>
   <div id="install-body"></div>
+  <div class="help-tap">Tap anywhere to close</div>
+</div>
+
+<!-- APP MENU (Sound Check / Install / Help / Update, reached from the timer screen's Menu button) -->
+<div id="app-menu-overlay" class="overlay" onclick="closeAppMenu()">
+  <div class="help-title">Menu</div>
+  <div class="app-menu-list">
+    <button class="pill-btn" onclick="event.stopPropagation();playSoundcheck()">Sound Check</button>
+    <button class="pill-btn" onclick="event.stopPropagation();closeAppMenu();openInstall();">Install</button>
+    <button class="pill-btn" onclick="event.stopPropagation();closeAppMenu();openHelp();">Help</button>
+    <button class="pill-btn" id="btn-check-update-app" onclick="event.stopPropagation();checkForUpdates();">Update</button>
+  </div>
   <div class="help-tap">Tap anywhere to close</div>
 </div>
 
@@ -761,7 +781,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.163';
+const VERSION='v1.164';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -781,7 +801,11 @@ const elAnnounce=document.getElementById('announce');
 const elBtnMenuPause=document.getElementById('btn-menu-pause');
 const elSplitOverlay=document.getElementById('split-overlay');
 
-document.querySelectorAll('#btn-check-update,#btn-check-update-app').forEach(b=>b.textContent=VERSION);
+// Menu screen's Update link shows the version as its own label; the timer
+// screen shows the version as separate plain text (#version-label-app) and
+// keeps a static "Update" label on its Menu-overlay action button instead.
+document.getElementById('btn-check-update').textContent=VERSION;
+document.getElementById('version-label-app').textContent=VERSION;
 
 // Levels 1-10 follow sb=i*100/bb=i*200; levels 11-13 step up by +500/+1000 per
 // level (1500/3000, 2000/4000, 2500/5000); levels 14-29 jump by +1000/+2000 per
@@ -859,6 +883,14 @@ function openHelp(){
 }
 function closeHelp(){
   document.getElementById('help-overlay').classList.remove('visible');
+}
+
+// ── App menu (timer screen's Menu button — Sound Check/Install/Help/Update) ──
+function openAppMenu(){
+  document.getElementById('app-menu-overlay').classList.add('visible');
+}
+function closeAppMenu(){
+  document.getElementById('app-menu-overlay').classList.remove('visible');
 }
 
 // ── Install ───────────────────────────────────────────────────────
@@ -1860,9 +1892,15 @@ if(navigator.onLine){
 async function checkForUpdates(){
   // Menu and timer screens each have their own copy of this button; drive
   // both together so status text stays in sync regardless of which screen
-  // triggered the check.
-  const btns=document.querySelectorAll('#btn-check-update,#btn-check-update-app');
+  // triggered the check. Their resting labels differ (the menu link shows
+  // the version number, the app-menu button just says "Update"), so the
+  // shared VERSION status text pauses on each button's own resting label
+  // when the check finishes rather than a single shared reset value.
+  const menuBtn=document.getElementById('btn-check-update');
+  const appBtn=document.getElementById('btn-check-update-app');
+  const btns=[menuBtn,appBtn];
   const setBtns=(text,disabled)=>btns.forEach(b=>{b.textContent=text;if(disabled!==undefined)b.disabled=disabled;});
+  const restBtns=()=>{menuBtn.textContent=VERSION;appBtn.textContent='Update';btns.forEach(b=>b.disabled=false);};
   setBtns('Checking…',true);
   try{
     if(swReg)await swReg.update();
@@ -1891,11 +1929,11 @@ async function checkForUpdates(){
       swReg.waiting.postMessage({type:'SKIP_WAITING'});
     } else {
       setBtns('Latest '+VERSION);
-      setTimeout(()=>setBtns(VERSION,false),2000);
+      setTimeout(restBtns,2000);
     }
   }catch(e){
     setBtns('Check failed');
-    setTimeout(()=>setBtns(VERSION,false),2000);
+    setTimeout(restBtns,2000);
   }
 }
 
