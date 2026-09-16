@@ -183,17 +183,27 @@ html,body{width:100%;height:100%;
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
-/* Side-panel button groups: primary gameplay controls get the full-size
-   upright treatment; utility buttons (Install/Help/Update) are visually
-   subordinate — smaller and dimmer. Both read horizontally (no rotation). */
-.panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;flex:1;width:100%;}
-.panel-utility{display:flex;flex-direction:column;align-items:center;gap:1vh;flex-shrink:0;width:100%;}
+/* Side-panel layout: the clock sits fixed at top (see #tod/#menu-tod
+   below), Install/Help/Update sit as plain text links pinned to the
+   bottom (.panel-link), and the primary gameplay buttons (Pause/Payout/
+   Sound, or Unpause) cluster as one group centered — both vertically and
+   horizontally — in the space between. */
+.panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;flex:1;width:100%;}
+.panel-utility{display:flex;flex-direction:column;align-items:center;gap:0.8vh;flex-shrink:0;width:100%;}
 .pill-btn-primary{font-size:2.2vh;padding:1.8vh 1.2vw;text-align:center;width:100%;}
-.pill-btn-utility{
-  font-size:1.3vh;padding:1vh 1vw;
-  letter-spacing:0.1em;opacity:0.75;width:100%;
-  max-width:100%;overflow:hidden;text-overflow:ellipsis;
+/* Install/Help/Update read as plain text links, not buttons — no well,
+   no border, just dim uppercase text that brightens on hover/tap. */
+.panel-link{
+  background:none;border:none;box-shadow:none;
+  color:rgba(255,255,255,0.5);
+  font-family:'Inter',sans-serif;font-weight:500;
+  font-size:1.3vh;letter-spacing:0.1em;text-transform:uppercase;
+  text-decoration:underline;text-decoration-color:rgba(255,255,255,0.25);text-underline-offset:0.2em;
+  padding:0.3vh 0;cursor:pointer;transition:color 0.18s;
+  white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
 }
+.panel-link:hover{color:rgba(255,255,255,0.85);}
+.panel-link:active{color:var(--white);}
 
 /* The felt itself (#felt-surface) gets a soft radial vignette — brightest
    behind the numerals, darker toward the edges — for depth; the numerals
@@ -248,14 +258,13 @@ html,body{width:100%;height:100%;
      than the border right next to it. */
   box-shadow:inset 0 1px 0 rgba(255,180,140,0.15);
 }
-/* The rail buttons — and the clock — read as wells routed into the wood,
-   like a slot for storing chips or dice, rather than chips sitting on top
-   of it: a dark cavity color, a shadow falling from the near rim into the
-   cavity, a faint catch-light on the far wall, and a thin warm line right
-   at the rim's outer edge where the routed wood edge catches light. Every
-   well in either screen's side panel — clock, Pause/Unpause, Payout, Sound
-   Check, Install, Help, Update — shares this one look. */
-.side-panel .wood-well,.side-panel .pill-btn{
+/* The primary gameplay buttons (Pause/Unpause, Payout, Sound) read as
+   wells routed into the wood, like a slot for storing chips or dice,
+   rather than chips sitting on top of it: a dark cavity color, a shadow
+   falling from the near rim into the cavity, a faint catch-light on the
+   far wall, and a thin warm line right at the rim's outer edge where the
+   routed wood edge catches light. */
+.side-panel .pill-btn{
   background:radial-gradient(130% 160% at 50% 28%,#2c150d 0%,#1a0d08 55%,#100906 100%);
   border-color:rgba(0,0,0,0.55);
   box-shadow:
@@ -280,11 +289,13 @@ html,body{width:100%;height:100%;
     inset 0 -1px 2px rgba(0,0,0,0.5),
     0 1px 0 rgba(255,190,150,0.12);
 }
+/* The clock is plain text at the top of the panel, not a button — larger
+   and full-opacity so it reads as the panel's headline rather than one of
+   the wood-well controls. */
 #tod,#menu-tod{
-  font-size:3.4vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
+  font-size:5vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
   display:flex;align-items:center;justify-content:center;
-  white-space:nowrap;width:100%;
-  padding:1.4vh 1vw;border-radius:100px;border:1px solid rgba(0,0,0,0.55);
+  white-space:nowrap;width:100%;flex-shrink:0;
 }
 #btn-soundcheck{font-size:1.8vh;line-height:1.4;white-space:normal;}
 
@@ -549,12 +560,14 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="menu-side-panel" class="side-panel">
-    <div id="menu-tod" class="wood-well">&mdash;</div>
-    <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
+    <div id="menu-tod">&mdash;</div>
+    <div class="panel-primary">
+      <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
+    </div>
     <div class="panel-utility">
-      <button class="pill-btn pill-btn-utility" id="btn-install" onclick="openInstall()">Install</button>
-      <button class="pill-btn pill-btn-utility" id="btn-help" onclick="openHelp()">Help</button>
-      <button class="pill-btn pill-btn-utility" id="btn-check-update" onclick="checkForUpdates()"></button>
+      <button class="panel-link" id="btn-install" onclick="openInstall()">Install</button>
+      <button class="panel-link" id="btn-help" onclick="openHelp()">Help</button>
+      <button class="panel-link" id="btn-check-update" onclick="checkForUpdates()"></button>
     </div>
   </div>
 
@@ -594,16 +607,16 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="col-right" class="side-panel">
-    <div id="tod" class="wood-well">—</div>
+    <div id="tod">—</div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
       <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
-      <button class="pill-btn pill-btn-primary" id="btn-soundcheck" onclick="playSoundcheck()">SOUND CHECK</button>
+      <button class="pill-btn pill-btn-primary" id="btn-soundcheck" onclick="playSoundcheck()">SOUND</button>
     </div>
     <div class="panel-utility">
-      <button class="pill-btn pill-btn-utility" id="btn-install-app" onclick="openInstall()">Install</button>
-      <button class="pill-btn pill-btn-utility" id="btn-help-app" onclick="openHelp()">Help</button>
-      <button class="pill-btn pill-btn-utility" id="btn-check-update-app" onclick="checkForUpdates()"></button>
+      <button class="panel-link" id="btn-install-app" onclick="openInstall()">Install</button>
+      <button class="panel-link" id="btn-help-app" onclick="openHelp()">Help</button>
+      <button class="panel-link" id="btn-check-update-app" onclick="checkForUpdates()"></button>
     </div>
   </div>
 
@@ -752,7 +765,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.158';
+const VERSION='v1.159';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
