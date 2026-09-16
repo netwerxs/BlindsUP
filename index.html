@@ -299,8 +299,9 @@ html,body{width:100%;height:100%;
 /* The version number is plain, non-interactive text — the Update *action*
    lives in the Menu overlay now, so this is just a label, not a link. */
 #version-label-app{
-  writing-mode:vertical-rl;font-size:1.3vh;font-weight:400;letter-spacing:0.1em;
+  font-size:1.3vh;font-weight:400;letter-spacing:0.1em;
   color:rgba(255,255,255,0.4);white-space:nowrap;flex-shrink:0;
+  text-align:center;width:100%;
 }
 /* Unpause blinks to draw the eye back to it after a pause — the one
    deliberate animated accent left on the menu screen. */
@@ -781,7 +782,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.164';
+const VERSION='v1.165';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
