@@ -46,57 +46,17 @@ html,body{width:100%;height:100%;
 
 /* ── MENU SCREEN ── */
 #menu-screen{
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;
-  gap:3vh;padding:3vh 3vw;z-index:40;overflow:hidden;
-  padding-top:max(3vh,env(safe-area-inset-top));
-  padding-right:max(3vw,env(safe-area-inset-right));
-  padding-bottom:max(3vh,env(safe-area-inset-bottom));
-  padding-left:max(3vw,env(safe-area-inset-left));
+  position:fixed;inset:0;z-index:40;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding-top:env(safe-area-inset-top);
+  padding-right:env(safe-area-inset-right);
+  padding-bottom:env(safe-area-inset-bottom);
+  padding-left:env(safe-area-inset-left);
 }
-#resume-wrap{
-  width:100%;display:flex;justify-content:center;
-  flex-shrink:0;
-}
-#btn-resume{
-  display:none;
-  color:var(--bg);
-  border:none;border-radius:100px;
-  font-family:'Inter',sans-serif;font-size:3.5vh;font-weight:700;
-  letter-spacing:0.12em;text-transform:uppercase;
-  padding:2vh 8vw;cursor:pointer;
-  animation:resumepulse 3s ease-in-out infinite;
-}
-@keyframes resumepulse{
-  0%  {background:#f0c040;}
-  33% {background:#3ddc84;}
-  66% {background:#40b0f0;}
-  100%{background:#f0c040;}
-}
-#btn-resume:hover{opacity:0.85;}
 .menu-title{
   font-size:2vh;font-weight:200;
   letter-spacing:0.5em;text-transform:uppercase;
   color:var(--dim);flex-shrink:0;
-}
-.menu-corner-btn{
-  position:absolute;top:2vh;
-  background:var(--glass-bg);border:1px solid rgba(255,255,255,0.2);
-  backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));
-  box-shadow:var(--inset-hi);
-  color:rgba(255,255,255,0.4);font-family:'Inter',sans-serif;
-  font-size:1.4vh;letter-spacing:0.2em;text-transform:uppercase;
-  padding:0.8vh 1.5vw;border-radius:100px;cursor:pointer;z-index:2;
-  transition:transform 0.08s,background 0.18s,border-color 0.18s;
-}
-.menu-corner-btn:active{transform:scale(0.94);box-shadow:var(--glow-active),var(--inset-hi);}
-#btn-help{right:2vw;}
-#btn-install{left:2vw;}
-#btn-check-update{top:auto;bottom:1.5vh;right:2vw;font-size:2.3vh;}
-#menu-tod{
-  position:absolute;top:6vh;right:2vw;
-  font-size:8vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
-  pointer-events:none;
 }
 #blind-grid{
   display:grid;
@@ -105,60 +65,52 @@ html,body{width:100%;height:100%;
   width:100%;flex:1;
   align-content:center;
 }
+/* Level cards read as poker chips: a striped rim (repeating-conic-gradient,
+   the classic chip edge-marking look) around a solid inner disc (::before),
+   showing just the blinds — no label, no duration. */
 .blind-card{
-  background:rgba(255,255,255,0.05);
-  border:1px solid var(--border);
-  border-radius:1.2rem;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  cursor:pointer;padding:1.5vh 0;
-  transition:background 0.18s,border-color 0.18s;
-  gap:0.4vh;
+  position:relative;
+  aspect-ratio:1/1;width:100%;max-width:11vh;margin:0 auto;
+  border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,255,255,0.16) 0deg 15deg,rgba(255,255,255,0.04) 15deg 30deg);
+  padding:0.6vh;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform 0.15s;
 }
-.blind-card:hover,.blind-card:active{
-  background:rgba(255,255,255,0.12);
-  border-color:rgba(255,255,255,0.35);
+.blind-card::before{
+  content:'';position:absolute;inset:0.6vh;border-radius:50%;
+  background:rgba(20,20,20,0.55);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,0.45),inset 0 -1px 2px rgba(255,255,255,0.06);
 }
+.blind-card:hover,.blind-card:active{transform:scale(1.05);}
 .blind-card.current{
-  border-color:rgba(var(--accent-rgb),0.6);
-  background:rgba(var(--accent-rgb),0.08);
-  box-shadow:0 0 24px rgba(var(--accent-rgb),0.22),var(--shadow-elev1);
-  transform:scale(1.04);
-  animation:cardpulse 2.6s ease-in-out infinite;
+  background:repeating-conic-gradient(rgba(var(--accent-rgb),0.9) 0deg 15deg,rgba(var(--accent-rgb),0.35) 15deg 30deg);
+  box-shadow:0 0 18px rgba(var(--accent-rgb),0.35),var(--shadow-elev1);
+  transform:scale(1.08);
 }
-@keyframes cardpulse{
-  0%,100%{box-shadow:0 0 24px rgba(var(--accent-rgb),0.22),var(--shadow-elev1);}
-  50%{box-shadow:0 0 38px rgba(var(--accent-rgb),0.4),var(--shadow-elev1);}
-}
+.blind-card.current::before{background:rgba(var(--accent-rgb),0.14);}
 .blind-card.current .card-blinds{color:var(--accent);}
-.blind-card.current .card-label{color:rgba(var(--accent-rgb),0.65);}
-.card-label{
-  font-size:1.2vh;font-weight:300;
-  letter-spacing:0.25em;text-transform:uppercase;
-  color:var(--dim);
-}
 .card-blinds{
-  font-size:3.5vh;font-weight:900;
-  letter-spacing:-0.03em;color:var(--white);
+  position:relative;z-index:1;
+  font-size:1.7vh;font-weight:800;
+  letter-spacing:-0.02em;color:var(--white);
+  text-align:center;line-height:1.05;padding:0 0.4vh;
 }
-.card-time{
-  font-size:1.1vh;font-weight:300;
-  letter-spacing:0.15em;color:var(--dimmer);
-}
-.exit-card{border-color:rgba(var(--accent-rgb),0.35);}
-.exit-card:hover,.exit-card:active{border-color:rgba(var(--accent-rgb),0.6);}
-.exit-card .card-blinds{color:var(--accent);text-shadow:0 0 16px rgba(var(--accent-rgb),0.3);}
+.exit-card{background:repeating-conic-gradient(rgba(var(--accent-rgb),0.55) 0deg 15deg,rgba(var(--accent-rgb),0.2) 15deg 30deg);}
+.exit-card .card-blinds{color:var(--accent);text-shadow:0 0 12px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
 #app{display:none;width:100vw;height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
 #app.visible{display:block;}
-#layout{
+/* One continuous cherrywood surface behind both the border and the side
+   panel, so the panel reads as a wider continuation of the same frame
+   rather than a separate piece of chrome butted up against it. Shared by
+   the timer screen (#layout) and the menu screen (#menu-layout) so both
+   get identical wood chrome. */
+.wood-layout{
   width:100%;height:100%;
   display:grid;
-  grid-template-columns:1fr auto;
-  /* One continuous cherrywood surface behind both the border and the side
-     panel, so the panel reads as a wider continuation of the same frame
-     rather than a separate piece of chrome butted up against it. */
+  grid-template-columns:1fr clamp(120px,13vw,190px);
   background:
     repeating-linear-gradient(94deg,
       rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
@@ -171,25 +123,25 @@ html,body{width:100%;height:100%;
 /* The felt sits as a rounded-rect window cut into that wood surface — a
    uniform 0.25in margin on all four sides, including the side facing the
    panel, so the panel's inner edge gets the same rounded corner as the
-   other three and the whole frame (border + panel) reads as one piece. */
-#felt-frame{
+   other three and the whole frame (border + panel) reads as one piece.
+   Shared by both screens' felt frames. */
+.felt-frame{
   grid-column:1;position:relative;
   padding:0.25in;
   /* Outer radius = inner radius + the 0.25in margin, so this curve and
-     #felt-surface's are concentric (a true picture-frame corner) instead of
-     the wood curving at one radius while the felt underneath stays square
-     0.25in further in. */
+     the felt surface's are concentric (a true picture-frame corner)
+     instead of the wood curving at one radius while the felt underneath
+     stays square 0.25in further in. */
   border-radius:calc(16px + 0.25in);overflow:hidden;
 }
-/* One continuous felt surface behind both halves, filling #felt-frame's
-   content box exactly — the vignette/edge shadow lives here rather than on
-   #blind-zone/#cd-zone individually (which have no padding of their own to
-   throw the shadow's anchor off), so there's no seam where the two halves
-   meet in the middle. border-radius+overflow round the felt's own corners
-   to match #felt-frame's concentrically. */
-#felt-surface{
+/* One continuous felt surface filling the felt frame's content box exactly
+   — the vignette/edge shadow lives here rather than on individual content
+   panes (which have no padding of their own to throw the shadow's anchor
+   off), so there's no seam where panes meet. border-radius+overflow round
+   the felt's own corners to match the frame's concentrically. Shared by
+   both screens; each adds its own internal layout below. */
+.felt-surface{
   width:100%;height:100%;
-  display:grid;grid-template-rows:1fr 1fr;
   border-radius:16px;overflow:hidden;
   background:#2e8b57;
   background:radial-gradient(140% 120% at 50% 50%,#2e8b57 0%,#20613d 100%);
@@ -200,13 +152,19 @@ html,body{width:100%;height:100%;
     inset 10px 0 14px -8px rgba(0,0,0,0.55),
     inset -10px 0 14px -8px rgba(0,0,0,0.55);
 }
+#felt-surface{display:grid;grid-template-rows:1fr 1fr;}
+#menu-felt-surface{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2vh;padding:3vh 2vw;position:relative;z-index:0;
+}
 /* A warm glow tracing the rounded seam where the raised wood frame steps
    down to the recessed felt — a separate layer (rather than a box-shadow on
-   #felt-surface itself) because #felt-surface's own overflow:hidden (needed
-   to round its corners) would clip a box-shadow on that same element.
-   ::after so it paints after/above the felt's own content. Radius matches
-   #felt-surface exactly since this traces that same box. */
-#felt-frame::after{
+   the felt surface itself) because its own overflow:hidden (needed to round
+   its corners) would clip a box-shadow on that same element. ::after so it
+   paints after/above the felt's own content. Radius matches the felt
+   surface exactly since this traces that same box. Shared by both screens'
+   felt frames. */
+.felt-frame::after{
   content:'';position:absolute;pointer-events:none;z-index:5;
   top:0.25in;left:0.25in;right:0.25in;bottom:0.25in;
   border-radius:16px;
@@ -224,6 +182,20 @@ html,body{width:100%;height:100%;
 }
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
+
+/* Side-panel button groups: primary gameplay controls get the full-size
+   vertical-text treatment; utility buttons (Install/Help/Update) are
+   visually subordinate — smaller and dimmer, but still vertical-rl like
+   the primary buttons so the panel's width never swings between screens
+   depending on which buttons happen to be present. */
+.panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;flex:1;width:100%;}
+.panel-utility{display:flex;flex-direction:column;align-items:center;gap:1vh;flex-shrink:0;width:100%;}
+.pill-btn-primary{font-size:2.2vh;padding:3vh 1vh;text-align:center;writing-mode:vertical-rl;}
+.pill-btn-utility{
+  writing-mode:vertical-rl;font-size:1.3vh;padding:1.4vh 0.8vh;
+  letter-spacing:0.15em;opacity:0.75;
+  max-height:22vh;overflow:hidden;text-overflow:ellipsis;
+}
 
 /* The felt itself (#felt-surface) gets a soft radial vignette — brightest
    behind the numerals, darker toward the edges — for depth; the numerals
@@ -261,28 +233,31 @@ html,body{width:100%;height:100%;
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
 
-/* RIGHT */
-#col-right{
+/* RIGHT — shared side-panel chrome, used by both the timer screen
+   (#col-right) and the menu screen (#menu-side-panel) so the panel is
+   visually consistent across both. */
+.side-panel{
   grid-column:2;
   display:flex;flex-direction:column;align-items:center;
   justify-content:space-evenly;
   padding:2vh 0.6vw;
-  /* No background of its own — #layout's wood surface shows straight through,
-     so the panel is visibly the same piece of wood as the border rather than
-     a separate texture butted up against it. Only a thin top highlight here
-     (no extra bottom darkening) — that shading isn't on the plain wood
-     border margin either, and having it only on the panel made the shared
-     wood read a shade darker toward the bottom of the panel than the border
-     right next to it. */
+  /* No background of its own — the wood layout's surface shows straight
+     through, so the panel is visibly the same piece of wood as the border
+     rather than a separate texture butted up against it. Only a thin top
+     highlight here (no extra bottom darkening) — that shading isn't on the
+     plain wood border margin either, and having it only on the panel made
+     the shared wood read a shade darker toward the bottom of the panel
+     than the border right next to it. */
   box-shadow:inset 0 1px 0 rgba(255,180,140,0.15);
 }
 /* The rail buttons — and the clock — read as wells routed into the wood,
    like a slot for storing chips or dice, rather than chips sitting on top
    of it: a dark cavity color, a shadow falling from the near rim into the
    cavity, a faint catch-light on the far wall, and a thin warm line right
-   at the rim's outer edge where the routed wood edge catches light. All
-   four wells (clock, Pause, Payout, Sound Check) share this one look. */
-#tod,#col-right .pill-btn{
+   at the rim's outer edge where the routed wood edge catches light. Every
+   well in either screen's side panel — clock, Pause/Unpause, Payout, Sound
+   Check, Install, Help, Update — shares this one look. */
+.side-panel .wood-well,.side-panel .pill-btn{
   background:radial-gradient(130% 160% at 50% 28%,#2c150d 0%,#1a0d08 55%,#100906 100%);
   border-color:rgba(0,0,0,0.55);
   box-shadow:
@@ -292,7 +267,7 @@ html,body{width:100%;height:100%;
     0 1px 0 rgba(255,190,150,0.16);
   opacity:0.6;
 }
-#col-right .pill-btn:hover{
+.side-panel .pill-btn:hover{
   background:radial-gradient(130% 160% at 50% 28%,#331a10 0%,#1e0f09 55%,#120a07 100%);
   border-color:rgba(0,0,0,0.4);
   box-shadow:
@@ -301,31 +276,20 @@ html,body{width:100%;height:100%;
     inset 0 1px 1px rgba(255,255,255,0.08),
     0 1px 0 rgba(255,190,150,0.24);
 }
-#col-right .pill-btn:active{
+.side-panel .pill-btn:active{
   box-shadow:
     inset 0 4px 8px rgba(0,0,0,0.8),
     inset 0 -1px 2px rgba(0,0,0,0.5),
     0 1px 0 rgba(255,190,150,0.12);
 }
-#tod{
+#tod,#menu-tod{
   font-size:6vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
   display:flex;align-items:center;justify-content:center;
   white-space:nowrap;
   writing-mode:vertical-rl;
   padding:2.2vh 1vh;border-radius:100px;border:1px solid rgba(0,0,0,0.55);
 }
-/* Clock, Pause and Sound Check are rotated to read top-to-bottom down the
-   cherrywood column (writing-mode, so the column reflows narrow around them
-   rather than the elements overlapping their siblings). */
-#btn-pause,#btn-soundcheck,#btn-split{
-  font-size:2.2vh;padding:3vh 1vh;text-align:center;
-  writing-mode:vertical-rl;
-}
 #btn-soundcheck{font-size:1.8vh;line-height:1.4;white-space:normal;}
-#version-label-app{
-  font-size:1.8vh;font-weight:400;letter-spacing:0.15em;
-  color:rgba(255,255,255,0.45);white-space:nowrap;text-align:center;
-}
 
 /* ANNOUNCE */
 #announce{
@@ -574,23 +538,38 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- MENU -->
 <div id="menu-screen">
-  <button id="btn-install" class="menu-corner-btn" onclick="openInstall()">Install</button>
-  <button id="btn-help" class="menu-corner-btn" onclick="openHelp()">Help</button>
-  <button id="btn-check-update" class="menu-corner-btn" onclick="checkForUpdates()"></button>
-  <div id="resume-wrap">
-    <button id="btn-resume" onclick="resumeGame()">Resume</button>
+<div id="menu-layout" class="wood-layout">
+
+  <div id="menu-felt-frame" class="felt-frame">
+  <div id="menu-felt-surface" class="felt-surface">
+    <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
+    <span class="suit suit-diamonds" aria-hidden="true">&#9830;</span>
+    <span class="suit suit-hearts" aria-hidden="true">&#9829;</span>
+    <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
+    <div class="menu-title">Select Starting Blind</div>
+    <div id="blind-grid"></div>
   </div>
-  <div class="menu-title">Select Starting Blind</div>
-  <div id="menu-tod"></div>
-  <div id="blind-grid"></div>
+  </div>
+
+  <div id="menu-side-panel" class="side-panel">
+    <div id="menu-tod" class="wood-well">&mdash;</div>
+    <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
+    <div class="panel-utility">
+      <button class="pill-btn pill-btn-utility" id="btn-install" onclick="openInstall()">Install</button>
+      <button class="pill-btn pill-btn-utility" id="btn-help" onclick="openHelp()">Help</button>
+      <button class="pill-btn pill-btn-utility" id="btn-check-update" onclick="checkForUpdates()"></button>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <!-- APP -->
 <div id="app">
-<div id="layout">
+<div id="layout" class="wood-layout">
 
-  <div id="felt-frame">
-  <div id="felt-surface">
+  <div id="felt-frame" class="felt-frame">
+  <div id="felt-surface" class="felt-surface">
   <div id="blind-zone">
     <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
     <span class="suit suit-diamonds" aria-hidden="true">&#9830;</span>
@@ -617,12 +596,18 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
   </div>
 
-  <div id="col-right">
-    <div id="tod">—</div>
-    <button class="pill-btn" id="btn-pause" onclick="togglePause()">Pause</button>
-    <button class="pill-btn" id="btn-split" onclick="openSplit()">Payout</button>
-    <button class="pill-btn" id="btn-soundcheck" onclick="playSoundcheck()">SOUND CHECK</button>
-    <div id="version-label-app"></div>
+  <div id="col-right" class="side-panel">
+    <div id="tod" class="wood-well">—</div>
+    <div class="panel-primary">
+      <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
+      <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
+      <button class="pill-btn pill-btn-primary" id="btn-soundcheck" onclick="playSoundcheck()">SOUND CHECK</button>
+    </div>
+    <div class="panel-utility">
+      <button class="pill-btn pill-btn-utility" id="btn-install-app" onclick="openInstall()">Install</button>
+      <button class="pill-btn pill-btn-utility" id="btn-help-app" onclick="openHelp()">Help</button>
+      <button class="pill-btn pill-btn-utility" id="btn-check-update-app" onclick="checkForUpdates()"></button>
+    </div>
   </div>
 
 </div>
@@ -770,7 +755,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.155';
+const VERSION='v1.156';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -788,11 +773,10 @@ const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
 const elAnnounce=document.getElementById('announce');
-const elBtnResume=document.getElementById('btn-resume');
+const elBtnMenuPause=document.getElementById('btn-menu-pause');
 const elSplitOverlay=document.getElementById('split-overlay');
 
-document.getElementById('btn-check-update').textContent=VERSION;
-document.getElementById('version-label-app').textContent=VERSION;
+document.querySelectorAll('#btn-check-update,#btn-check-update-app').forEach(b=>b.textContent=VERSION);
 
 // Levels 1-10 follow sb=i*100/bb=i*200; levels 11-13 step up by +500/+1000 per
 // level (1500/3000, 2000/4000, 2500/5000); levels 14-29 jump by +1000/+2000 per
@@ -1389,13 +1373,13 @@ function closeSplit(){
     const bl=BLINDS[i-1];
     const card=document.createElement('div');
     card.className='blind-card';
-    card.innerHTML=`<div class="card-label">Level ${i}</div><div class="card-blinds">${bl.sb}/${bl.bb}</div><div class="card-time">${maxSec(i)/60} min</div>`;
+    card.innerHTML=`<div class="card-blinds">${bl.sb}/${bl.bb}</div>`;
     card.addEventListener('click',()=>selectBlind(i));
     grid.appendChild(card);
   }
   const exitCard=document.createElement('div');
   exitCard.className='blind-card exit-card';
-  exitCard.innerHTML='<div class="card-label">Close</div><div class="card-blinds">EXIT</div>';
+  exitCard.innerHTML='<div class="card-blinds">EXIT</div>';
   exitCard.addEventListener('click',exitApp);
   grid.appendChild(exitCard);
 })();
@@ -1594,8 +1578,6 @@ function render(){
   elCdSec.textContent=String(ss).padStart(2,'0');
 }
 
-function fmtCD(sec){const m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
-
 // Highlights the menu card matching the current/last-played level, so the
 // grid reads as a progress map rather than 28 identical picker tiles.
 // Level 29 (the jump-schedule cap, only reachable via auto-advance) has no
@@ -1612,13 +1594,7 @@ function updateMenuHighlight(){
 function showMenu(showResume){
   elApp.classList.remove('visible');
   updateMenuHighlight();
-  if(showResume){
-    const lv=Math.min(level,BLINDS.length),bl=BLINDS[lv-1];
-    elBtnResume.textContent='Resume '+bl.sb+'/'+bl.bb+' · '+fmtCD(pausedRemSec)+' left';
-    elBtnResume.style.display='block';
-  } else {
-    elBtnResume.style.display='none';
-  }
+  elBtnMenuPause.style.display=showResume?'block':'none';
   elMenuScreen.style.display='flex';
 }
 
@@ -1888,8 +1864,12 @@ if(navigator.onLine){
 // background and we hand it control (skip waiting) only once the user
 // asked for it, then reload to swap in the update.
 async function checkForUpdates(){
-  const btn=document.getElementById('btn-check-update');
-  btn.textContent='Checking…';btn.disabled=true;
+  // Menu and timer screens each have their own copy of this button; drive
+  // both together so status text stays in sync regardless of which screen
+  // triggered the check.
+  const btns=document.querySelectorAll('#btn-check-update,#btn-check-update-app');
+  const setBtns=(text,disabled)=>btns.forEach(b=>{b.textContent=text;if(disabled!==undefined)b.disabled=disabled;});
+  setBtns('Checking…',true);
   try{
     if(swReg)await swReg.update();
     const res=await fetch('./index.html?swCheckUpdate=1',{cache:'no-store'});
@@ -1897,7 +1877,7 @@ async function checkForUpdates(){
     const match=html.match(/const VERSION='([^']+)'/);
     if(match&&match[1]!==VERSION){
       const newVersion=match[1];
-      btn.textContent=`Updated from ${VERSION} to ${newVersion}`;
+      setBtns(`Updated from ${VERSION} to ${newVersion}`);
       // Give the user a moment to actually see the confirmation before the
       // reload swaps in the new version.
       const reload=()=>setTimeout(()=>window.location.reload(),1500);
@@ -1911,17 +1891,17 @@ async function checkForUpdates(){
       // sw.js itself changed without a VERSION bump — the new worker is
       // already installed and waiting; hand it control now rather than
       // leaving it stuck until some unrelated future reload picks it up.
-      btn.textContent='Updated '+VERSION;
+      setBtns('Updated '+VERSION);
       const reload=()=>setTimeout(()=>window.location.reload(),1500);
       navigator.serviceWorker.addEventListener('controllerchange',reload,{once:true});
       swReg.waiting.postMessage({type:'SKIP_WAITING'});
     } else {
-      btn.textContent='Latest '+VERSION;
-      setTimeout(()=>{btn.textContent=VERSION;btn.disabled=false;},2000);
+      setBtns('Latest '+VERSION);
+      setTimeout(()=>setBtns(VERSION,false),2000);
     }
   }catch(e){
-    btn.textContent='Check failed';
-    setTimeout(()=>{btn.textContent=VERSION;btn.disabled=false;},2000);
+    setBtns('Check failed');
+    setTimeout(()=>setBtns(VERSION,false),2000);
   }
 }
 
