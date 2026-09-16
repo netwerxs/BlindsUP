@@ -297,12 +297,20 @@ html,body{width:100%;height:100%;
    column, matching the narrow sidebar. */
 .side-panel .pill-btn-primary{writing-mode:vertical-rl;padding:1.6vh 0.2vh;}
 /* The clock is plain text at the top of the panel, rotated to match the
-   buttons below it rather than a wood-well control. */
-#tod,#menu-tod{
-  writing-mode:vertical-rl;text-orientation:upright;
-  font-size:4.4vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
+   buttons below it rather than a wood-well control. Rather than
+   writing-mode:vertical-rl (which rotates each glyph individually and
+   misaligns punctuation like the colon against the digits), the text
+   renders normally inside a transparent box (.tod-box) and that whole
+   box is rotated as one unit via transform — the colon and digits stay
+   exactly as aligned as they'd be in ordinary horizontal text. */
+.tod-box{
   display:flex;align-items:center;justify-content:center;
-  white-space:nowrap;width:100%;flex-shrink:0;padding:1vh 0;
+  width:100%;flex-shrink:0;height:15vh;padding:1vh 0;overflow:visible;
+}
+#tod,#menu-tod{
+  display:inline-block;transform:rotate(90deg);
+  font-size:4.4vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
+  white-space:nowrap;
 }
 /* The version number is plain, non-interactive text — the Update *action*
    lives in the Menu overlay now, so this is just a label, not a link. */
@@ -579,7 +587,7 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="menu-side-panel" class="side-panel">
-    <div id="menu-tod">&mdash;</div>
+    <div class="tod-box"><span id="menu-tod">&mdash;</span></div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
     </div>
@@ -626,7 +634,7 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="col-right" class="side-panel">
-    <div id="tod">&mdash;</div>
+    <div class="tod-box"><span id="tod">&mdash;</span></div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
       <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
@@ -792,7 +800,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.169';
+const VERSION='v1.170';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
