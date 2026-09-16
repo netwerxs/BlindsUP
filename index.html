@@ -296,6 +296,10 @@ html,body{width:100%;height:100%;
    column, matching the narrow sidebar. */
 .side-panel .pill-btn-primary{writing-mode:vertical-rl;padding:2.4vh 0.8vh;}
 #btn-soundcheck{font-size:1.8vh;line-height:1.4;white-space:normal;}
+/* Unpause blinks to draw the eye back to it after a pause — the one
+   deliberate animated accent left on the menu screen. */
+#btn-menu-pause{animation:unpauseBlink 1.1s ease-in-out infinite;}
+@keyframes unpauseBlink{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
 /* ANNOUNCE */
 #announce{
@@ -548,10 +552,6 @@ body.split-open #rotate-prompt{display:none!important;}
 
   <div id="menu-felt-frame" class="felt-frame">
   <div id="menu-felt-surface" class="felt-surface">
-    <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
-    <span class="suit suit-diamonds" aria-hidden="true">&#9830;</span>
-    <span class="suit suit-hearts" aria-hidden="true">&#9829;</span>
-    <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
     <div class="menu-title">Select Starting Blind</div>
     <div id="blind-grid"></div>
   </div>
@@ -761,7 +761,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.162';
+const VERSION='v1.163';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
