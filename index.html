@@ -110,7 +110,7 @@ html,body{width:100%;height:100%;
 .wood-layout{
   width:100%;height:100%;
   display:grid;
-  grid-template-columns:1fr clamp(160px,15vw,230px);
+  grid-template-columns:1fr clamp(90px,9vw,120px);
   background:
     repeating-linear-gradient(94deg,
       rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
@@ -183,14 +183,13 @@ html,body{width:100%;height:100%;
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
-/* Side-panel layout: the clock sits fixed at top (see #tod/#menu-tod
-   below), Install/Help/Update sit as plain text links pinned to the
-   bottom (.panel-link), and the primary gameplay buttons (Pause/Payout/
-   Sound, or Unpause) cluster as one group centered — both vertically and
-   horizontally — in the space between. */
+/* Side-panel layout: Install/Help/Update sit as plain text links pinned
+   to the bottom (.panel-link), and the primary gameplay buttons
+   (Pause/Payout/Sound Check, or Unpause) cluster as one group centered —
+   both vertically and horizontally — in the rest of the panel. */
 .panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;flex:1;width:100%;}
 .panel-utility{display:flex;flex-direction:column;align-items:center;gap:0.8vh;flex-shrink:0;width:100%;}
-.pill-btn-primary{font-size:2.2vh;padding:1.8vh 1.2vw;text-align:center;width:100%;}
+.pill-btn-primary{font-size:2.2vh;padding:1.8vh 0.4vw;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;}
 /* Install/Help/Update read as plain text links, not buttons — no well,
    no border, just dim uppercase text that brightens on hover/tap. */
 .panel-link{
@@ -289,14 +288,10 @@ html,body{width:100%;height:100%;
     inset 0 -1px 2px rgba(0,0,0,0.5),
     0 1px 0 rgba(255,190,150,0.12);
 }
-/* The clock is plain text at the top of the panel, not a button — larger
-   and full-opacity so it reads as the panel's headline rather than one of
-   the wood-well controls. */
-#tod,#menu-tod{
-  font-size:5vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
-  display:flex;align-items:center;justify-content:center;
-  white-space:nowrap;width:100%;flex-shrink:0;
-}
+/* The timer screen's primary buttons read top-to-bottom down the
+   cherrywood column — the menu screen's Unpause stays upright since it's
+   the only content in its panel and has room to read normally. */
+#col-right .pill-btn-primary{writing-mode:vertical-rl;padding:2.4vh 0.8vh;}
 #btn-soundcheck{font-size:1.8vh;line-height:1.4;white-space:normal;}
 
 /* ANNOUNCE */
@@ -560,7 +555,6 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="menu-side-panel" class="side-panel">
-    <div id="menu-tod">&mdash;</div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
     </div>
@@ -607,11 +601,10 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="col-right" class="side-panel">
-    <div id="tod">—</div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
       <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
-      <button class="pill-btn pill-btn-primary" id="btn-soundcheck" onclick="playSoundcheck()">SOUND</button>
+      <button class="pill-btn pill-btn-primary" id="btn-soundcheck" onclick="playSoundcheck()">SOUND CHECK</button>
     </div>
     <div class="panel-utility">
       <button class="panel-link" id="btn-install-app" onclick="openInstall()">Install</button>
@@ -765,7 +758,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.159';
+const VERSION='v1.160';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -775,7 +768,6 @@ const elCdSec=document.getElementById('cdSec');
 const elCdZone=document.getElementById('cd-zone');
 const elBlindZone=document.getElementById('blind-zone');
 const elBlindInner=document.getElementById('blind-inner');
-const elTod=document.getElementById('tod');
 const elAnnSB=document.getElementById('annSB');
 const elAnnBB=document.getElementById('annBB');
 const elBtnPause=document.getElementById('btn-pause');
@@ -1573,12 +1565,6 @@ function requestFullscreenMode(){
 }
 document.addEventListener('pointerdown',requestFullscreenMode);
 
-function fmtTime(d){
-  const h=d.getHours(),m=d.getMinutes();
-  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
-}
-function fmtClock(){return fmtTime(new Date());}
-
 function render(){
   const lv=Math.min(level,BLINDS.length),bl=BLINDS[lv-1];
   elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;
@@ -1809,11 +1795,6 @@ function finishBreak(){
   showMenu(false);render();
 }
 
-// Clock
-const elMenuTod=document.getElementById('menu-tod');
-function updateClocks(){const t=fmtClock();elTod.textContent=t;elMenuTod.textContent=t;}
-setInterval(updateClocks,1000);
-updateClocks();
 
 // Keyboard path mirroring the swipe gestures, for keyboard/remote input at
 // the table (e.g. a Bluetooth keypad) — mirrors blind-zone up/down and
