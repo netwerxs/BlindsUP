@@ -21,6 +21,7 @@
   --shadow-elev2:0 8px 32px rgba(0,0,0,0.45);
   --inset-hi:inset 0 1px 0 rgba(255,255,255,0.08);
   --glow-active:0 0 16px rgba(var(--accent-rgb),0.35);
+  --menubar-h:4.2vh;
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;}
@@ -44,11 +45,55 @@ html,body{width:100%;height:100%;
   color:var(--white);text-align:center;
 }
 
+/* ── TOP MENU BAR ── */
+/* A standard left-to-right dropdown menu bar, shared by both screens (fixed,
+   sits above them via z-index rather than living inside either one), themed
+   to the same cherrywood/glass chrome as the rest of the UI rather than
+   literal OS gray. Covered by the sound-check gate, the level-up announce
+   and every full-screen overlay (all higher z-index), so it only shows over
+   the menu/timer screens themselves. */
+#top-menubar{
+  position:fixed;top:0;left:0;right:0;z-index:41;
+  height:calc(env(safe-area-inset-top) + var(--menubar-h));
+  padding-top:env(safe-area-inset-top);
+  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
+  display:flex;align-items:stretch;
+  background:linear-gradient(180deg,#3d1712 0%,#241009 100%);
+  border-bottom:1px solid rgba(0,0,0,0.6);
+  box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,180,140,0.12);
+}
+.mb-item{position:relative;display:flex;}
+.mb-label{
+  background:none;border:none;color:rgba(255,255,255,0.75);
+  font-family:'Inter',sans-serif;font-size:1.5vh;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;
+  padding:0 1.6vw;cursor:pointer;transition:background 0.15s,color 0.15s;
+  display:flex;align-items:center;
+}
+.mb-label:hover{background:rgba(255,255,255,0.08);color:var(--white);}
+.mb-item.open .mb-label{background:rgba(255,255,255,0.14);color:var(--white);}
+.mb-dropdown{
+  display:none;position:absolute;top:100%;left:0;min-width:200px;
+  background:radial-gradient(130% 160% at 50% 0%,#3a1d12 0%,#2c150d 55%,#1a0d08 100%);
+  border:1px solid rgba(0,0,0,0.6);border-top:none;
+  box-shadow:var(--shadow-elev2),var(--inset-hi);
+  flex-direction:column;padding:0.5vh 0;
+}
+.mb-item.open .mb-dropdown{display:flex;}
+.mb-dropdown button{
+  background:none;border:none;color:rgba(255,255,255,0.85);
+  font-family:'Inter',sans-serif;font-size:1.5vh;font-weight:500;
+  letter-spacing:0.05em;text-align:left;
+  padding:1.1vh 1.6vw;cursor:pointer;white-space:nowrap;transition:background 0.15s;
+}
+.mb-dropdown button:hover{background:rgba(255,255,255,0.1);}
+.mb-dropdown button:disabled{opacity:0.6;cursor:default;}
+
 /* ── MENU SCREEN ── */
 #menu-screen{
   position:fixed;inset:0;z-index:40;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding-top:env(safe-area-inset-top);
+  padding-top:calc(env(safe-area-inset-top) + var(--menubar-h));
   padding-right:env(safe-area-inset-right);
   padding-bottom:env(safe-area-inset-bottom);
   padding-left:env(safe-area-inset-left);
@@ -104,7 +149,7 @@ html,body{width:100%;height:100%;
 .exit-card .card-blinds{color:var(--accent);text-shadow:0 0 12px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
-#app{display:none;width:100vw;height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+#app{display:none;width:100vw;height:100vh;padding:calc(env(safe-area-inset-top) + var(--menubar-h)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
 #app.visible{display:block;}
 /* One continuous cherrywood surface behind both the border and the side
    panel, so the panel reads as a wider continuation of the same frame
@@ -187,27 +232,12 @@ html,body{width:100%;height:100%;
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
-/* Side-panel layout: the primary gameplay buttons (Pause/Payout/Menu on
-   the timer screen, Unpause on the menu screen) cluster as one group
-   centered — both vertically and horizontally — in the panel. On the menu
-   screen, Install/Help/Update additionally sit as plain text links
-   (.panel-link) pinned to the bottom. */
+/* Side-panel layout: the primary gameplay buttons (Pause/Payout on the
+   timer screen, Unpause on the menu screen) cluster as one group centered
+   — both vertically and horizontally — in the panel. Install/Help/Update
+   live in the top menu bar instead (see #top-menubar). */
 .panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;flex:1;width:100%;}
-.panel-utility{display:flex;flex-direction:column;align-items:center;gap:0.8vh;flex-shrink:0;width:100%;}
 .pill-btn-primary{font-size:1.8vh;padding:1.4vh 0.1vw;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;}
-/* Install/Help/Update read as plain text links, not buttons — no well,
-   no border, just dim uppercase text that brightens on hover/tap. */
-.panel-link{
-  background:none;border:none;box-shadow:none;
-  color:rgba(255,255,255,0.5);
-  font-family:'Inter',sans-serif;font-weight:500;
-  font-size:1.3vh;letter-spacing:0.1em;text-transform:uppercase;
-  text-decoration:underline;text-decoration-color:rgba(255,255,255,0.25);text-underline-offset:0.2em;
-  padding:0.3vh 0;cursor:pointer;transition:color 0.18s;
-  white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
-}
-.panel-link:hover{color:rgba(255,255,255,0.85);}
-.panel-link:active{color:var(--white);}
 
 /* The felt itself (#felt-surface) gets a soft radial vignette — brightest
    behind the numerals, darker toward the edges — for depth; the numerals
@@ -312,13 +342,6 @@ html,body{width:100%;height:100%;
   font-size:7.5vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
   white-space:nowrap;
 }
-/* The version number is plain, non-interactive text — the Update *action*
-   lives in the Menu overlay now, so this is just a label, not a link. */
-#version-label-app{
-  font-size:1.3vh;font-weight:400;letter-spacing:0.1em;
-  color:rgba(255,255,255,0.4);white-space:nowrap;flex-shrink:0;
-  text-align:center;width:100%;
-}
 /* Unpause blinks to draw the eye back to it after a pause — the one
    deliberate animated accent left on the menu screen. */
 #btn-menu-pause{animation:unpauseBlink 1.1s ease-in-out infinite;}
@@ -421,11 +444,6 @@ body.no-touch .no-touch-only{display:flex;}
 #install-body{display:flex;flex-direction:column;align-items:center;gap:2vh;max-width:520px;width:100%;}
 #install-body .pill-btn{margin-top:1vh;}
 
-/* ── APP MENU OVERLAY ── */
-.app-menu-list{
-  display:flex;flex-direction:column;gap:2vh;
-  width:100%;max-width:320px;
-}
 .install-steps{
   list-style:none;padding:0;margin:0;
   display:flex;flex-direction:column;gap:1.6vh;width:100%;
@@ -575,6 +593,24 @@ body.split-open #rotate-prompt{display:none!important;}
   <button class="pill-btn" id="btn-allow-sound" onclick="allowSound()">Allow Sound</button>
 </div>
 
+<!-- TOP MENU BAR (shared by both screens) -->
+<div id="top-menubar">
+  <div class="mb-item" id="mb-app">
+    <button class="mb-label" onclick="event.stopPropagation();toggleMenu('mb-app')">App</button>
+    <div class="mb-dropdown">
+      <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck();">Sound Check</button>
+      <button onclick="event.stopPropagation();closeAllMenus();openInstall();">Install</button>
+      <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();"></button>
+    </div>
+  </div>
+  <div class="mb-item" id="mb-help">
+    <button class="mb-label" onclick="event.stopPropagation();toggleMenu('mb-help')">Help</button>
+    <div class="mb-dropdown">
+      <button onclick="event.stopPropagation();closeAllMenus();openHelp();">How to Play</button>
+    </div>
+  </div>
+</div>
+
 <!-- MENU -->
 <div id="menu-screen">
 <div id="menu-layout" class="wood-layout">
@@ -590,11 +626,6 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="tod-box"><span id="menu-tod">&mdash;</span></div>
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
-    </div>
-    <div class="panel-utility">
-      <button class="panel-link" id="btn-install" onclick="openInstall()">Install</button>
-      <button class="panel-link" id="btn-help" onclick="openHelp()">Help</button>
-      <button class="panel-link" id="btn-check-update" onclick="checkForUpdates()"></button>
     </div>
   </div>
 
@@ -638,9 +669,7 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="panel-primary">
       <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
       <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
-      <button class="pill-btn pill-btn-primary" id="btn-app-menu" onclick="openAppMenu()">Menu</button>
     </div>
-    <div id="version-label-app"></div>
   </div>
 
 </div>
@@ -686,18 +715,6 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="install-overlay" class="overlay" onclick="closeInstall()">
   <div id="install-title" class="help-title">Install as App</div>
   <div id="install-body"></div>
-  <div class="help-tap">Tap anywhere to close</div>
-</div>
-
-<!-- APP MENU (Sound Check / Install / Help / Update, reached from the timer screen's Menu button) -->
-<div id="app-menu-overlay" class="overlay" onclick="closeAppMenu()">
-  <div class="help-title">Menu</div>
-  <div class="app-menu-list">
-    <button class="pill-btn" onclick="event.stopPropagation();playSoundcheck()">Sound Check</button>
-    <button class="pill-btn" onclick="event.stopPropagation();closeAppMenu();openInstall();">Install</button>
-    <button class="pill-btn" onclick="event.stopPropagation();closeAppMenu();openHelp();">Help</button>
-    <button class="pill-btn" id="btn-check-update-app" onclick="event.stopPropagation();checkForUpdates();">Update</button>
-  </div>
   <div class="help-tap">Tap anywhere to close</div>
 </div>
 
@@ -800,7 +817,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.172';
+const VERSION='v1.173';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -822,11 +839,9 @@ const elSplitOverlay=document.getElementById('split-overlay');
 const elTod=document.getElementById('tod');
 const elMenuTod=document.getElementById('menu-tod');
 
-// Menu screen's Update link shows the version as its own label; the timer
-// screen shows the version as separate plain text (#version-label-app) and
-// keeps a static "Update" label on its Menu-overlay action button instead.
+// The top menu bar's App > Check for Updates item shows the version as its
+// own label at rest, and doubles as the update-check button.
 document.getElementById('btn-check-update').textContent=VERSION;
-document.getElementById('version-label-app').textContent=VERSION;
 
 // Levels 1-10 follow sb=i*100/bb=i*200; levels 11-13 step up by +500/+1000 per
 // level (1500/3000, 2000/4000, 2500/5000); levels 14-29 jump by +1000/+2000 per
@@ -906,13 +921,19 @@ function closeHelp(){
   document.getElementById('help-overlay').classList.remove('visible');
 }
 
-// ── App menu (timer screen's Menu button — Sound Check/Install/Help/Update) ──
-function openAppMenu(){
-  document.getElementById('app-menu-overlay').classList.add('visible');
+// ── Top menu bar (App/Help dropdowns, shared by both screens) ──────
+function closeAllMenus(){
+  document.querySelectorAll('.mb-item.open').forEach(el=>el.classList.remove('open'));
 }
-function closeAppMenu(){
-  document.getElementById('app-menu-overlay').classList.remove('visible');
+function toggleMenu(id){
+  const item=document.getElementById(id);
+  const wasOpen=item.classList.contains('open');
+  closeAllMenus();
+  if(!wasOpen)item.classList.add('open');
 }
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#top-menubar'))closeAllMenus();
+});
 
 // ── Install ───────────────────────────────────────────────────────
 let deferredInstallPrompt=null;
@@ -1921,18 +1942,13 @@ if(navigator.onLine){
 // background and we hand it control (skip waiting) only once the user
 // asked for it, then reload to swap in the update.
 async function checkForUpdates(){
-  // Menu and timer screens each have their own copy of this button; drive
-  // both together so status text stays in sync regardless of which screen
-  // triggered the check. Their resting labels differ (the menu link shows
-  // the version number, the app-menu button just says "Update"), so the
-  // shared VERSION status text pauses on each button's own resting label
-  // when the check finishes rather than a single shared reset value.
-  const menuBtn=document.getElementById('btn-check-update');
-  const appBtn=document.getElementById('btn-check-update-app');
-  const btns=[menuBtn,appBtn];
-  const setBtns=(text,disabled)=>btns.forEach(b=>{b.textContent=text;if(disabled!==undefined)b.disabled=disabled;});
-  const restBtns=()=>{menuBtn.textContent=VERSION;appBtn.textContent='Update';btns.forEach(b=>b.disabled=false);};
-  setBtns('Checking…',true);
+  // The dropdown deliberately stays open (rather than closing on click like
+  // the other App-menu items) while this button's own label walks through
+  // Checking… / Latest vX.XX / Updated…, so the status is actually visible.
+  const btn=document.getElementById('btn-check-update');
+  const setBtn=(text,disabled)=>{btn.textContent=text;if(disabled!==undefined)btn.disabled=disabled;};
+  const restBtn=()=>{btn.textContent=VERSION;btn.disabled=false;closeAllMenus();};
+  setBtn('Checking…',true);
   try{
     if(swReg)await swReg.update();
     const res=await fetch('./index.html?swCheckUpdate=1',{cache:'no-store'});
@@ -1940,7 +1956,7 @@ async function checkForUpdates(){
     const match=html.match(/const VERSION='([^']+)'/);
     if(match&&match[1]!==VERSION){
       const newVersion=match[1];
-      setBtns(`Updated from ${VERSION} to ${newVersion}`);
+      setBtn(`Updated from ${VERSION} to ${newVersion}`);
       // Give the user a moment to actually see the confirmation before the
       // reload swaps in the new version.
       const reload=()=>setTimeout(()=>window.location.reload(),1500);
@@ -1954,17 +1970,17 @@ async function checkForUpdates(){
       // sw.js itself changed without a VERSION bump — the new worker is
       // already installed and waiting; hand it control now rather than
       // leaving it stuck until some unrelated future reload picks it up.
-      setBtns('Updated '+VERSION);
+      setBtn('Updated '+VERSION);
       const reload=()=>setTimeout(()=>window.location.reload(),1500);
       navigator.serviceWorker.addEventListener('controllerchange',reload,{once:true});
       swReg.waiting.postMessage({type:'SKIP_WAITING'});
     } else {
-      setBtns('Latest '+VERSION);
-      setTimeout(restBtns,2000);
+      setBtn('Latest '+VERSION);
+      setTimeout(restBtn,2000);
     }
   }catch(e){
-    setBtns('Check failed');
-    setTimeout(restBtns,2000);
+    setBtn('Check failed');
+    setTimeout(restBtn,2000);
   }
 }
 
