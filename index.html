@@ -88,6 +88,21 @@ html,body{width:100%;height:100%;
 }
 .mb-dropdown button:hover{background:rgba(255,255,255,0.1);}
 .mb-dropdown button:disabled{opacity:0.6;cursor:default;}
+.mb-dropdown button:disabled:hover{background:none;}
+/* Clock + version, right-aligned in the bar (margin-left:auto pushes them
+   off the last menu item) — replaces the old rotated side-panel clock. */
+#mb-right{
+  margin-left:auto;display:flex;align-items:center;gap:1.2vw;
+  padding-right:1.6vw;
+}
+#mb-version{
+  font-size:1.1vh;font-weight:400;letter-spacing:0.08em;
+  color:rgba(255,255,255,0.4);white-space:nowrap;
+}
+#mb-clock{
+  font-size:1.9vh;font-weight:700;letter-spacing:-0.01em;
+  color:var(--white);white-space:nowrap;
+}
 
 /* ── MENU SCREEN ── */
 #menu-screen{
@@ -151,15 +166,14 @@ html,body{width:100%;height:100%;
 /* ── APP ── */
 #app{display:none;width:100vw;height:100vh;padding:calc(env(safe-area-inset-top) + var(--menubar-h)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
 #app.visible{display:block;}
-/* One continuous cherrywood surface behind both the border and the side
-   panel, so the panel reads as a wider continuation of the same frame
-   rather than a separate piece of chrome butted up against it. Shared by
-   the timer screen (#layout) and the menu screen (#menu-layout) so both
-   get identical wood chrome. */
+/* One continuous cherrywood surface behind the border, framing the felt.
+   Shared by the timer screen (#layout) and the menu screen (#menu-layout)
+   so both get identical wood chrome. Controls that used to live in a
+   side panel here now live in the top menu bar (see #top-menubar). */
 .wood-layout{
   width:100%;height:100%;
   display:grid;
-  grid-template-columns:1fr clamp(50px,5vw,70px);
+  grid-template-columns:1fr;
   background:
     repeating-linear-gradient(94deg,
       rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
@@ -170,10 +184,8 @@ html,body{width:100%;height:100%;
     linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
 }
 /* The felt sits as a rounded-rect window cut into that wood surface — a
-   uniform 0.25in margin on all four sides, including the side facing the
-   panel, so the panel's inner edge gets the same rounded corner as the
-   other three and the whole frame (border + panel) reads as one piece.
-   Shared by both screens' felt frames. */
+   uniform 0.25in margin on all four sides. Shared by both screens' felt
+   frames. */
 .felt-frame{
   grid-column:1;position:relative;
   padding:0.25in;
@@ -232,13 +244,6 @@ html,body{width:100%;height:100%;
 .pill-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.55);}
 .pill-btn:active{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.55);transform:scale(0.97);box-shadow:var(--glow-active),var(--inset-hi);}
 
-/* Side-panel layout: the primary gameplay buttons (Pause/Payout on the
-   timer screen, Unpause on the menu screen) cluster as one group centered
-   — both vertically and horizontally — in the panel. Install/Help/Update
-   live in the top menu bar instead (see #top-menubar). */
-.panel-primary{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6vh;flex:1;width:100%;}
-.pill-btn-primary{font-size:1.8vh;padding:1.4vh 0.1vw;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;}
-
 /* The felt itself (#felt-surface) gets a soft radial vignette — brightest
    behind the numerals, darker toward the edges — for depth; the numerals
    stay flat. #blind-zone/#cd-zone are just transparent content panes over
@@ -274,78 +279,6 @@ html,body{width:100%;height:100%;
 
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
-
-/* RIGHT — shared side-panel chrome, used by both the timer screen
-   (#col-right) and the menu screen (#menu-side-panel) so the panel is
-   visually consistent across both. */
-.side-panel{
-  grid-column:2;
-  display:flex;flex-direction:column;align-items:center;
-  justify-content:space-evenly;
-  padding:2vh 0.6vw;
-  /* No background of its own — the wood layout's surface shows straight
-     through, so the panel is visibly the same piece of wood as the border
-     rather than a separate texture butted up against it. Only a thin top
-     highlight here (no extra bottom darkening) — that shading isn't on the
-     plain wood border margin either, and having it only on the panel made
-     the shared wood read a shade darker toward the bottom of the panel
-     than the border right next to it. */
-  box-shadow:inset 0 1px 0 rgba(255,180,140,0.15);
-}
-/* The primary gameplay buttons (Pause/Unpause, Payout, Sound) read as
-   wells routed into the wood, like a slot for storing chips or dice,
-   rather than chips sitting on top of it: a dark cavity color, a shadow
-   falling from the near rim into the cavity, a faint catch-light on the
-   far wall, and a thin warm line right at the rim's outer edge where the
-   routed wood edge catches light. */
-.side-panel .pill-btn{
-  background:radial-gradient(130% 160% at 50% 28%,#2c150d 0%,#1a0d08 55%,#100906 100%);
-  border-color:rgba(0,0,0,0.55);
-  box-shadow:
-    inset 0 3px 6px rgba(0,0,0,0.65),
-    inset 0 -2px 3px rgba(0,0,0,0.4),
-    inset 0 1px 1px rgba(255,255,255,0.05),
-    0 1px 0 rgba(255,190,150,0.16);
-  opacity:0.6;
-}
-.side-panel .pill-btn:hover{
-  background:radial-gradient(130% 160% at 50% 28%,#331a10 0%,#1e0f09 55%,#120a07 100%);
-  border-color:rgba(0,0,0,0.4);
-  box-shadow:
-    inset 0 3px 6px rgba(0,0,0,0.6),
-    inset 0 -2px 3px rgba(0,0,0,0.35),
-    inset 0 1px 1px rgba(255,255,255,0.08),
-    0 1px 0 rgba(255,190,150,0.24);
-}
-.side-panel .pill-btn:active{
-  box-shadow:
-    inset 0 4px 8px rgba(0,0,0,0.8),
-    inset 0 -1px 2px rgba(0,0,0,0.5),
-    0 1px 0 rgba(255,190,150,0.12);
-}
-/* Primary buttons on both screens read top-to-bottom down the cherrywood
-   column, matching the narrow sidebar. */
-.side-panel .pill-btn-primary{writing-mode:vertical-rl;padding:1.6vh 0.2vh;}
-/* The clock is plain text at the top of the panel, rotated to match the
-   buttons below it rather than a wood-well control. Rather than
-   writing-mode:vertical-rl (which rotates each glyph individually and
-   misaligns punctuation like the colon against the digits), the text
-   renders normally inside a transparent box (.tod-box) and that whole
-   box is rotated as one unit via transform — the colon and digits stay
-   exactly as aligned as they'd be in ordinary horizontal text. */
-.tod-box{
-  display:flex;align-items:center;justify-content:center;
-  width:100%;flex-shrink:0;height:25.5vh;padding:1vh 0;overflow:visible;
-}
-#tod,#menu-tod{
-  display:inline-block;transform:rotate(90deg);
-  font-size:7.5vh;font-weight:700;letter-spacing:-0.01em;color:var(--white);
-  white-space:nowrap;
-}
-/* Unpause blinks to draw the eye back to it after a pause — the one
-   deliberate animated accent left on the menu screen. */
-#btn-menu-pause{animation:unpauseBlink 1.1s ease-in-out infinite;}
-@keyframes unpauseBlink{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
 /* ANNOUNCE */
 #announce{
@@ -595,19 +528,30 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- TOP MENU BAR (shared by both screens) -->
 <div id="top-menubar">
-  <div class="mb-item" id="mb-app">
-    <button class="mb-label" onclick="event.stopPropagation();toggleMenu('mb-app')">App</button>
+  <div class="mb-item" id="mb-game">
+    <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-game')">Game</button>
+    <div class="mb-dropdown">
+      <button id="btn-pause" onclick="event.stopPropagation();closeAllMenus();togglePause();">Pause</button>
+      <button onclick="event.stopPropagation();closeAllMenus();openSplit();">Payout</button>
+    </div>
+  </div>
+  <div class="mb-item" id="mb-utils">
+    <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-utils')">Utils</button>
     <div class="mb-dropdown">
       <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck();">Sound Check</button>
       <button onclick="event.stopPropagation();closeAllMenus();openInstall();">Install</button>
-      <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();"></button>
+      <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();">Update</button>
     </div>
   </div>
   <div class="mb-item" id="mb-help">
-    <button class="mb-label" onclick="event.stopPropagation();toggleMenu('mb-help')">Help</button>
+    <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-help')">Help</button>
     <div class="mb-dropdown">
       <button onclick="event.stopPropagation();closeAllMenus();openHelp();">How to Play</button>
     </div>
+  </div>
+  <div id="mb-right">
+    <span id="mb-version"></span>
+    <span id="mb-clock">&mdash;</span>
   </div>
 </div>
 
@@ -620,13 +564,6 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="menu-title">Select Starting Blind</div>
     <div id="blind-grid"></div>
   </div>
-  </div>
-
-  <div id="menu-side-panel" class="side-panel">
-    <div class="tod-box"><span id="menu-tod">&mdash;</span></div>
-    <div class="panel-primary">
-      <button class="pill-btn pill-btn-primary" id="btn-menu-pause" onclick="resumeGame()">Unpause</button>
-    </div>
   </div>
 
 </div>
@@ -664,14 +601,6 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
   </div>
 
-  <div id="col-right" class="side-panel">
-    <div class="tod-box"><span id="tod">&mdash;</span></div>
-    <div class="panel-primary">
-      <button class="pill-btn pill-btn-primary" id="btn-pause" onclick="togglePause()">Pause</button>
-      <button class="pill-btn pill-btn-primary" id="btn-split" onclick="openSplit()">Payout</button>
-    </div>
-  </div>
-
 </div>
 </div>
 
@@ -705,7 +634,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Payout</div>
-      <div class="help-body">The <b>Payout</b> button on the right-hand column opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't just shows how much it's short. If any place is short, one bold red line under the <b>Payout split</b> selector states exactly what to do about the first shortfall, e.g. <b>"Break a $20 with a $10 and 2 $5's."</b> The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
+      <div class="help-body">The <b>Payout</b> item in the <b>Game</b> menu opens a cash-count calculator. Enter how many bills of each denomination (<b>$100 / $50 / $20 / $10 / $5</b>) are in the pot; it totals the <b>Prize Pool</b> and takes <b>10% for the house</b>. The <b>Payout split</b> selector offers <b>Top 3</b> (50 / 30 / 20), <b>Top 4</b> (50 / 25 / 15 / 10), and <b>Custom 3&ndash;7 Paid</b>, each a fixed number of paid places. A Custom split defaults 1st place to <b>50%</b>, with the remaining 50% split evenly across the rest, and each place has its own <b>&minus;</b> / <b>+</b> buttons to step its percentage by 1%. Stepping a place redistributes the places below it to evenly split whatever's left (places above are unaffected); stepping the last place instead redistributes the places before it, so the set always sums to 100%. The sheet remembers your last split and percentages &mdash; including after closing and reopening the app &mdash; and restores them the next time it opens. Each payout is rounded to the <b>nearest whole $5</b> so it can be paid in bills; the small difference is added to or taken from the house cut (so the cut can land a little above or below 10%), and the raw pre-round figure is shown in small type next to each place. Each payout that the counted bills can cover exactly lists <b>which bills to set aside</b> for it (dealt largest-first); one that can't just shows how much it's short. If any place is short, one bold red line under the <b>Payout split</b> selector states exactly what to do about the first shortfall, e.g. <b>"Break a $20 with a $10 and 2 $5's."</b> The House cut's own bill list only appears once every payout balances, since otherwise some of what's "left over" is really still owed to a shorted place. Figures update as you type, and the timer keeps running underneath. Press <b>Esc</b> or tap <b>Close</b> to return.</div>
     </div>
   </div>
   <div class="help-tap">Tap anywhere to close</div>
@@ -817,7 +746,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.173';
+const VERSION='v1.174';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -834,14 +763,11 @@ const elApp=document.getElementById('app');
 const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
 const elAnnounce=document.getElementById('announce');
-const elBtnMenuPause=document.getElementById('btn-menu-pause');
 const elSplitOverlay=document.getElementById('split-overlay');
-const elTod=document.getElementById('tod');
-const elMenuTod=document.getElementById('menu-tod');
+const elMbClock=document.getElementById('mb-clock');
 
-// The top menu bar's App > Check for Updates item shows the version as its
-// own label at rest, and doubles as the update-check button.
-document.getElementById('btn-check-update').textContent=VERSION;
+// Printed beside the clock in the top menu bar.
+document.getElementById('mb-version').textContent=VERSION;
 
 // Levels 1-10 follow sb=i*100/bb=i*200; levels 11-13 step up by +500/+1000 per
 // level (1500/3000, 2000/4000, 2500/5000); levels 14-29 jump by +1000/+2000 per
@@ -904,6 +830,7 @@ let pendingSync=null;
   }
 })();
 let paused=true,running=false,launchWall=0,pauseSecRTC=0;
+updatePauseMenuItem();
 let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 let audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
@@ -921,7 +848,7 @@ function closeHelp(){
   document.getElementById('help-overlay').classList.remove('visible');
 }
 
-// ── Top menu bar (App/Help dropdowns, shared by both screens) ──────
+// ── Top menu bar (Game/Utils/Help dropdowns, shared by both screens) ──
 function closeAllMenus(){
   document.querySelectorAll('.mb-item.open').forEach(el=>el.classList.remove('open'));
 }
@@ -931,9 +858,32 @@ function toggleMenu(id){
   closeAllMenus();
   if(!wasOpen)item.classList.add('open');
 }
+// Clicking a top-level label normally opens/closes its dropdown, but a menu
+// with only one enabled item skips the dropdown entirely and just runs that
+// item — e.g. Help (always one item) and Game (when Pause is disabled
+// because no level is running, leaving Payout as the only live item).
+function menuLabelClick(id){
+  if(id==='mb-game')updatePauseMenuItem();
+  const enabled=Array.from(document.querySelectorAll('#'+id+' .mb-dropdown button')).filter(b=>!b.disabled);
+  if(enabled.length===1){
+    closeAllMenus();
+    enabled[0].click();
+  } else {
+    toggleMenu(id);
+  }
+}
 document.addEventListener('click',e=>{
   if(!e.target.closest('#top-menubar'))closeAllMenus();
 });
+
+// Keeps the Game menu's Pause/Resume item in sync with running/paused
+// state — there's no side panel anymore to hold two separate Pause/Unpause
+// buttons, so this one item does both, and is disabled when there's no
+// level running to pause or resume.
+function updatePauseMenuItem(){
+  elBtnPause.disabled=!running;
+  elBtnPause.textContent=(running&&paused)?'Resume':'Pause';
+}
 
 // ── Install ───────────────────────────────────────────────────────
 let deferredInstallPrompt=null;
@@ -1603,7 +1553,7 @@ function startSoundcheck(){
   const decide=()=>{
     if(soundcheckDecided)return;
     soundcheckDecided=true;
-    if(ctx.state==='running'){if(pendingSync)startSynced();else{showMenu(false);render();}}
+    if(ctx.state==='running'){if(pendingSync)startSynced();else{showMenu();render();}}
     else{elMenuScreen.style.display='none';elSoundcheckScreen.style.display='flex';}
   };
   ctx.resume().then(decide,decide);
@@ -1617,7 +1567,7 @@ function allowSound(){
   // 'running' without actually unlocking playback.
   playSoundcheck();
   elSoundcheckScreen.style.display='none';
-  if(pendingSync)startSynced();else{showMenu(false);render();}
+  if(pendingSync)startSynced();else{showMenu();render();}
 }
 
 // The Wake Lock API silently releases itself whenever the tab/screen goes
@@ -1648,7 +1598,7 @@ function fmtTime(d){
   return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
 }
 function fmtClock(){return fmtTime(new Date());}
-function updateClocks(){const t=fmtClock();elTod.textContent=t;elMenuTod.textContent=t;}
+function updateClocks(){elMbClock.textContent=fmtClock();}
 setInterval(updateClocks,1000);
 updateClocks();
 
@@ -1674,10 +1624,9 @@ function updateMenuHighlight(){
   }
 }
 
-function showMenu(showResume){
+function showMenu(){
   elApp.classList.remove('visible');
   updateMenuHighlight();
-  elBtnMenuPause.style.display=showResume?'block':'none';
   elMenuScreen.style.display='flex';
 }
 
@@ -1686,7 +1635,7 @@ function enterRunningState(){
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
   paused=false;running=true;
-  elBtnPause.textContent='Pause';
+  updatePauseMenuItem();
   launchWall=Date.now();
   requestWakeLock();requestLandscape();requestFullscreenMode();
   scheduleTick();
@@ -1743,6 +1692,7 @@ function tick(){
       // level is picked manually instead of auto-continuing.
       stopTick();
       running=false;paused=true;advancing=false;cancelSnap();
+      updatePauseMenuItem();
       showBreakAnnounce();
       return;
     }
@@ -1790,10 +1740,11 @@ function togglePause(){
   if(!running)return;
   if(!paused){
     freezeCountdown();
-    showMenu(true);
+    showMenu();
   } else {
     resumeGame();
   }
+  updatePauseMenuItem();
 }
 
 // Bind touch-swipe and mouse-drag gestures on `el`, calling onSwipe(dx) with
@@ -1879,7 +1830,7 @@ function finishBreak(){
   elAnnounce.classList.remove('visible','break');
   level=6;remSec=maxSec(6);pausedRemSec=remSec;
   elApp.classList.remove('visible');
-  showMenu(false);render();
+  showMenu();render();
 }
 
 
@@ -1906,9 +1857,9 @@ document.addEventListener('keydown',e=>{
         stopTick();
         running=false;paused=true;advancing=false;cancelSnap();
         level=1;remSec=maxSec(1);pausedRemSec=maxSec(1);
-        elBtnPause.textContent='Pause';
+        updatePauseMenuItem();
         elApp.classList.remove('visible');
-        showMenu(false);render();
+        showMenu();render();
       },3000);
     }
   });
@@ -1943,11 +1894,13 @@ if(navigator.onLine){
 // asked for it, then reload to swap in the update.
 async function checkForUpdates(){
   // The dropdown deliberately stays open (rather than closing on click like
-  // the other App-menu items) while this button's own label walks through
+  // the other Utils-menu items) while this button's own label walks through
   // Checking… / Latest vX.XX / Updated…, so the status is actually visible.
+  // The current version itself is shown beside the clock, not on this
+  // button, so its resting label is just the static "Update".
   const btn=document.getElementById('btn-check-update');
   const setBtn=(text,disabled)=>{btn.textContent=text;if(disabled!==undefined)btn.disabled=disabled;};
-  const restBtn=()=>{btn.textContent=VERSION;btn.disabled=false;closeAllMenus();};
+  const restBtn=()=>{btn.textContent='Update';btn.disabled=false;closeAllMenus();};
   setBtn('Checking…',true);
   try{
     if(swReg)await swReg.update();
