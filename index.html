@@ -106,16 +106,31 @@ html,body{width:100%;height:100%;
   position:absolute;bottom:2vh;left:2vw;z-index:-1;
   pointer-events:none;
 }
-/* Retro LED look: a monospace stack (no vendored/network font, same as
-   the rest of the app) stands in for a segmented digital face, plus a red
-   glow (color + blurred text-shadow in the same hue) for the LED backlight
-   effect. */
-#mb-clock{
-  font-family:'Courier New',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
-  font-size:11vh;font-weight:700;letter-spacing:0.04em;
-  color:#ff2a2a;text-shadow:0 0 0.18em rgba(255,42,42,1),0 0 0.53em rgba(255,42,42,0.8);
-  white-space:nowrap;line-height:1;opacity:0.6;
-}
+/* True seven-segment display, built from plain CSS bars rather than a
+   font — there's no system-installed 7-segment font to name, and adding
+   one would mean either a network fetch or vendoring a font file, both
+   against this app's single-file/offline-only design. renderSSD() (see
+   the Clock section of the script) turns each character of fmtClock()'s
+   "H:MM" string into a `.ssd-digit`/`.ssd-colon` box; SSD_SEGMENTS maps
+   each digit to which of the 7 segments (a-g, standard naming: a=top,
+   b/c=upper/lower-right, d=bottom, e/f=lower/upper-left, g=middle) are
+   lit. Only lit segments are rendered at all (no dim "unlit segment"
+   ghosting) and solid full-opacity color with no text-shadow, per the
+   "no transparency, no glow" look. */
+#mb-clock{display:flex;align-items:center;}
+.ssd-digit{position:relative;width:6vh;height:11vh;margin:0 0.4vh;}
+.ssd-colon{position:relative;width:2.4vh;height:11vh;margin:0 0.2vh;}
+.ssd-colon i{position:absolute;left:50%;width:1.7vh;height:1.7vh;margin-left:-0.85vh;background:#ff2a2a;border-radius:20%;}
+.ssd-colon i:nth-child(1){top:29%;}
+.ssd-colon i:nth-child(2){top:58%;}
+.ssd-seg{position:absolute;background:#ff2a2a;border-radius:0.4vh;}
+.seg-a{top:0;left:10%;width:80%;height:8%;}
+.seg-g{top:46%;left:10%;width:80%;height:8%;}
+.seg-d{top:92%;left:10%;width:80%;height:8%;}
+.seg-f{top:6%;left:0;width:10%;height:42%;}
+.seg-b{top:6%;right:0;width:10%;height:42%;}
+.seg-e{top:52%;left:0;width:10%;height:42%;}
+.seg-c{top:52%;right:0;width:10%;height:42%;}
 /* Version label, centered on the bottom wood border — a separate fixed
    bar (not inside #top-menubar) since the bottom border belongs to each
    screen's own felt-frame rather than the shared top bar. `pointer-events:
@@ -848,7 +863,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.205';
+const VERSION='v1.206';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1735,8 +1750,22 @@ function fmtTime(d,ampm){
   return s;
 }
 function fmtClock(){return fmtTime(new Date());}
+// Seven-segment rendering for the corner clock (see #mb-clock's CSS) —
+// standard a-g segment naming, each digit's value listing which are lit.
+const SSD_SEGMENTS={
+  '0':'abcdef','1':'bc','2':'abged','3':'abgcd','4':'fgbc',
+  '5':'afgcd','6':'afgecd','7':'abc','8':'abcdefg','9':'abcdfg'
+};
+function renderSSD(str){
+  return str.split('').map(ch=>{
+    if(ch===':')return '<span class="ssd-colon"><i></i><i></i></span>';
+    const lit=SSD_SEGMENTS[ch]||'';
+    const segs=lit.split('').map(s=>`<i class="ssd-seg seg-${s}"></i>`).join('');
+    return `<span class="ssd-digit">${segs}</span>`;
+  }).join('');
+}
 function updateClocks(){
-  elMbClock.textContent=fmtClock();
+  elMbClock.innerHTML=renderSSD(fmtClock());
   updatePauseLabel();
   // Nothing else redraws the countdown during the auto-advance freeze
   // (tick()/scheduleTick() both bail while advancing) — piggyback on this
