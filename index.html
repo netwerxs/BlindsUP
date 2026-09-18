@@ -71,6 +71,8 @@ html,body{width:100%;height:100%;
   display:flex;align-items:center;
 }
 .mb-label:hover{background:rgba(255,255,255,0.08);color:var(--white);}
+.mb-label:disabled{opacity:0.5;cursor:default;}
+.mb-label:disabled:hover{background:none;}
 .mb-item.open .mb-label{background:rgba(255,255,255,0.14);color:var(--white);}
 .mb-dropdown{
   display:none;position:absolute;top:100%;left:0;min-width:200px;
@@ -98,7 +100,7 @@ html,body{width:100%;height:100%;
    thickness (0.25in) and a little into the felt below — like a plaque
    mounted at the corner rather than a label squeezed into the bar.
    Removed from flex flow (position:absolute), so it doesn't disturb the
-   Game/Utils/Help layout; margin-left:auto isn't needed since `right:0`
+   rest of the bar's layout; margin-left:auto isn't needed since `right:0`
    anchors it directly. Coming left to right, the bar's border-bottom hits
    the pedestal's left wall and takes a rounded 90° turn down it
    (top-left), a rounded 90° turn at the bottom to run along the
@@ -585,13 +587,9 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- TOP MENU BAR (shared by both screens) -->
 <div id="top-menubar">
-  <div class="mb-item" id="mb-game">
-    <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-game')">Game</button>
-    <div class="mb-dropdown">
-      <button id="btn-pause" onclick="event.stopPropagation();closeAllMenus();togglePause();">Pause</button>
-      <button onclick="event.stopPropagation();closeAllMenus();openSplit();">Payout</button>
-    </div>
-  </div>
+  <button class="mb-label" onclick="closeAllMenus();openSplit();">Payout</button>
+  <button class="mb-label" id="btn-pause" onclick="closeAllMenus();togglePause();">Pause</button>
+  <button class="mb-label" onclick="closeAllMenus();exitApp();">Exit</button>
   <div class="mb-item" id="mb-utils">
     <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-utils')">Utils</button>
     <div class="mb-dropdown">
@@ -811,7 +809,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.181';
+const VERSION='v1.182';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -914,7 +912,8 @@ function closeHelp(){
   document.getElementById('help-overlay').classList.remove('visible');
 }
 
-// ── Top menu bar (Game/Utils/Help dropdowns, shared by both screens) ──
+// ── Top menu bar (Payout/Pause/Exit + Utils/Help dropdowns, shared by
+// both screens) ──────────────────────────────────────────────────
 function closeAllMenus(){
   document.querySelectorAll('.mb-item.open').forEach(el=>el.classList.remove('open'));
 }
@@ -925,11 +924,10 @@ function toggleMenu(id){
   if(!wasOpen)item.classList.add('open');
 }
 // Clicking a top-level label normally opens/closes its dropdown, but a menu
-// with only one enabled item skips the dropdown entirely and just runs that
-// item — e.g. Help (always one item) and Game (when Pause is disabled
-// because no level is running, leaving Payout as the only live item).
+// with only one enabled item skips the dropdown entirely and just runs
+// that item — Help always has exactly one (How to Play), so it behaves as
+// a plain button rather than ever showing a one-row dropdown.
 function menuLabelClick(id){
-  if(id==='mb-game')updatePauseMenuItem();
   const enabled=Array.from(document.querySelectorAll('#'+id+' .mb-dropdown button')).filter(b=>!b.disabled);
   if(enabled.length===1){
     closeAllMenus();
@@ -942,9 +940,9 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('#top-menubar'))closeAllMenus();
 });
 
-// Keeps the Game menu's Pause/Resume item in sync with running/paused
+// Keeps the top bar's Pause/Resume button in sync with running/paused
 // state — there's no side panel anymore to hold two separate Pause/Unpause
-// buttons, so this one item does both, and is disabled when there's no
+// buttons, so this one button does both, and is disabled when there's no
 // level running to pause or resume.
 function updatePauseMenuItem(){
   elBtnPause.disabled=!running;
