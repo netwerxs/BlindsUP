@@ -340,7 +340,7 @@ html,body{width:100%;height:100%;
    still below #pause-overlay (z-index 8) so once paused it's simply
    covered by that overlay rather than needing its own show/hide JS. */
 .felt-transport{
-  position:relative;z-index:1;
+  position:relative;z-index:1;opacity:0.5;
   display:flex;align-items:center;padding:0.6vh;
   background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.32);
   border-radius:999px;box-shadow:var(--inset-hi);
@@ -874,7 +874,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.194';
+const VERSION='v1.195';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
