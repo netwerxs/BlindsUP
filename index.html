@@ -329,6 +329,24 @@ html,body{width:100%;height:100%;
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
 
+/* A small always-there pause control planted at the exact center of the
+   felt (the seam between #blind-zone and #cd-zone) — the old-school "||"
+   symbol, no label. Sits above the blind/countdown zones but below
+   #pause-overlay (z-index 8), so once paused it's simply covered by that
+   overlay rather than needing its own show/hide JS. */
+.felt-pause-btn{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:2;width:6.5vh;height:6.5vh;border-radius:50%;
+  background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.32);
+  box-shadow:var(--inset-hi);
+  display:flex;align-items:center;justify-content:center;gap:1vh;
+  cursor:pointer;padding:0;
+  transition:background 0.2s,border-color 0.2s,transform 0.08s;
+}
+.felt-pause-btn:hover{background:rgba(0,0,0,0.48);border-color:rgba(255,255,255,0.55);}
+.felt-pause-btn:active{transform:translate(-50%,-50%) scale(0.92);}
+.felt-pause-btn .bar{width:1vh;height:2.8vh;background:var(--white);border-radius:1px;}
+
 /* PAUSE — a translucent tap-to-resume layer over the felt (not the whole
    screen, so the top menu bar stays reachable) rather than navigating away
    to the menu screen. Sibling of #felt-surface inside #felt-frame (already
@@ -679,6 +697,9 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"></div>
   </div>
   </div>
+  <button id="btn-felt-pause" class="felt-pause-btn" onclick="togglePause()" aria-label="Pause" title="Pause">
+    <span class="bar"></span><span class="bar"></span>
+  </button>
   <div id="pause-overlay" onclick="resumeGame()">
     <div class="pause-label pause-detail" id="pause-label">Paused</div>
     <div class="pause-sub">Tap to resume</div>
@@ -830,7 +851,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.189';
+const VERSION='v1.190';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
