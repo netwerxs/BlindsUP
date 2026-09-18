@@ -810,7 +810,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.183';
+const VERSION='v1.184';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -897,6 +897,10 @@ let pendingSync=null;
 let paused=true,running=false,launchWall=0,pauseSecRTC=0;
 updatePauseMenuItem();
 let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
+// Wall-clock moment a level was last manually picked from the menu — see
+// displayRemSec()/FLIP_DELAY_SEC below.
+let levelStartWall=0;
+const FLIP_DELAY_SEC=25;
 let audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
 // ── Touch detection ───────────────────────────────────────────────
@@ -1667,11 +1671,29 @@ function updateClocks(){elMbClock.textContent=fmtClock();}
 setInterval(updateClocks,1000);
 updateClocks();
 
+// For the first FLIP_DELAY_SEC after a level is picked, show a plain
+// countdown from its full round duration (15:00, 10:00, ...) instead of
+// the RTC-synced start value — picking a level otherwise often lands on
+// an odd number like 14:37, which just reads as broken to anyone who
+// doesn't know about the cross-device :00 alignment. `remSec` itself stays
+// the real synced value throughout (auto-advance/alarm timing depend on
+// it); only the displayed digits are overridden, and only during that
+// window, based on wall-clock time since `levelStartWall` so a pause/
+// resume within the window can't extend or replay it.
+function displayRemSec(){
+  if(levelStartWall){
+    const sinceStart=(Date.now()-levelStartWall)/1000;
+    if(sinceStart<FLIP_DELAY_SEC)return Math.max(0,Math.ceil(maxSec(level)-sinceStart));
+  }
+  return remSec;
+}
+
 function render(){
   const lv=Math.min(level,BLINDS.length),bl=BLINDS[lv-1];
   elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;
   fitBlind();
-  const mm=Math.floor(remSec/60),ss=remSec%60;
+  const showSec=displayRemSec();
+  const mm=Math.floor(showSec/60),ss=showSec%60;
   elCdMin.textContent=String(mm);
   elCdSec.textContent=String(ss).padStart(2,'0');
 }
@@ -1709,6 +1731,7 @@ function enterRunningState(){
 
 function beginCountdown(){
   pausedRemSec=remSec;
+  levelStartWall=Date.now();
   render();
   enterRunningState();
 }
