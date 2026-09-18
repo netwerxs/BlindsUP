@@ -89,33 +89,25 @@ html,body{width:100%;height:100%;
 .mb-dropdown button:hover{background:rgba(255,255,255,0.1);}
 .mb-dropdown button:disabled{opacity:0.6;cursor:default;}
 .mb-dropdown button:disabled:hover{background:none;}
-/* The clock reads 5x bigger than a normal bar label — too tall to fit
-   inside the thin bar without changing its height, so rather than shrink
-   it back down it lives on a raised wood pedestal anchored to the
-   top-right corner. #top-menubar is already `position:fixed`, so this
-   absolutely-positioned child is free to grow taller than the bar itself
-   and hang down past its bottom edge — past the wood border's own
-   thickness (0.25in) and a little into the felt below — like a plaque
-   mounted at the corner rather than a label squeezed into the bar.
-   Removed from flex flow (position:absolute), so it doesn't disturb the
-   Game/Utils/Help layout; margin-left:auto isn't needed since `right:0`
-   anchors it directly. Coming left to right, the bar's border-bottom hits
-   the pedestal's left wall and takes a rounded 90° turn down it
-   (top-left), a rounded 90° turn at the bottom to run along the
-   pedestal's underside (bottom-left), then a rounded 90° turn back
-   downward (bottom-right) where it joins the wood-layout's own right-edge
-   border continuing beneath the pedestal. Top-right stays square — that's
-   the screen's own physical corner, not a wall being routed around. */
+/* The felt rectangle's own border traces its full perimeter — except at
+   the clock pedestal, a plain 2in-tall wood rectangle sitting flush in
+   the top-right corner (flush with the screen's top and right edges, so
+   no border is needed on those two sides — that's just the screen's own
+   corner). Where the border would otherwise run straight across the top
+   and down the right side, it instead runs along the pedestal's bottom
+   side and left side only, at a plain sharp corner where those two meet
+   — no curve, no rounding. This is also why the clock (5x a normal bar
+   label, too tall for the thin `#top-menubar` without changing its
+   height) has somewhere to live: the pedestal, not the bar itself. */
 #clock-platform{
   position:absolute;top:0;right:0;
-  padding:env(safe-area-inset-top) 1.8vw 1.2vh;
+  height:2in;
+  padding:0 1.8vw;
   padding-right:calc(env(safe-area-inset-right) + 1.8vw);
   display:flex;align-items:center;justify-content:center;
   background:linear-gradient(180deg,#3d1712 0%,#241009 100%);
   border-left:1px solid rgba(0,0,0,0.6);
-  border-right:1px solid rgba(0,0,0,0.6);
   border-bottom:1px solid rgba(0,0,0,0.6);
-  border-radius:24px 0 24px 24px;
   box-shadow:4px 8px 16px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,180,140,0.12);
 }
 #mb-clock{
@@ -783,7 +775,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.178';
+const VERSION='v1.179';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
