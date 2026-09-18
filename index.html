@@ -348,6 +348,12 @@ html,body{width:100%;height:100%;
   font-size:8vh;font-weight:800;letter-spacing:0.25em;text-transform:uppercase;
   color:var(--white);text-shadow:0 4px 12px rgba(0,0,0,0.6);
 }
+/* The label now carries "Paused at H:MMPM NN seconds ago" instead of just
+   "Paused" — far too wide for the original 8vh headline size, so it drops
+   to a size that comfortably fits the full sentence on one line. */
+.pause-label.pause-detail{
+  font-size:3.2vh;letter-spacing:0.08em;text-align:center;max-width:92%;
+}
 .pause-sub{
   font-size:1.8vh;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;
   color:rgba(255,255,255,0.7);
@@ -674,7 +680,7 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
   </div>
   <div id="pause-overlay" onclick="resumeGame()">
-    <div class="pause-label">Paused</div>
+    <div class="pause-label pause-detail" id="pause-label">Paused</div>
     <div class="pause-sub">Tap to resume</div>
   </div>
   </div>
@@ -824,7 +830,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.188';
+const VERSION='v1.189';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -844,6 +850,7 @@ const elAnnounce=document.getElementById('announce');
 const elSplitOverlay=document.getElementById('split-overlay');
 const elMbClock=document.getElementById('mb-clock');
 const elPauseOverlay=document.getElementById('pause-overlay');
+const elPauseLabel=document.getElementById('pause-label');
 const elFeltSurface=document.getElementById('felt-surface');
 
 // Printed beside the clock in the top menu bar.
@@ -909,7 +916,7 @@ let pendingSync=null;
     pendingSync={lv,t};
   }
 })();
-let paused=true,running=false,launchWall=0,pauseSecRTC=0;
+let paused=true,running=false,launchWall=0,pauseSecRTC=0,pauseWallClock=0;
 updatePauseMenuItem();
 let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 // Wall-clock moment a level was last manually picked from the menu — see
@@ -1704,14 +1711,29 @@ function requestFullscreenMode(){
 document.addEventListener('pointerdown',requestFullscreenMode);
 
 // Clock
-function fmtTime(d){
+function fmtTime(d,ampm){
   const h=d.getHours(),m=d.getMinutes();
-  return (h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
+  let s=(h>12?h-12:h===0?12:h)+':'+String(m).padStart(2,'0');
+  if(ampm)s+=h>=12?'PM':'AM';
+  return s;
 }
 function fmtClock(){return fmtTime(new Date());}
-function updateClocks(){elMbClock.textContent=fmtClock();}
+function updateClocks(){
+  elMbClock.textContent=fmtClock();
+  updatePauseLabel();
+}
 setInterval(updateClocks,1000);
 updateClocks();
+
+// While paused, the overlay's headline shows exactly when the pause
+// started and a live "N seconds ago" count, rather than a static
+// "Paused" — piggybacks on updateClocks()'s existing 1s heartbeat rather
+// than running its own interval.
+function updatePauseLabel(){
+  if(!paused||!pauseWallClock)return;
+  const secsAgo=Math.max(0,Math.round((Date.now()-pauseWallClock)/1000));
+  elPauseLabel.textContent=`Paused at ${fmtTime(new Date(pauseWallClock),true)} ${secsAgo} seconds ago`;
+}
 
 // For the first FLIP_DELAY_SEC after a level is picked, show a plain
 // countdown from its full round duration (15:00, 10:00, ...) instead of
@@ -1769,6 +1791,7 @@ function enterRunningState(){
   elPauseOverlay.classList.remove('visible');
   elFeltSurface.classList.remove('pause-flash');
   stopPauseAlarm();
+  pauseWallClock=0;
   paused=false;running=true;
   updatePauseMenuItem();
   launchWall=Date.now();
@@ -1876,6 +1899,8 @@ function togglePause(){
   if(!running)return;
   if(!paused){
     freezeCountdown();
+    pauseWallClock=Date.now();
+    updatePauseLabel();
     elPauseOverlay.classList.add('visible');
     elFeltSurface.classList.add('pause-flash');
     startPauseAlarm();
