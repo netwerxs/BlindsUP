@@ -861,7 +861,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.197';
+const VERSION='v1.198';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -951,6 +951,9 @@ let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 // displayRemSec()/FLIP_DELAY_SEC below.
 let levelStartWall=0;
 const FLIP_DELAY_SEC=15;
+// Wall-clock moment the current auto-advance freeze began — see
+// displayRemSec() below.
+let advanceWall=0;
 let audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
 // ── Touch detection ───────────────────────────────────────────────
@@ -1749,6 +1752,10 @@ function fmtClock(){return fmtTime(new Date());}
 function updateClocks(){
   elMbClock.textContent=fmtClock();
   updatePauseLabel();
+  // Nothing else redraws the countdown during the auto-advance freeze
+  // (tick()/scheduleTick() both bail while advancing) — piggyback on this
+  // same 1s heartbeat so displayRemSec()'s fake countdown actually ticks.
+  if(advancing)render();
 }
 setInterval(updateClocks,1000);
 updateClocks();
@@ -1775,7 +1782,19 @@ function updatePauseLabel(){
 // adjustLevel()/adjustTime() input clears `levelStartWall`, flipping the
 // display to the real synced value immediately rather than waiting out
 // the rest of the window.
+//
+// The same trick covers the auto-advance freeze (`advancing`/`advanceWall`,
+// set in tick()): rather than sitting frozen on the full duration for
+// however long it takes snapTO to land on the next RTC :07 mark, count
+// down from it live. `remSec` is already pinned to the new level's full
+// duration for that whole window (tick()/scheduleTick() both bail while
+// advancing), so it doubles as the starting point here too — nothing
+// about the real RTC-snapped handoff value changes.
 function displayRemSec(){
+  if(advancing&&advanceWall){
+    const sinceAdvance=(Date.now()-advanceWall)/1000;
+    return Math.max(0,Math.ceil(remSec-sinceAdvance));
+  }
   if(levelStartWall){
     const sinceStart=(Date.now()-levelStartWall)/1000;
     if(sinceStart<FLIP_DELAY_SEC)return Math.max(0,Math.ceil(maxSec(level)-sinceStart));
@@ -1887,13 +1906,14 @@ function tick(){
     level=Math.min(level+1,BLINDS.length);
     const ms=maxSec(level);
     remSec=ms;pausedRemSec=ms;
+    advanceWall=Date.now();
     levelUpCue();render();
     const ss=new Date().getSeconds();
     snapTO=setTimeout(()=>{
       snapTO=null;
       if(!advancing||!running||paused)return;
       remSec=snapToRTC(ms);pausedRemSec=remSec;
-      launchWall=Date.now();advancing=false;render();
+      launchWall=Date.now();advancing=false;advanceWall=0;render();
       scheduleTick();
     },((7-ss+60)%60)*1000);
     return;
@@ -1980,7 +2000,7 @@ bindSwipe(elCdZone,dx=>adjustTime(dx>0?-1:1));
 // countdown, so nudging the level up or down mid-level doesn't cost or
 // gain time.
 function adjustLevel(dir){
-  cancelSnap();advancing=false;
+  cancelSnap();advancing=false;advanceWall=0;
   const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
   if(nv===level)return;
   level=nv;
@@ -1988,7 +2008,7 @@ function adjustLevel(dir){
 }
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
-  cancelSnap();advancing=false;
+  cancelSnap();advancing=false;advanceWall=0;
   // remSec is usually already RTC-snapped, which can sit up to 30s to either
   // side of a clean minute mark. Math.floor would sometimes read that as one
   // minute short (e.g. 13:59 reads as minute 13), making +1 silently re-land
