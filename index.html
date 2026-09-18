@@ -634,24 +634,24 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- TOP MENU BAR (shared by both screens) -->
 <div id="top-menubar">
-  <button class="mb-label" id="btn-pause" onclick="closeAllMenus();togglePause();">Pause</button>
-  <button class="mb-label" onclick="closeAllMenus();openSplit();">Payout</button>
-  <button class="mb-label" onclick="closeAllMenus();resetToMenu();">Reset</button>
-  <div class="mb-item" id="mb-utils">
-    <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-utils')">Utils</button>
+  <div class="mb-item" id="mb-game">
+    <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-game')">Game</button>
     <div class="mb-dropdown">
+      <button onclick="event.stopPropagation();closeAllMenus();resetToMenu();">New</button>
       <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck();">Sound Check</button>
-      <button onclick="event.stopPropagation();closeAllMenus();openInstall();">Install</button>
       <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();">Update</button>
+      <button onclick="event.stopPropagation();closeAllMenus();exitApp();">Exit</button>
     </div>
   </div>
+  <button class="mb-label" id="btn-pause" onclick="closeAllMenus();togglePause();">Pause</button>
+  <button class="mb-label" onclick="closeAllMenus();openSplit();">Payout</button>
   <div class="mb-item" id="mb-help">
     <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-help')">Help</button>
     <div class="mb-dropdown">
       <button onclick="event.stopPropagation();closeAllMenus();openHelp();">How to Play</button>
+      <button onclick="event.stopPropagation();closeAllMenus();openInstall();">Install</button>
     </div>
   </div>
-  <button class="mb-label" onclick="closeAllMenus();exitApp();">Exit</button>
   <div id="clock-platform">
     <span id="mb-clock">&mdash;</span>
   </div>
@@ -861,7 +861,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.198';
+const VERSION='v1.199';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -970,7 +970,7 @@ function closeHelp(){
   document.getElementById('help-overlay').classList.remove('visible');
 }
 
-// ── Top menu bar (Payout/Pause/Exit + Utils/Help dropdowns, shared by
+// ── Top menu bar (Game/Help dropdowns + Pause/Payout, shared by
 // both screens) ──────────────────────────────────────────────────
 function closeAllMenus(){
   document.querySelectorAll('.mb-item.open').forEach(el=>el.classList.remove('open'));
@@ -983,8 +983,7 @@ function toggleMenu(id){
 }
 // Clicking a top-level label normally opens/closes its dropdown, but a menu
 // with only one enabled item skips the dropdown entirely and just runs
-// that item — Help always has exactly one (How to Play), so it behaves as
-// a plain button rather than ever showing a one-row dropdown.
+// that item directly rather than showing a one-row dropdown.
 function menuLabelClick(id){
   const enabled=Array.from(document.querySelectorAll('#'+id+' .mb-dropdown button')).filter(b=>!b.disabled);
   if(enabled.length===1){
@@ -1958,12 +1957,12 @@ function togglePause(){
   updatePauseMenuItem();
 }
 
-// Reset: stops the countdown (if one's running) and brings up the picker
-// screen, same as Pause used to before it became an in-place overlay —
-// unlike Pause, this leaves the timer screen rather than freezing in
-// place. Doesn't force level back to 1; the current level stays
-// highlighted on the grid (updateMenuHighlight(), via showMenu()), and
-// picking any card — including the highlighted one — starts it fresh
+// New (Game menu): stops the countdown (if one's running) and brings up
+// the picker screen, same as Pause used to before it became an in-place
+// overlay — unlike Pause, this leaves the timer screen rather than
+// freezing in place. Doesn't force level back to 1; the current level
+// stays highlighted on the grid (updateMenuHighlight(), via showMenu()),
+// and picking any card — including the highlighted one — starts it fresh
 // (selectBlind() always resnaps remSec).
 function resetToMenu(){
   if(running){
@@ -2125,7 +2124,7 @@ if(navigator.onLine){
 // asked for it, then reload to swap in the update.
 async function checkForUpdates(){
   // The dropdown deliberately stays open (rather than closing on click like
-  // the other Utils-menu items) while this button's own label walks through
+  // the other Game-menu items) while this button's own label walks through
   // Checking… / Latest vX.XX / Updated…, so the status is actually visible.
   // The current version itself is shown beside the clock, not on this
   // button, so its resting label is just the static "Update".
