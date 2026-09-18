@@ -587,9 +587,9 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- TOP MENU BAR (shared by both screens) -->
 <div id="top-menubar">
-  <button class="mb-label" onclick="closeAllMenus();openSplit();">Payout</button>
   <button class="mb-label" id="btn-pause" onclick="closeAllMenus();togglePause();">Pause</button>
-  <button class="mb-label" onclick="closeAllMenus();exitApp();">Exit</button>
+  <button class="mb-label" onclick="closeAllMenus();openSplit();">Payout</button>
+  <button class="mb-label" onclick="closeAllMenus();resetToMenu();">Reset</button>
   <div class="mb-item" id="mb-utils">
     <button class="mb-label" onclick="event.stopPropagation();menuLabelClick('mb-utils')">Utils</button>
     <div class="mb-dropdown">
@@ -604,6 +604,7 @@ body.split-open #rotate-prompt{display:none!important;}
       <button onclick="event.stopPropagation();closeAllMenus();openHelp();">How to Play</button>
     </div>
   </div>
+  <button class="mb-label" onclick="closeAllMenus();exitApp();">Exit</button>
   <div id="clock-platform">
     <span id="mb-clock">&mdash;</span>
   </div>
@@ -809,7 +810,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.182';
+const VERSION='v1.183';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1810,6 +1811,23 @@ function togglePause(){
     resumeGame();
   }
   updatePauseMenuItem();
+}
+
+// Reset: stops the countdown (if one's running) and brings up the picker
+// screen, same as Pause used to before it became an in-place overlay —
+// unlike Pause, this leaves the timer screen rather than freezing in
+// place. Doesn't force level back to 1; the current level stays
+// highlighted on the grid (updateMenuHighlight(), via showMenu()), and
+// picking any card — including the highlighted one — starts it fresh
+// (selectBlind() always resnaps remSec).
+function resetToMenu(){
+  if(running){
+    freezeCountdown();
+    updatePauseMenuItem();
+  }
+  elPauseOverlay.classList.remove('visible');
+  elApp.classList.remove('visible');
+  showMenu();
 }
 
 // Bind touch-swipe and mouse-drag gestures on `el`, calling onSwipe(dx) with
