@@ -93,36 +93,23 @@ html,body{width:100%;height:100%;
 .mb-dropdown button:disabled:hover{background:none;}
 /* The clock reads 5x bigger than a normal bar label — too tall to fit
    inside the thin bar without changing its height, so rather than shrink
-   it back down it lives on a raised wood pedestal anchored to the
-   top-right corner. #top-menubar is already `position:fixed`, so this
-   absolutely-positioned child is free to grow taller than the bar itself
-   and hang down past its bottom edge — past the wood border's own
-   thickness (0.25in) and a little into the felt below — like a plaque
-   mounted at the corner rather than a label squeezed into the bar.
-   Removed from flex flow (position:absolute), so it doesn't disturb the
-   rest of the bar's layout; margin-left:auto isn't needed since `right:0`
-   anchors it directly. Coming left to right, the bar's border-bottom hits
-   the pedestal's left wall and takes a rounded 90° turn down it
-   (top-left), a rounded 90° turn at the bottom to run along the
-   pedestal's underside (bottom-left), then a rounded 90° turn back
-   downward (bottom-right) where it joins the wood-layout's own right-edge
-   border continuing beneath the pedestal. Top-right stays square — that's
-   the screen's own physical corner, not a wall being routed around. */
+   it back down it's anchored to the top-right corner and allowed to hang
+   down past the bar's bottom edge. #top-menubar is already
+   `position:fixed`, so this absolutely-positioned child is free to grow
+   taller than the bar itself. Removed from flex flow (position:absolute),
+   so it doesn't disturb the rest of the bar's layout; margin-left:auto
+   isn't needed since `right:0` anchors it directly. No background/border
+   of its own (the old raised-wood-pedestal plaque) — just the numerals
+   floating over whatever's behind them. */
 #clock-platform{
   position:absolute;top:0;right:0;
   padding:env(safe-area-inset-top) 1.8vw 1.2vh;
   padding-right:calc(env(safe-area-inset-right) + 1.8vw);
   display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,#3d1712 0%,#241009 100%);
-  border-left:1px solid rgba(0,0,0,0.6);
-  border-right:1px solid rgba(0,0,0,0.6);
-  border-bottom:1px solid rgba(0,0,0,0.6);
-  border-radius:24px 0 24px 24px;
-  box-shadow:4px 8px 16px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,180,140,0.12);
 }
 #mb-clock{
   font-size:9.5vh;font-weight:700;letter-spacing:-0.01em;
-  color:var(--white);white-space:nowrap;line-height:1;
+  color:var(--white);white-space:nowrap;line-height:1;opacity:0.5;
 }
 /* Version label, centered on the bottom wood border — a separate fixed
    bar (not inside #top-menubar) since the bottom border belongs to each
@@ -861,7 +848,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.200';
+const VERSION='v1.201';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
