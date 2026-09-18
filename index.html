@@ -92,20 +92,22 @@ html,body{width:100%;height:100%;
 .mb-dropdown button:disabled{opacity:0.6;cursor:default;}
 .mb-dropdown button:disabled:hover{background:none;}
 /* The clock reads 5x bigger than a normal bar label — too tall to fit
-   inside the thin bar without changing its height, so rather than shrink
-   it back down it's anchored to the top-right corner and allowed to hang
-   down past the bar's bottom edge. #top-menubar is already
-   `position:fixed`, so this absolutely-positioned child is free to grow
-   taller than the bar itself. Removed from flex flow (position:absolute),
-   so it doesn't disturb the rest of the bar's layout; margin-left:auto
-   isn't needed since `right:0` anchors it directly. No background/border
-   of its own (the old raised-wood-pedestal plaque) — just the numerals
-   floating over whatever's behind them. */
+   inside a bar's thin height without changing it, so instead of shrinking
+   it down it's a separate fixed element anchored to the screen's own
+   bottom-left corner (where the felt's heart glyph used to sit — see
+   #cd-zone below), free to sit at its natural size regardless of any
+   bar's height. `position:fixed` (not tied to `#top-menubar`) plus
+   `z-index:41` keeps it shared and visible on both screens, same as
+   `#bottom-bar`. `pointer-events:none` so it never intercepts the felt's
+   swipe/click zones underneath it. No background/border of its own (the
+   old raised-wood-pedestal plaque) — just the numerals floating over
+   whatever's behind them. */
 #clock-platform{
-  position:absolute;top:0;right:0;
-  padding:env(safe-area-inset-top) 1.8vw 1.2vh;
-  padding-right:calc(env(safe-area-inset-right) + 1.8vw);
+  position:fixed;left:0;bottom:0;z-index:41;
+  padding:1.2vh 1.8vw calc(env(safe-area-inset-bottom) + 1.2vh);
+  padding-left:calc(env(safe-area-inset-left) + 1.8vw);
   display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
 }
 /* Retro LED look: a monospace stack (no vendored/network font, same as
    the rest of the app) stands in for a segmented digital face, plus a red
@@ -114,7 +116,7 @@ html,body{width:100%;height:100%;
 #mb-clock{
   font-family:'Courier New',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
   font-size:11vh;font-weight:700;letter-spacing:0.04em;
-  color:#ff2a2a;text-shadow:0 0 0.12em rgba(255,42,42,0.85),0 0 0.35em rgba(255,42,42,0.55);
+  color:#ff2a2a;text-shadow:0 0 0.18em rgba(255,42,42,1),0 0 0.53em rgba(255,42,42,0.8);
   white-space:nowrap;line-height:1;opacity:0.33;
 }
 /* Version label, centered on the bottom wood border — a separate fixed
@@ -301,7 +303,6 @@ html,body{width:100%;height:100%;
 }
 .suit-clubs{top:2vh;left:2vw;color:#111;}
 .suit-diamonds{top:2vh;right:2vw;color:var(--danger);}
-.suit-hearts{bottom:2vh;left:2vw;color:var(--danger);}
 .suit-spades{bottom:2vh;right:2vw;color:#111;}
 #blind-inner{
   display:flex;align-items:center;justify-content:center;
@@ -645,14 +646,16 @@ body.split-open #rotate-prompt{display:none!important;}
       <button onclick="event.stopPropagation();closeAllMenus();openInstall();">Install</button>
     </div>
   </div>
-  <div id="clock-platform">
-    <span id="mb-clock">&mdash;</span>
-  </div>
 </div>
 
 <!-- Version label, centered on the bottom wood border (shared by both screens) -->
 <div id="bottom-bar">
   <span id="mb-version"></span>
+</div>
+
+<!-- Clock, anchored to the bottom-left corner (shared by both screens) -->
+<div id="clock-platform">
+  <span id="mb-clock">&mdash;</span>
 </div>
 
 <!-- MENU -->
@@ -688,7 +691,6 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
 
   <div id="cd-zone">
-    <span class="suit suit-hearts" aria-hidden="true">&#9829;</span>
     <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
     <div id="cd-inner">
       <span class="cd-num" id="cdMin">15</span>
@@ -847,14 +849,13 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="announce" onclick="dismissAnnounce()" role="status" aria-live="assertive" aria-atomic="true">
   <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
   <span class="suit suit-diamonds" aria-hidden="true">&#9830;</span>
-  <span class="suit suit-hearts" aria-hidden="true">&#9829;</span>
   <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
   <div class="ann-num" id="ann-break">Break</div>
   <div class="ann-tap">tap to dismiss</div>
 </div>
 
 <script>
-const VERSION='v1.203';
+const VERSION='v1.204';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
