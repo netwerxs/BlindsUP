@@ -861,7 +861,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.199';
+const VERSION='v1.200';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1766,7 +1766,7 @@ updateClocks();
 function updatePauseLabel(){
   if(!paused||!pauseWallClock)return;
   const secsAgo=Math.max(0,Math.round((Date.now()-pauseWallClock)/1000));
-  elPauseLabel.textContent=`Paused at ${fmtTime(new Date(pauseWallClock),true)} ${secsAgo} seconds ago`;
+  elPauseLabel.innerHTML=`Paused ${secsAgo} seconds ago<br>at ${fmtTime(new Date(pauseWallClock),true)}`;
 }
 
 // For the first FLIP_DELAY_SEC after a level is picked, show a plain
