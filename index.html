@@ -91,22 +91,19 @@ html,body{width:100%;height:100%;
 .mb-dropdown button:hover{background:rgba(255,255,255,0.1);}
 .mb-dropdown button:disabled{opacity:0.6;cursor:default;}
 .mb-dropdown button:disabled:hover{background:none;}
-/* The clock reads 5x bigger than a normal bar label — too tall to fit
-   inside a bar's thin height without changing it, so instead of shrinking
-   it down it's a separate fixed element anchored to the screen's own
-   bottom-left corner (where the felt's heart glyph used to sit — see
-   #cd-zone below), free to sit at its natural size regardless of any
-   bar's height. `position:fixed` (not tied to `#top-menubar`) plus
-   `z-index:41` keeps it shared and visible on both screens, same as
-   `#bottom-bar`. `pointer-events:none` so it never intercepts the felt's
-   swipe/click zones underneath it. No background/border of its own (the
-   old raised-wood-pedestal plaque) — just the numerals floating over
-   whatever's behind them. */
+/* The clock sits in #cd-zone's bottom-left corner — the spot the felt's
+   heart glyph used to occupy — positioned with the exact same
+   `bottom`/`left` inset convention as the `.suit` corner glyphs
+   (.suit-clubs/.suit-diamonds/.suit-spades below) so it lines up with
+   them as if it were the fourth corner. `position:absolute` inside
+   `#cd-zone` (already `position:relative`), `z-index:-1` matching
+   `.suit`'s own stacking so it sits behind the countdown digits the same
+   way the glyphs do. `pointer-events:none` so it never intercepts the
+   felt's swipe/click zones underneath it. No background/border of its
+   own (the old raised-wood-pedestal plaque) — just the numerals floating
+   over the felt. */
 #clock-platform{
-  position:fixed;left:0;bottom:0;z-index:41;
-  padding:1.2vh 1.8vw calc(env(safe-area-inset-bottom) + 1.2vh);
-  padding-left:calc(env(safe-area-inset-left) + 1.8vw);
-  display:flex;align-items:center;justify-content:center;
+  position:absolute;bottom:2vh;left:2vw;z-index:-1;
   pointer-events:none;
 }
 /* Retro LED look: a monospace stack (no vendored/network font, same as
@@ -117,7 +114,7 @@ html,body{width:100%;height:100%;
   font-family:'Courier New',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
   font-size:11vh;font-weight:700;letter-spacing:0.04em;
   color:#ff2a2a;text-shadow:0 0 0.18em rgba(255,42,42,1),0 0 0.53em rgba(255,42,42,0.8);
-  white-space:nowrap;line-height:1;opacity:0.33;
+  white-space:nowrap;line-height:1;opacity:0.6;
 }
 /* Version label, centered on the bottom wood border — a separate fixed
    bar (not inside #top-menubar) since the bottom border belongs to each
@@ -653,11 +650,6 @@ body.split-open #rotate-prompt{display:none!important;}
   <span id="mb-version"></span>
 </div>
 
-<!-- Clock, anchored to the bottom-left corner (shared by both screens) -->
-<div id="clock-platform">
-  <span id="mb-clock">&mdash;</span>
-</div>
-
 <!-- MENU -->
 <div id="menu-screen">
 <div id="menu-layout" class="wood-layout">
@@ -692,6 +684,7 @@ body.split-open #rotate-prompt{display:none!important;}
 
   <div id="cd-zone">
     <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
+    <div id="clock-platform"><span id="mb-clock">&mdash;</span></div>
     <div id="cd-inner">
       <span class="cd-num" id="cdMin">15</span>
       <span class="cd-colon">:</span>
@@ -855,7 +848,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.204';
+const VERSION='v1.205';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
