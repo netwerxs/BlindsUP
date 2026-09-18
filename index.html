@@ -824,7 +824,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.186';
+const VERSION='v1.187';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -915,7 +915,7 @@ let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
 // Wall-clock moment a level was last manually picked from the menu — see
 // displayRemSec()/FLIP_DELAY_SEC below.
 let levelStartWall=0;
-const FLIP_DELAY_SEC=25;
+const FLIP_DELAY_SEC=15;
 let audioCtx=null,alarmNodes=[],alarmTimeouts=[];
 
 // ── Touch detection ───────────────────────────────────────────────
@@ -1721,7 +1721,10 @@ updateClocks();
 // the real synced value throughout (auto-advance/alarm timing depend on
 // it); only the displayed digits are overridden, and only during that
 // window, based on wall-clock time since `levelStartWall` so a pause/
-// resume within the window can't extend or replay it.
+// resume within the window can't extend or replay it. Any manual
+// adjustLevel()/adjustTime() input clears `levelStartWall`, flipping the
+// display to the real synced value immediately rather than waiting out
+// the rest of the window.
 function displayRemSec(){
   if(levelStartWall){
     const sinceStart=(Date.now()-levelStartWall)/1000;
@@ -1926,7 +1929,7 @@ function adjustLevel(dir){
   level=nv;
   const ms=maxSec(level);
   remSec=snapToRTC(ms);pausedRemSec=remSec;
-  launchWall=Date.now();render();
+  launchWall=Date.now();levelStartWall=0;render();
 }
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
@@ -1941,7 +1944,7 @@ function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   const ss=new Date().getSeconds();
   const newRem=newMin===0?(60-ss)%60:snapToRTC(newMin*60);
   remSec=newRem;pausedRemSec=newRem;
-  launchWall=Date.now();render();
+  launchWall=Date.now();levelStartWall=0;render();
 }
 
 function showAnnounce(){
