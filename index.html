@@ -824,7 +824,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.187';
+const VERSION='v1.188';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1922,14 +1922,16 @@ bindSwipe(elBlindZone,dx=>adjustLevel(dx>0?1:-1));
 // Swipe countdown: left=+1min, right=-1min (re-snaps seconds to RTC)
 bindSwipe(elCdZone,dx=>adjustTime(dx>0?-1:1));
 
+// Manually changing the blind level (swipe/click/keyboard on the blind
+// zone) only swaps which sb/bb pair is displayed — it never touches the
+// countdown, so nudging the level up or down mid-level doesn't cost or
+// gain time.
 function adjustLevel(dir){
   cancelSnap();advancing=false;
   const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
   if(nv===level)return;
   level=nv;
-  const ms=maxSec(level);
-  remSec=snapToRTC(ms);pausedRemSec=remSec;
-  launchWall=Date.now();levelStartWall=0;render();
+  levelStartWall=0;render();
 }
 
 function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
