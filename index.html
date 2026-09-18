@@ -318,10 +318,10 @@ html,body{width:100%;height:100%;
 .b-amp{font-size:1em;font-weight:700;line-height:0.85;color:var(--white);align-self:center;margin:0 0.25em;}
 
 #cd-zone{
-  display:flex;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vh;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
 }
-#cd-inner{display:flex;align-items:center;justify-content:center;height:100%;width:100%;}
+#cd-inner{display:flex;align-items:center;justify-content:center;}
 .cd-num{font-size:32vh;font-weight:700;line-height:0.85;color:var(--white);letter-spacing:-0.04em;font-variant-numeric:tabular-nums;}
 .cd-colon{font-size:22vh;font-weight:900;line-height:0.85;color:var(--white);align-self:center;margin:0 0.05em;}
 
@@ -329,16 +329,19 @@ html,body{width:100%;height:100%;
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
 
-/* A small always-there transport control planted at the exact center of
-   the felt (the seam between #blind-zone and #cd-zone) — one oval housing
-   three old-school symbol-only buttons: Rewind (adjustTime, +1min — swipe
-   left on #cd-zone means the same thing), Pause (togglePause), Fast
-   Forward (adjustTime, -1min). Sits above the blind/countdown zones but
-   below #pause-overlay (z-index 8), so once paused it's simply covered by
-   that overlay rather than needing its own show/hide JS. */
+/* A small always-there transport control stacked right under the
+   countdown, both grouped and centered together in #cd-zone (the felt's
+   lower half) — one oval housing three old-school symbol-only buttons:
+   Rewind (adjustTime, +1min — swipe left on #cd-zone means the same
+   thing), Pause (togglePause), Fast Forward (adjustTime, -1min). It's a
+   normal flex child of #cd-zone (not absolutely positioned over the
+   whole felt), so it needs its own stacking context — position:relative
+   plus a z-index above the zone's click-catcher .zone-half overlays, but
+   still below #pause-overlay (z-index 8) so once paused it's simply
+   covered by that overlay rather than needing its own show/hide JS. */
 .felt-transport{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:2;display:flex;align-items:center;padding:0.6vh;
+  position:relative;z-index:1;
+  display:flex;align-items:center;padding:0.6vh;
   background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.32);
   border-radius:999px;box-shadow:var(--inset-hi);
 }
@@ -705,20 +708,20 @@ body.split-open #rotate-prompt{display:none!important;}
       <span class="cd-colon">:</span>
       <span class="cd-num" id="cdSec">00</span>
     </div>
+    <div class="felt-transport">
+      <button class="transport-btn" onclick="adjustTime(1)" aria-label="Rewind 1 minute" title="Rewind 1 minute">
+        <span class="tri tri-left"></span><span class="tri tri-left"></span>
+      </button>
+      <button id="btn-felt-pause" class="transport-btn transport-btn-main" onclick="togglePause()" aria-label="Pause" title="Pause">
+        <span class="bar"></span><span class="bar"></span>
+      </button>
+      <button class="transport-btn" onclick="adjustTime(-1)" aria-label="Fast forward 1 minute" title="Fast forward 1 minute">
+        <span class="tri tri-right"></span><span class="tri tri-right"></span>
+      </button>
+    </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"></div>
   </div>
-  </div>
-  <div class="felt-transport">
-    <button class="transport-btn" onclick="adjustTime(1)" aria-label="Rewind 1 minute" title="Rewind 1 minute">
-      <span class="tri tri-left"></span><span class="tri tri-left"></span>
-    </button>
-    <button id="btn-felt-pause" class="transport-btn transport-btn-main" onclick="togglePause()" aria-label="Pause" title="Pause">
-      <span class="bar"></span><span class="bar"></span>
-    </button>
-    <button class="transport-btn" onclick="adjustTime(-1)" aria-label="Fast forward 1 minute" title="Fast forward 1 minute">
-      <span class="tri tri-right"></span><span class="tri tri-right"></span>
-    </button>
   </div>
   <div id="pause-overlay" onclick="resumeGame()">
     <div class="pause-label pause-detail" id="pause-label">Paused</div>
@@ -871,7 +874,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.192';
+const VERSION='v1.193';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
