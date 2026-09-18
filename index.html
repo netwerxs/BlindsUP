@@ -91,7 +91,7 @@ html,body{width:100%;height:100%;
 .mb-dropdown button:disabled:hover{background:none;}
 /* The clock reads 5x bigger than a normal bar label — too tall to fit
    inside the thin bar without changing its height, so rather than shrink
-   it back down it lives on a raised wood platform anchored to the
+   it back down it lives on a raised wood pedestal anchored to the
    top-right corner. #top-menubar is already `position:fixed`, so this
    absolutely-positioned child is free to grow taller than the bar itself
    and hang down past its bottom edge — past the wood border's own
@@ -99,26 +99,40 @@ html,body{width:100%;height:100%;
    mounted at the corner rather than a label squeezed into the bar.
    Removed from flex flow (position:absolute), so it doesn't disturb the
    Game/Utils/Help layout; margin-left:auto isn't needed since `right:0`
-   anchors it directly. */
+   anchors it directly. Both left corners are rounded (top-right/bottom-right
+   stay square, flush against the screen's own top/right edges) so the
+   bar's border-bottom doesn't just dead-end into a boxy notch — it sweeps
+   in a continuous curve down the pedestal's left side and back out along
+   its bottom, reading as one border routed *around* the pedestal rather
+   than two borders that happen to touch. */
 #clock-platform{
   position:absolute;top:0;right:0;
   padding:env(safe-area-inset-top) 1.8vw 1.2vh;
   padding-right:calc(env(safe-area-inset-right) + 1.8vw);
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
-  gap:0.3vh;
+  display:flex;align-items:center;justify-content:center;
   background:linear-gradient(180deg,#3d1712 0%,#241009 100%);
   border-left:1px solid rgba(0,0,0,0.6);
   border-bottom:1px solid rgba(0,0,0,0.6);
-  border-radius:0 0 0 20px;
+  border-radius:24px 0 0 24px;
   box-shadow:4px 8px 16px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,180,140,0.12);
-}
-#mb-version{
-  font-size:1.1vh;font-weight:400;letter-spacing:0.08em;
-  color:rgba(255,255,255,0.4);white-space:nowrap;
 }
 #mb-clock{
   font-size:9.5vh;font-weight:700;letter-spacing:-0.01em;
   color:var(--white);white-space:nowrap;line-height:1;
+}
+/* Version label, centered on the bottom wood border — a separate fixed
+   bar (not inside #top-menubar) since the bottom border belongs to each
+   screen's own felt-frame rather than the shared top bar. `pointer-events:
+   none` so it never intercepts the felt's swipe/click zones underneath. */
+#bottom-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:41;
+  display:flex;justify-content:center;
+  padding-bottom:calc(env(safe-area-inset-bottom) + 0.4vh);
+  pointer-events:none;
+}
+#mb-version{
+  font-size:1.1vh;font-weight:400;letter-spacing:0.08em;
+  color:rgba(255,255,255,0.4);white-space:nowrap;
 }
 
 /* ── MENU SCREEN ── */
@@ -567,9 +581,13 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
   </div>
   <div id="clock-platform">
-    <span id="mb-version"></span>
     <span id="mb-clock">&mdash;</span>
   </div>
+</div>
+
+<!-- Version label, centered on the bottom wood border (shared by both screens) -->
+<div id="bottom-bar">
+  <span id="mb-version"></span>
 </div>
 
 <!-- MENU -->
@@ -763,7 +781,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.175';
+const VERSION='v1.176';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
