@@ -824,7 +824,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.185';
+const VERSION='v1.186';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1610,6 +1610,33 @@ function stopAlarm(){
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
 }
 
+// Nags every 30s while paused, after an initial 90s grace period, so a
+// forgotten paused table doesn't sit silent indefinitely — two sharp,
+// loud square-wave beeps, deliberately unlike playAlarm()'s warm chime so
+// it reads as "you left this paused," not a level-up. Kept entirely
+// separate from alarmNodes/alarmTimeouts/stopAlarm() (which freezeCountdown()
+// already calls on every pause, to kill any in-flight level-up alarm) so
+// the two don't clear each other out from under themselves.
+let pauseAlarmTO=null,pauseAlarmNodes=[],pauseAlarmTimeouts=[];
+function playPauseBeep(){
+  const beep=()=>pauseAlarmNodes.push(zzfx(1,0,1200,0,.09,.05,1,2,0,0,0,0,0,0,0,0,0,1,.01));
+  beep();
+  pauseAlarmTimeouts.push(setTimeout(beep,220));
+}
+function firePauseAlarm(){
+  playPauseBeep();
+  pauseAlarmTO=setTimeout(firePauseAlarm,30000);
+}
+function startPauseAlarm(){
+  stopPauseAlarm();
+  pauseAlarmTO=setTimeout(firePauseAlarm,90000);
+}
+function stopPauseAlarm(){
+  if(pauseAlarmTO){clearTimeout(pauseAlarmTO);pauseAlarmTO=null;}
+  pauseAlarmTimeouts.forEach(clearTimeout);pauseAlarmTimeouts=[];
+  pauseAlarmNodes.forEach(n=>{try{n.stop();}catch(e){}});pauseAlarmNodes=[];
+}
+
 // Two wooden dowels struck together, three times, 600ms apart. Fired once at
 // the 11-second mark of the countdown.
 function playWoodClack(){
@@ -1738,6 +1765,7 @@ function enterRunningState(){
   elApp.classList.add('visible');
   elPauseOverlay.classList.remove('visible');
   elFeltSurface.classList.remove('pause-flash');
+  stopPauseAlarm();
   paused=false;running=true;
   updatePauseMenuItem();
   launchWall=Date.now();
@@ -1847,6 +1875,7 @@ function togglePause(){
     freezeCountdown();
     elPauseOverlay.classList.add('visible');
     elFeltSurface.classList.add('pause-flash');
+    startPauseAlarm();
   } else {
     resumeGame();
   }
@@ -1867,6 +1896,7 @@ function resetToMenu(){
   }
   elPauseOverlay.classList.remove('visible');
   elFeltSurface.classList.remove('pause-flash');
+  stopPauseAlarm();
   elApp.classList.remove('visible');
   showMenu();
 }
@@ -1982,6 +2012,9 @@ document.addEventListener('keydown',e=>{
         running=false;paused=true;advancing=false;cancelSnap();
         level=1;remSec=maxSec(1);pausedRemSec=maxSec(1);
         updatePauseMenuItem();
+        elPauseOverlay.classList.remove('visible');
+        elFeltSurface.classList.remove('pause-flash');
+        stopPauseAlarm();
         elApp.classList.remove('visible');
         showMenu();render();
       },3000);
