@@ -99,22 +99,25 @@ html,body{width:100%;height:100%;
    tucks it flush into the corner, and its `background` is copied
    verbatim from `.wood-layout` (same grain-line gradients, same base
    tones) so it's pixel-identical to the real rail rather than a
-   lookalike. `padding:0.6vh 0.6vh 0 0` (top/right only, none on
-   bottom/left) is what actually produces the rail band on just those two
-   sides: the bottom and left edges of `#clock-plaque` sit flush against
-   `#clock-platform`'s own edges there (no wood shows through, same as
-   the real rail being absent along the felt's own inner edges elsewhere),
-   while the top/right padding leaves a strip of wood background visible.
-   `overflow:hidden` plus `border-radius` (inner radius + the padding
-   amount, same concentric-corner math `.felt-frame` uses for its own
-   outer radius) rounds and clips that strip's outer edge. `z-index:-1`
+   lookalike. `padding:0.25in 0.25in 0 0` is the exact same thickness as
+   `.felt-frame`'s own padding, not an arbitrary smaller value; it's what
+   actually produces the rail band on just the top/right sides (bottom/
+   left already sit flush against the real rail, so they need nothing
+   added): the bottom and left edges of `#clock-plaque` sit flush against
+   `#clock-platform`'s own edges there (no wood shows through), while the
+   top/right padding leaves a strip of wood background visible at the
+   real rail's own thickness. `overflow:hidden` plus
+   `border-radius:calc(16px + 0.25in)` (identical to `.felt-frame`'s own
+   outer-radius formula) rounds and clips that strip's outer edge;
+   `#clock-plaque` uses the plain `16px` inner radius `.felt-surface`
+   itself uses, for the same reason. `z-index:-1`
    matches `.suit`'s own stacking so it sits behind the countdown digits
    if they ever overlap; `pointer-events:none` so it never intercepts the
    felt's swipe/click zones underneath it. */
 #clock-platform{
   position:absolute;bottom:0;left:0;z-index:-1;
-  padding:0.6vh 0.6vh 0 0;
-  border-radius:2.2vh;overflow:hidden;
+  padding:0.25in 0.25in 0 0;
+  border-radius:calc(16px + 0.25in);overflow:hidden;
   background:
     repeating-linear-gradient(94deg,
       rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
@@ -128,7 +131,7 @@ html,body{width:100%;height:100%;
 #clock-plaque{
   padding:1.2vh 1.8vw;
   background:radial-gradient(130% 130% at 35% 30%,#ffffff 0%,#e4e0d6 100%);
-  border-radius:1.6vh;
+  border-radius:16px;
 }
 /* True seven-segment display, built from plain CSS bars rather than a
    font — there's no system-installed 7-segment font to name, and adding
@@ -887,7 +890,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.212';
+const VERSION='v1.213';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
