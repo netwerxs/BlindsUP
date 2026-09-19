@@ -1,7 +1,7 @@
 # Payout Structure
 
 Reference for the home game. The clock and the payout math live in `index.html`
-(the **Payout** button on the right-hand column) — this file just records the
+(the **Payout** button in the top menu bar) — this file just records the
 structure and the terms.
 
 ## Format: tournament, not a cash game

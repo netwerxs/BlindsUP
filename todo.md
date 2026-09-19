@@ -10,4 +10,4 @@
 
 ## Sync (device handoff)
 
-- [ ] Decide whether to restore or remove Sync: `pendingSync`/`startSynced()` can consume a `?lv=&t=` link, but nothing in the app generates one anymore (the old Lock-button/QR mechanism is gone) — currently orphaned/unreachable from the UI — _added 2026-09-12_
+- [x] Decide whether to restore or remove Sync — _added 2026-09-12, done 2026-09-18: removed `pendingSync`/`startSynced()` entirely (dead code — nothing generated the `?lv=&t=` link since the old Lock-button/QR mechanism was removed)_

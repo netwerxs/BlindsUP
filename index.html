@@ -948,7 +948,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.221';
+const VERSION='v1.222';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1017,20 +1017,6 @@ function fitBlind(){
 
 let level=1,remSec=maxSec(1),pausedRemSec=maxSec(1);
 
-// ── Sync (deep-link handoff to a second device) ───────────────────────────
-// A ?lv=&t= URL encodes the current level plus an absolute wall-clock end
-// time (rather than a raw seconds-remaining count) so the receiving device
-// lands on the correct remaining time regardless of how long the load takes.
-// Parsed once at startup; consumed by startSynced() once the soundcheck gate
-// (see below) has resolved either way.
-let pendingSync=null;
-(function(){
-  const p=new URLSearchParams(location.search);
-  const lv=parseInt(p.get('lv'),10),t=parseInt(p.get('t'),10);
-  if(Number.isInteger(lv)&&lv>=1&&lv<=BLINDS.length&&Number.isFinite(t)){
-    pendingSync={lv,t};
-  }
-})();
 let paused=true,running=false,launchWall=0,pauseSecRTC=0,pauseWallClock=0;
 updatePauseMenuItem();
 let tickHandle=null,announceTO=null,snapTO=null,advancing=false;
@@ -1788,7 +1774,7 @@ function startSoundcheck(){
   const decide=()=>{
     if(soundcheckDecided)return;
     soundcheckDecided=true;
-    if(ctx.state==='running'){if(pendingSync)startSynced();else{showMenu();render();}}
+    if(ctx.state==='running'){showMenu();render();}
     else{elMenuScreen.style.display='none';elSoundcheckScreen.style.display='flex';}
   };
   ctx.resume().then(decide,decide);
@@ -1802,7 +1788,7 @@ function allowSound(){
   // 'running' without actually unlocking playback.
   playSoundcheck();
   elSoundcheckScreen.style.display='none';
-  if(pendingSync)startSynced();else{showMenu();render();}
+  showMenu();render();
 }
 
 // The Wake Lock API silently releases itself whenever the tab/screen goes
@@ -1935,20 +1921,6 @@ function enterRunningState(){
 function beginCountdown(){
   pausedRemSec=remSec;
   levelStartWall=Date.now();
-  render();
-  enterRunningState();
-}
-
-// Lands the countdown at the exact position encoded by pendingSync (see the
-// URLSearchParams parsing near BLINDS above), then starts it running — like
-// beginCountdown() but computing remSec from an absolute end time instead of
-// snapToRTC(), so it matches whatever moment the source device was at.
-function startSynced(){
-  level=pendingSync.lv;
-  remSec=Math.max(0,Math.round((pendingSync.t-Date.now())/1000));
-  pausedRemSec=remSec;
-  pendingSync=null;
-  history.replaceState(null,'',location.pathname+location.hash);
   render();
   enterRunningState();
 }

@@ -15,14 +15,13 @@ A free, no-install poker blinds timer that runs in any browser. Works on phones,
 - **Countdown ticks** — three wood-clack sounds at the 11-second mark of each level
 - **Break screen** — level 5 pauses the countdown with a "Break" overlay for about a minute (tap to skip ahead); you then pick the next level from the menu
 - **Adjustable timer** — add or subtract one minute on the fly
-- **QR Sync** — the Lock button doubles as a QR code; scan it from a second device (via the menu's Sync card) to mirror the running timer there, landing on the exact correct time
-- **One-tap updates** — the version label (bottom-right of the menu) checks for and installs updates
+- **One-tap updates** — the **Update** item in the Game menu checks for and installs updates
 - **Wall clock** — always visible so you're not hunting for your phone
 - **Touch, mouse, and keyboard** — swipe on phones/tablets; click ±zones or use arrow keys on desktop
 - **Full screen + landscape lock** — press F11 on desktop; install to home screen on mobile for true full screen and automatic landscape orientation
 - **Works offline** — installable PWA with service worker
 - **No in-app volume control** — alarm level follows your device's hardware volume buttons
-- **No build step, no backend** — one HTML file (two small libraries vendored inline for QR sync)
+- **No build step, no backend** — everything lives in one HTML file
 
 ## Install as an app (recommended for iPad)
 
@@ -75,7 +74,6 @@ On the timer screen the blind pair auto-shrinks to fit when a wide value (e.g. `
 | Add 1 minute | Swipe left on timer | Click right half of timer | ← |
 | Subtract 1 minute | Swipe right on timer | Click left half of timer | → |
 | Pause / Resume | Tap Pause | Click Pause | — |
-| Lock/unlock adjustments | Tap Lock | Click Lock | — |
 | Full screen | Add to home screen | F11 | — |
 | Return to menu | Hold Esc 3 seconds | Hold Esc 3 seconds | — |
 
