@@ -95,29 +95,47 @@ html,body{width:100%;height:100%;
    felt's heart glyph used to occupy — as a small white-felt plaque set
    into an actual rail, mirroring .felt-frame/.felt-surface's own
    outer-wood/inner-felt layering exactly rather than approximating it.
-   `#clock-platform` is the mini rail: `position:absolute;bottom:0;left:0`
-   tucks it flush into the corner, and its `background` is copied
-   verbatim from `.wood-layout` (same grain-line gradients, same base
-   tones) so it's pixel-identical to the real rail rather than a
-   lookalike. `padding:0.25in 0.25in 0 0` is the exact same thickness as
-   `.felt-frame`'s own padding, not an arbitrary smaller value; it's what
-   actually produces the rail band on just the top/right sides (bottom/
-   left already sit flush against the real rail, so they need nothing
-   added): the bottom and left edges of `#clock-plaque` sit flush against
-   `#clock-platform`'s own edges there (no wood shows through), while the
-   top/right padding leaves a strip of wood background visible at the
-   real rail's own thickness. `overflow:hidden` plus
-   `border-radius:calc(16px + 0.25in)` (identical to `.felt-frame`'s own
-   outer-radius formula) rounds and clips that strip's outer edge;
-   `#clock-plaque` uses the plain `16px` inner radius `.felt-surface`
-   itself uses, for the same reason. `z-index:-1`
-   matches `.suit`'s own stacking so it sits behind the countdown digits
-   if they ever overlap; `pointer-events:none` so it never intercepts the
-   felt's swipe/click zones underneath it. */
-#clock-platform{
-  position:absolute;bottom:0;left:0;z-index:-1;
-  padding:0.25in 0.25in 0 0;
-  border-radius:calc(16px + 0.25in);overflow:hidden;
+   `#clock-platform` (`position:absolute;bottom:0;left:0`) tucks the
+   whole assembly flush into the corner and owns the padding
+   (`0.25in 0.25in 0 0`, the exact same thickness as `.felt-frame`'s own,
+   not an arbitrary smaller value) that pushes `#clock-plaque` in from
+   the top/right only — the bottom and left sides already sit flush
+   against the real rail, so nothing is added there. The wood itself
+   lives on three children sharing `.clock-wood` (the same
+   `repeating-linear-gradient`s + base `linear-gradient` as
+   `.wood-layout`, verbatim, plus `background-attachment:fixed` so the
+   grain's phase lines up with the real rail's instead of each element
+   starting its own cycle from its own box):
+   - `.clock-rail` is the main band — `inset:0` fills `#clock-platform`,
+     `border-radius:calc(16px + 0.25in)` (identical to `.felt-frame`'s
+     own outer-radius formula) plus `overflow:hidden` rounds and clips
+     its outer (top-right) corner, the one corner where two *added*
+     rail edges actually meet.
+   - `.clock-rail-corner-tl`/`-br` round the other two junctions — where
+     the top rail meets the real rail flush along the left edge, and
+     where the right rail meets the real rail flush along the bottom
+     edge — into a matching inside-corner fillet instead of a sharp
+     right angle, the same way a real wood frame's inside corners are
+     routed round rather than left square. Each is a small square
+     (`width/height:16px`) positioned so the actual junction point sits
+     at its inner corner, with a hard-edged `radial-gradient` `mask`
+     (centered at its own outer corner, radius 16px) that keeps only the
+     quarter-circle nearest the junction — the rest of the square stays
+     transparent so the felt shows through unchanged. They're plain
+     children of `#clock-platform` (not `.clock-rail`) specifically so
+     `.clock-rail`'s own `overflow:hidden` doesn't clip them, since both
+     extend outside `.clock-rail`'s own box (`-tl` above it, `-br` to its
+     right) — `#clock-platform` itself has no `overflow` set, so nothing
+     clips them.
+   `#clock-plaque` needs `position:relative` for exactly one reason:
+   positioned elements always paint above non-positioned ones regardless
+   of source order, so without it the (positioned, `z-index:auto`) rail
+   pieces before it in the DOM would paint over it instead of behind it.
+   `z-index:-1` on `#clock-platform` matches `.suit`'s own stacking, so
+   the whole assembly sits behind the countdown digits if they ever
+   overlap; `pointer-events:none` (inherited by every child) so none of
+   it ever intercepts the felt's swipe/click zones underneath. */
+.clock-wood{
   background:
     repeating-linear-gradient(94deg,
       rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
@@ -127,9 +145,22 @@ html,body{width:100%;height:100%;
       transparent 1px, transparent 11px),
     linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
   background-attachment:fixed;
+}
+#clock-platform{
+  position:absolute;bottom:0;left:0;z-index:-1;
+  padding:0.25in 0.25in 0 0;
   pointer-events:none;
 }
+.clock-rail{position:absolute;inset:0;border-radius:0 calc(16px + 0.25in) 0 0;overflow:hidden;}
+.clock-rail-corner{
+  position:absolute;width:16px;height:16px;
+  -webkit-mask-image:radial-gradient(circle at 100% 0%,transparent 16px,#000 16px);
+  mask-image:radial-gradient(circle at 100% 0%,transparent 16px,#000 16px);
+}
+.clock-rail-corner-tl{top:-16px;left:0;}
+.clock-rail-corner-br{left:100%;bottom:0;}
 #clock-plaque{
+  position:relative;
   padding:1.2vh 1.8vw;
   background:radial-gradient(130% 130% at 35% 30%,#ffffff 0%,#e4e0d6 100%);
   border-radius:16px;
@@ -735,7 +766,12 @@ body.split-open #rotate-prompt{display:none!important;}
 
   <div id="cd-zone">
     <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
-    <div id="clock-platform"><div id="clock-plaque"><span id="mb-clock">&mdash;</span></div></div>
+    <div id="clock-platform">
+      <div class="clock-rail clock-wood"></div>
+      <div class="clock-rail-corner clock-rail-corner-tl clock-wood"></div>
+      <div class="clock-rail-corner clock-rail-corner-br clock-wood"></div>
+      <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
+    </div>
     <div id="cd-inner">
       <span class="cd-num" id="cdMin">15</span>
       <span class="cd-colon">:</span>
@@ -899,7 +935,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.214';
+const VERSION='v1.215';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
