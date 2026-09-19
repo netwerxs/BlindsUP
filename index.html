@@ -94,15 +94,16 @@ html,body{width:100%;height:100%;
 /* The clock sits flush in #cd-zone's bottom-left corner — the spot the
    felt's heart glyph used to occupy — as a small white-felt plaque rather
    than bare floating numerals. `bottom:0;left:0` tucks it right into the
-   corner (its own bottom/left edges need no border since they sit flush
-   against the felt's edge there, same reasoning as `.mb-dropdown` omitting
-   its top border when flush against the bar above it); `border-top`/
-   `border-right` in the same `1px solid rgba(0,0,0,0.6)` style as
-   `.mb-dropdown` mark its other two, felt-facing edges. `border-radius`
-   rounds all four corners — the bottom-left one is moot in practice since
-   `#felt-surface`'s own `overflow:hidden` already clips to its matching
-   16px corner there, but rounding it too keeps the box's own geometry
-   consistent. `position:absolute` inside `#cd-zone` (already
+   corner: its own bottom and left edges sit flush against the real rail
+   (the wood `.felt-frame` border) there, so they carry no border of their
+   own, while the top and right edges get an actual mini rail — the same
+   wood-grain `linear-gradient` tones as `.wood-layout`, via
+   `border-image`, rather than a flat color — since those two edges face
+   the open felt instead of the real rail. `border-radius` rounds all four
+   corners of the plaque itself; the bottom-left one is moot in practice
+   since `#felt-surface`'s own `overflow:hidden` already clips to its
+   matching 16px corner there, but rounding it too keeps the box's
+   geometry consistent. `position:absolute` inside `#cd-zone` (already
    `position:relative`), `z-index:-1` matching `.suit`'s own stacking so
    it sits behind the countdown digits if they ever overlap.
    `pointer-events:none` so it never intercepts the felt's swipe/click
@@ -111,8 +112,9 @@ html,body{width:100%;height:100%;
   position:absolute;bottom:0;left:0;z-index:-1;
   padding:1.2vh 1.8vw;
   background:radial-gradient(130% 130% at 35% 30%,#ffffff 0%,#e4e0d6 100%);
-  border-top:1px solid rgba(0,0,0,0.6);
-  border-right:1px solid rgba(0,0,0,0.6);
+  border-style:solid;border-width:0.6vh 0.6vh 0 0;
+  border-image-source:linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
+  border-image-slice:1;
   border-radius:1.6vh;
   pointer-events:none;
 }
@@ -873,7 +875,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.210';
+const VERSION='v1.211';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
