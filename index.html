@@ -91,76 +91,62 @@ html,body{width:100%;height:100%;
 .mb-dropdown button:hover{background:rgba(255,255,255,0.1);}
 .mb-dropdown button:disabled{opacity:0.6;cursor:default;}
 .mb-dropdown button:disabled:hover{background:none;}
-/* The clock sits flush in #cd-zone's bottom-left corner — the spot the
-   felt's heart glyph used to occupy — as a small white-felt plaque set
-   into an actual rail, mirroring .felt-frame/.felt-surface's own
-   outer-wood/inner-felt layering exactly rather than approximating it.
-   `#clock-platform` (`position:absolute;bottom:0;left:0`) tucks the
-   whole assembly flush into the corner and owns the padding
-   (`0.25in 0.25in 0 0`, the exact same thickness as `.felt-frame`'s own,
-   not an arbitrary smaller value) that pushes `#clock-plaque` in from
-   the top/right only — the bottom and left sides already sit flush
-   against the real rail, so nothing is added there. `.clock-rail`
-   (`inset:0`, filling `#clock-platform`) is the wood: the same two
-   grain-line `repeating-linear-gradient`s *and* the same multi-stop
-   `linear-gradient(165deg,...)` base as `.wood-layout`, verbatim, plus
-   `background-attachment:fixed` so both line up in phase *and* shade
-   with the real rail instead of starting their own cycle from their
-   own box. Because the color is pixel-identical to the real rail's at
-   any given screen position, the two junctions where an *added* rail
-   edge meets the real rail (top edge meets the real rail down the left
-   side; right edge meets the real rail along the bottom) need no seam
-   treatment at all — no fillet, no gradient blend, not even a border —
-   they're both left as plain sharp right angles, exactly like the real
-   frame's own true corners are (see `.felt-frame`, which is just one
-   rectangle's padding with no seam construction at its corners either).
-   An earlier version routed those two junctions into a rounded fillet,
-   coped-corner style, on the theory that a picture frame's inside
-   corners are usually routed round rather than left square — but doing
-   that only works when the piece being routed is otherwise seamless to
-   begin with; once the colors matched exactly, the fillet's own rounded
-   mask was the *only* thing left interrupting the join, so removing it
-   (rather than trying to blend it better) is what finally let the wood
-   read as one continuous piece turning a sharp 90° corner rather than
-   two pieces joined by a curve. `border-radius:calc(16px + 0.25in)`
-   (identical to `.felt-frame`'s own outer-radius formula) plus
-   `overflow:hidden` rounds and clips only the *third* corner — top-right,
-   the one where two added rail edges meet each other rather than the
-   real rail — which is a genuinely new corner with nothing to stay
-   sharp in line with, so it gets the same soft outer curve the main
-   frame's true outer corners get.
-   `#clock-plaque` needs `position:relative` for exactly one reason:
-   positioned elements always paint above non-positioned ones regardless
-   of source order, so without it the (positioned, `z-index:auto`)
-   `.clock-rail` before it in the DOM would paint over it instead of
-   behind it. `z-index:-1` on `#clock-platform` matches `.suit`'s own
-   stacking, so the whole assembly sits behind the countdown digits if
-   they ever overlap; `pointer-events:none` (inherited by every child)
-   so none of it ever intercepts the felt's swipe/click zones underneath.
-   `#clock-platform` deliberately carries no `box-shadow` of its own: a
-   blurred shadow softens whatever corner it's cast from, so shadowing
-   this box would have re-rounded the two sharp junctions above no
-   matter how tightly the color matched. Depth on the wood itself is
-   left to `#clock-plaque`'s own shadow below, which never reaches
-   those junctions since the plaque stops well short of them. */
-.clock-wood{
-  background:
-    repeating-linear-gradient(94deg,
-      rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px,
-      transparent 1px, transparent 5px),
-    repeating-linear-gradient(94deg,
-      rgba(255,130,90,0.05) 0px, rgba(255,130,90,0.05) 1px,
-      transparent 1px, transparent 11px),
-    linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
-  background-attachment:fixed;
-}
+/* The clock sits in #felt-frame's bottom-left corner as a small white
+   plaque with no wood of its own at all. Earlier versions gave the
+   clock its own wood rail (`.clock-rail`, a second element painted with
+   the same gradient as `.wood-layout` so its color would match the real
+   rail) — but two elements that merely *match* can still show a seam at
+   whatever touches them (a fillet, a shadow, a grain-density difference
+   — each was tried and each left some seam behind). The actual fix was
+   architectural, not another coat of matching: `#felt-surface` is
+   clipped (`clip-path:url(#feltClip)`, built in JS by `layoutFeltClip()`
+   — see there) to a rounded rect with a rectangular notch bitten out of
+   its bottom-left corner, sized to fit `#clock-platform` exactly.
+   Wherever the felt is clipped away, `.wood-layout`'s own background —
+   the *only* wood-painting element on the page — simply shows through
+   from behind. There is nothing else painted there, so there is nothing
+   left that can seam. `#felt-frame`'s own `border-radius` is overridden
+   (see below `.felt-frame`) to leave its bottom-left corner square,
+   since that whole corner is now the notch rather than a rounded corner;
+   `.felt-frame::after`'s rim-light glow is clipped to the same shape, so
+   it automatically traces the notch's edges too with no separate
+   treatment. `#clock-platform` is a sibling of `#felt-surface` (not a
+   descendant) specifically so it isn't clipped away along with the felt
+   in the notch area — it's `position:absolute;bottom:0.25in;left:0.25in`
+   rather than `bottom:0;left:0` to compensate: its containing block is
+   `#felt-frame`'s own padding box (unaffected by `#felt-surface`'s
+   inset), so the offset has to re-add the `0.25in` padding that
+   `#felt-surface`'s box would otherwise have absorbed. Its own padding
+   (`0.25in 0.25in 0 0`, matching `.felt-frame`'s own margin) pushes
+   `#clock-plaque` in from the top/right only — the bottom and left
+   sides sit flush with the notch's own edges, which are themselves
+   flush with the real rail, so nothing is added there.
+   `#clock-platform` comes *before* `#felt-surface` in the DOM (rather
+   than after, which would read more naturally) so that it paints behind
+   the countdown digits if they ever overlap, without needing a negative
+   `z-index` to do it: `#felt-surface` has its own stacking context now
+   (any element with a `clip-path` gets one, per spec, regardless of
+   position/z-index), and earlier versions gave `#clock-platform` a
+   negative `z-index` to sit behind it the usual way — which, paired with
+   a clip-path'd sibling, reliably made the whole plaque fail to paint at
+   all in Chromium (verified: raising the z-index to positive made it
+   render again; nothing else conditionally hid it). Same-level boxes
+   (both left at the default `z-index:auto`) fall back to DOM order for
+   ties, so putting the markup first achieves the same "behind if they
+   overlap" result the old `z-index:-1` was going for, without tripping
+   whatever that engine quirk is. `pointer-events:none` (inherited by
+   every child) means none of it ever intercepts the felt's swipe/click
+   zones underneath. It carries no `box-shadow` of its own: a blurred
+   shadow softens whatever corner it's cast from, so shadowing this box
+   would re-round the notch's sharp junctions no matter how well
+   anything else matched. Depth on the wood itself doesn't need faking
+   any more (it's the same real wood); depth on the plaque is
+   `#clock-plaque`'s own shadow below. */
 #clock-platform{
-  position:absolute;bottom:0;left:0;z-index:-1;
+  position:absolute;bottom:0.25in;left:0.25in;
   padding:0.25in 0.25in 0 0;
-  border-radius:0 calc(16px + 0.25in) 0 0;
   pointer-events:none;
 }
-.clock-rail{position:absolute;inset:0;border-radius:0 calc(16px + 0.25in) 0 0;overflow:hidden;}
 /* Two effects, both borrowed verbatim from the main frame so the clock's
    border reads as "the same kind of raised wood" rather than a flatter
    imitation: the warm rim-light + drop-shadow pair traces this box's own
@@ -302,6 +288,12 @@ html,body{width:100%;height:100%;
      stays square 0.25in further in. */
   border-radius:calc(16px + 0.25in);overflow:hidden;
 }
+/* The timer screen's own felt-frame leaves its bottom-left corner square
+   (overriding the uniform rounding above, which the menu screen's own
+   #menu-felt-frame keeps) — that whole corner is the clock's notch now,
+   not a rounded corner, so nothing should round there. See #clock-platform
+   above for the full picture. */
+#felt-frame{border-radius:calc(16px + 0.25in) calc(16px + 0.25in) calc(16px + 0.25in) 0;}
 /* One continuous felt surface filling the felt frame's content box exactly
    — the vignette/edge shadow lives here rather than on individual content
    panes (which have no padding of their own to throw the shadow's anchor
@@ -320,7 +312,12 @@ html,body{width:100%;height:100%;
     inset 10px 0 14px -8px rgba(0,0,0,0.55),
     inset -10px 0 14px -8px rgba(0,0,0,0.55);
 }
-#felt-surface{display:grid;grid-template-rows:1fr 1fr;}
+/* Clipped to a rounded rect with a notch bitten out of the bottom-left
+   corner, sized to #clock-platform (see the clock's own comment above,
+   and layoutFeltClip() in JS, which builds #feltClipPath's `d`). Only
+   the timer screen's felt gets this — #menu-felt-surface has no clock,
+   so it keeps the plain rounded rect from .felt-surface above. */
+#felt-surface{display:grid;grid-template-rows:1fr 1fr;clip-path:url(#feltClip);}
 /* While paused, the felt strobes red/blue instead of its usual green — a
    deliberate hard cut every 3s (not a fade), via keyframe pairs that hold
    the same value across each 3s half of the 6s cycle so nothing
@@ -352,6 +349,11 @@ html,body{width:100%;height:100%;
   border-radius:16px;
   box-shadow:0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5);
 }
+/* Clipped to the same notched shape as #felt-surface, so this glow traces
+   the notch's edges too instead of just the felt's plain outer corners —
+   the payoff of the two sharing one shape rather than needing a second,
+   separately-aimed glow for the clock's portion of the edge. */
+#felt-frame::after{clip-path:url(#feltClip);}
 
 .pill-btn{
   background:rgba(255,255,255,0.02);
@@ -749,6 +751,12 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="layout" class="wood-layout">
 
   <div id="felt-frame" class="felt-frame">
+  <svg width="0" height="0" style="position:absolute">
+    <clipPath id="feltClip" clipPathUnits="userSpaceOnUse"><path id="feltClipPath"></path></clipPath>
+  </svg>
+  <div id="clock-platform">
+    <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
+  </div>
   <div id="felt-surface" class="felt-surface">
   <div id="blind-zone">
     <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
@@ -764,10 +772,6 @@ body.split-open #rotate-prompt{display:none!important;}
 
   <div id="cd-zone">
     <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
-    <div id="clock-platform">
-      <div class="clock-rail clock-wood"></div>
-      <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
-    </div>
     <div id="cd-inner">
       <span class="cd-num" id="cdMin">15</span>
       <span class="cd-colon">:</span>
@@ -931,7 +935,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.233';
+const VERSION='v1.234';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -951,6 +955,8 @@ const elMbClock=document.getElementById('mb-clock');
 const elPauseOverlay=document.getElementById('pause-overlay');
 const elPauseLabel=document.getElementById('pause-label');
 const elFeltSurface=document.getElementById('felt-surface');
+const elClockPlatform=document.getElementById('clock-platform');
+const elFeltClipPath=document.getElementById('feltClipPath');
 
 // Printed beside the clock in the top menu bar.
 document.getElementById('mb-version').textContent=VERSION;
@@ -996,6 +1002,29 @@ function fitBlind(){
   if(key===_lastBlindFit)return;          // same text and width — already fitted
   _lastBlindFit=key;
   fitText(elBlindInner,avail*0.94);
+}
+
+// Builds #feltClipPath's `d`: a rounded rect (radius matching .felt-surface's
+// own 16px) with a rectangular notch bitten out of the bottom-left corner,
+// sized to #clock-platform's own rendered footprint — see #clock-platform's
+// comment for why this is what finally made the clock's border and the main
+// border read as one continuous piece of wood rather than two matched ones.
+// Pixel-based (not %), so it stays exact regardless of the felt's aspect
+// ratio; re-run on layout changes that could move either box (resize, and
+// whenever the clock's own digit count can change its width — see
+// updateClocks()).
+let _lastFeltClipKey='';
+function layoutFeltClip(){
+  const w=elFeltSurface.clientWidth,h=elFeltSurface.clientHeight;
+  if(!w||!h)return;                       // #app still hidden — nothing to measure
+  const notchW=elClockPlatform.offsetWidth,notchH=elClockPlatform.offsetHeight;
+  const key=w+'|'+h+'|'+notchW+'|'+notchH;
+  if(key===_lastFeltClipKey)return;
+  _lastFeltClipKey=key;
+  const r=16;                             // matches .felt-surface's own border-radius
+  elFeltClipPath.setAttribute('d',
+    `M ${r} 0 H ${w-r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h-r} A ${r} ${r} 0 0 1 ${w-r} ${h} `+
+    `H ${notchW} V ${h-notchH} H 0 V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`);
 }
 
 let level=1,remSec=maxSec(1),pausedRemSec=maxSec(1);
@@ -1806,6 +1835,7 @@ function fmtTime(d,ampm){
 function fmtClock(){return fmtTime(new Date());}
 function updateClocks(){
   elMbClock.textContent=fmtClock();
+  layoutFeltClip();                       // clock digit count can change its width
   updatePauseLabel();
   // Nothing else redraws the countdown during the auto-advance freeze
   // (tick()/scheduleTick() both bail while advancing) — piggyback on this
@@ -1861,6 +1891,7 @@ function render(){
   const lv=Math.min(level,BLINDS.length),bl=BLINDS[lv-1];
   elBSB.textContent=bl.sb;elBBB.textContent=bl.bb;
   fitBlind();
+  layoutFeltClip();
   const showSec=displayRemSec();
   const mm=Math.floor(showSec/60),ss=showSec%60;
   elCdMin.textContent=String(mm);
@@ -1890,6 +1921,10 @@ function showMenu(){
 function enterRunningState(){
   elMenuScreen.style.display='none';
   elApp.classList.add('visible');
+  // render()'s own layoutFeltClip() call (from beginCountdown(), just before
+  // this) ran while #app was still display:none — #felt-surface measured
+  // 0x0 then, so it bailed. Now that #app is actually visible, redo it.
+  layoutFeltClip();
   elPauseOverlay.classList.remove('visible');
   elFeltSurface.classList.remove('pause-flash');
   stopPauseAlarm();
@@ -2232,6 +2267,7 @@ window.addEventListener('resize',()=>{
 // Re-fit the blind numerals to the new width on any viewport change (the
 // handler above bails early for no-touch / same-width, so do this separately).
 window.addEventListener('resize',fitBlind);
+window.addEventListener('resize',layoutFeltClip);
 
 // On iOS PWA, app resumes from suspension rather than reloading — the
 // countdown may have kept running while backgrounded, so catch it up.
