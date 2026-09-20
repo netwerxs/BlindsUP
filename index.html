@@ -316,8 +316,18 @@ html,body{width:100%;height:100%;
    corner, sized to #clock-platform (see the clock's own comment above,
    and layoutFeltClip() in JS, which builds #feltClipPath's `d`). Only
    the timer screen's felt gets this — #menu-felt-surface has no clock,
-   so it keeps the plain rounded rect from .felt-surface above. */
-#felt-surface{display:grid;grid-template-rows:1fr 1fr;clip-path:url(#feltClip);}
+   so it keeps the plain rounded rect from .felt-surface above.
+   `box-shadow:none` overrides `.felt-surface`'s own inset vignette —
+   disabled here for the same reason `.felt-frame::after` is disabled
+   below: `inset` box-shadow is still generated from the element's own
+   pre-clip rectangular box, so it darkens near that rectangle's four
+   true edges but has no notion of the notch cut through the middle of
+   one, leaving the notch's own two edges with zero vignette at all
+   (confirmed empirically — scanning pixels inward from the notch's
+   edges showed flat, undarkened green all the way to the boundary,
+   against a clear darkening gradient at the felt's true edges).
+   #felt-glow's `url(#feltVignette)` replaces it — see there. */
+#felt-surface{display:grid;grid-template-rows:1fr 1fr;clip-path:url(#feltClip);box-shadow:none;}
 /* #felt-glow wraps #felt-surface for exactly one reason: `filter` and
    `clip-path` on the *same* element don't compose the way you'd expect.
    `filter` runs before `clip-path` in the rendering pipeline, so a
@@ -344,10 +354,26 @@ html,body{width:100%;height:100%;
    so it follows the notch's cut exactly like it follows the outer
    corners, with the same two-layer treatment (warm rim-light, dark
    accent) `.felt-frame::after` used; the 2px `box-shadow` spread has no
-   `drop-shadow` equivalent, approximated with a touch more blur instead. */
+   `drop-shadow` equivalent, approximated with a touch more blur instead.
+   `url(#feltVignette)` — first in the chain, so the later drop-shadows
+   see its output rather than the other way around — replaces
+   `.felt-surface`'s own inset vignette box-shadow (disabled above) for
+   the exact same reason: box-shadow's inset variant is *still* generated
+   from the pre-clip rectangular box, so it has no notion of the notch
+   either, and darkening the felt near its edges is an *inside* effect
+   that `drop-shadow` (which only ever paints outside the source alpha)
+   can't produce at all. `#feltVignette` (defined next to `#feltClip`
+   above) is the standard SVG recipe for a CSS-only inset shadow —
+   invert the source alpha, blur it, flood it with color, then composite
+   that back in *only* where the source was actually opaque — and because
+   it's applied here on #felt-glow rather than directly on #felt-surface,
+   its "source" is #felt-surface's already-clipped output, notch
+   included, so — like the drop-shadows — it darkens near the notch's
+   edges exactly like it darkens near the real ones. */
 #felt-glow{
   width:100%;height:100%;
   filter:
+    url(#feltVignette)
     drop-shadow(0 0 11px rgba(255,190,150,0.28))
     drop-shadow(0 2px 3px rgba(0,0,0,0.5));
 }
@@ -792,6 +818,16 @@ body.split-open #rotate-prompt{display:none!important;}
   <div id="felt-frame" class="felt-frame">
   <svg width="0" height="0" style="position:absolute">
     <clipPath id="feltClip" clipPathUnits="userSpaceOnUse"><path id="feltClipPath"></path></clipPath>
+    <filter id="feltVignette" x="-30%" y="-30%" width="160%" height="160%">
+      <feComponentTransfer in="SourceAlpha" result="inv">
+        <feFuncA type="table" tableValues="1 0"></feFuncA>
+      </feComponentTransfer>
+      <feGaussianBlur in="inv" stdDeviation="20" result="blur"></feGaussianBlur>
+      <feFlood flood-color="#000000" flood-opacity="0.6" result="flood"></feFlood>
+      <feComposite in="flood" in2="blur" operator="in" result="shadow"></feComposite>
+      <feComposite in="shadow" in2="SourceAlpha" operator="in" result="clipped"></feComposite>
+      <feComposite in="clipped" in2="SourceGraphic" operator="over"></feComposite>
+    </filter>
   </svg>
   <div id="clock-platform">
     <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
@@ -976,7 +1012,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.238';
+const VERSION='v1.239';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
