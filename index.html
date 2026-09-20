@@ -130,13 +130,13 @@ html,body{width:100%;height:100%;
    rather than `top:0;right:0` to compensate: its containing block is
    `#felt-frame`'s own padding box (unaffected by `#felt-surface`'s
    inset), so the offset has to re-add the `0.25in` margin that
-   `#felt-surface`'s box would otherwise have absorbed on that side —
-   deliberately the plain `0.25in` used on three sides of `.felt-frame`,
-   not the taller `--top-border` the actual top margin uses to fit the
-   menu bar (see #top-menubar): the clock's own border stays the same
-   `0.25in` size on every side regardless of which corner it's in, so it
-   doesn't grow just because it now shares an edge with the bar. Its own
-   padding (`0 0 0.25in 0.25in`, matching that same `0.25in`) pushes
+   `#felt-surface`'s box would otherwise have absorbed on that side — the
+   same plain `0.25in` `#felt-frame` itself now uses on every side (see
+   `.felt-frame`/`#felt-frame` above: the timer screen overrides its top
+   margin back down from the taller `--top-border` the menu bar needs, so
+   the clock's own border stays a uniform `0.25in` on every side without
+   any extra arithmetic here). Its own padding (`0 0 0.25in 0.25in`,
+   matching that same `0.25in`) pushes
    `#clock-plaque` in from the bottom/left only — the top and right
    sides sit flush with the notch's own edges, which are themselves
    flush with the real rail, so nothing is added there.
@@ -297,7 +297,12 @@ html,body{width:100%;height:100%;
 /* The felt sits as a rounded-rect window cut into that wood surface — a
    0.25in margin on the left/right/bottom, and --top-border on top (grown
    to fit the top menu bar's buttons — see #top-menubar). Shared by both
-   screens' felt frames. */
+   screens' felt frames as a default; the timer screen's #felt-frame below
+   overrides the top margin back down to plain 0.25in, since it can carve
+   the thicker margin out of just the span behind the menu text via its
+   own clip-path instead (see layoutFeltClip() in JS) — the menu screen's
+   #menu-felt-frame has no such clip-path, so it keeps this rule's
+   uniformly-thick top margin as-is. */
 .felt-frame{
   grid-column:1;position:relative;
   padding:var(--top-border) 0.25in 0.25in 0.25in;
@@ -308,12 +313,24 @@ html,body{width:100%;height:100%;
   border-radius:calc(16px + var(--top-border)) calc(16px + var(--top-border)) calc(16px + 0.25in) calc(16px + 0.25in);
   overflow:hidden;
 }
-/* The timer screen's own felt-frame leaves its top-right corner square
-   (overriding the rounding above, which the menu screen's own
-   #menu-felt-frame keeps) — that whole corner is the clock's notch now,
-   not a rounded corner, so nothing should round there. See #clock-platform
-   above for the full picture. */
-#felt-frame{border-radius:calc(16px + var(--top-border)) 0 calc(16px + 0.25in) calc(16px + 0.25in);}
+/* The timer screen's own felt-frame overrides the shared rule above on
+   two points. First, its top margin goes back down to the plain 0.25in
+   every other side uses (rather than staying --top-border thick along
+   the *entire* top edge) — the border only needs to be --top-border
+   thick directly behind the menu bar's actual text, which is now the
+   felt's own job to carve out as a notch (see layoutFeltClip() in JS,
+   and #clock-platform above for why notches beat a second painted
+   layer): the rest of the top edge, including the whole span under and
+   around the clock, reads as the same plain-thickness border as the
+   other three sides. Second, its top-right corner stays square rather
+   than rounded — that whole corner is the clock's notch now, not a
+   rounded corner, so nothing should round there. (The menu screen's own
+   #menu-felt-frame keeps the shared rule's uniform thick top margin and
+   rounding unchanged — it has no notch of its own.) */
+#felt-frame{
+  padding-top:0.25in;
+  border-radius:calc(16px + 0.25in) 0 calc(16px + 0.25in) calc(16px + 0.25in);
+}
 /* One continuous felt surface filling the felt frame's content box exactly
    — the vignette/edge shadow lives here rather than on individual content
    panes (which have no padding of their own to throw the shadow's anchor
@@ -1023,7 +1040,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.245';
+const VERSION='v1.246';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1045,6 +1062,8 @@ const elPauseLabel=document.getElementById('pause-label');
 const elFeltSurface=document.getElementById('felt-surface');
 const elClockPlatform=document.getElementById('clock-platform');
 const elFeltClipPath=document.getElementById('feltClipPath');
+const elTopMenubar=document.getElementById('top-menubar');
+const elMbHelp=document.getElementById('mb-help');
 
 // Printed beside the clock in the top menu bar.
 document.getElementById('mb-version').textContent=VERSION;
@@ -1093,40 +1112,48 @@ function fitBlind(){
 }
 
 // Builds #feltClipPath's `d`: a rounded rect (radius matching .felt-surface's
-// own 16px) with a rectangular notch bitten out of the top-right corner,
-// sized to #clock-platform's own rendered footprint — see #clock-platform's
-// comment for why this is what finally made the clock's border and the main
-// border read as one continuous piece of wood rather than two matched ones.
-// Pixel-based (not %), so it stays exact regardless of the felt's aspect
-// ratio; re-run on layout changes that could move either box (resize, and
+// own 16px) with TWO rectangular notches bitten out of its top edge — one at
+// the top-right sized to #clock-platform's own rendered footprint (see
+// #clock-platform's comment for why a notch beats a second painted layer),
+// and one at the top-left sized to the top menu bar's actual button content
+// (#top-menubar/#mb-help), so the felt only recedes to the thicker
+// --top-border margin directly behind the menu text — everywhere else along
+// the top (including the whole span under and around the clock) stays at
+// the same plain 0.25in margin the other three sides use. Pixel-based (not
+// %), so it stays exact regardless of the felt's aspect ratio; re-run on
+// layout changes that could move any of the boxes involved (resize, and
 // whenever the clock's own digit count can change its width — see
 // updateClocks()).
 let _lastFeltClipKey='';
 function layoutFeltClip(){
   const w=elFeltSurface.clientWidth,h=elFeltSurface.clientHeight;
   if(!w||!h)return;                       // #app still hidden — nothing to measure
-  const notchW=elClockPlatform.offsetWidth,notchH=elClockPlatform.offsetHeight;
-  const key=w+'|'+h+'|'+notchW+'|'+notchH;
+  const clockW=elClockPlatform.offsetWidth,clockH=elClockPlatform.offsetHeight;
+  const feltRect=elFeltSurface.getBoundingClientRect();
+  const menuW=Math.round(elMbHelp.getBoundingClientRect().right-feltRect.left);
+  const menuH=Math.round(elTopMenubar.getBoundingClientRect().bottom-feltRect.top);
+  const key=w+'|'+h+'|'+clockW+'|'+clockH+'|'+menuW+'|'+menuH;
   if(key===_lastFeltClipKey)return;
   _lastFeltClipKey=key;
   const r=16;                             // matches .felt-surface's own border-radius
-  // The notch has 3 corners of its own, besides the 3 plain outer ones
-  // (top-left/bottom-right/bottom-left, rounded above): where the top
-  // edge meets the notch's left side, and where the notch's bottom side
-  // meets the right edge, are both convex from the felt's own point of
-  // view — round them the same way (sweep 1) as the outer 3, since
-  // they're really just that same corner, relocated to the notch's
-  // mouth. The notch's own inner corner (where its left and bottom sides
-  // meet each other) is concave from the felt's point of view — it needs
-  // the opposite sweep (0) to curve *into* the notch rather than bulge
-  // out of it. All three are safe to round now in a way they weren't as
-  // a separate `.clock-rail-corner` fillet element: this is still one
-  // shape, one clip-path, nothing to seam against.
+  // Each notch has 3 corners of its own, besides the felt's 2 plain outer
+  // ones left (bottom-right/bottom-left — both top corners are spoken for
+  // by a notch now). For a given notch, the two corners where its mouth
+  // meets the felt's own plain edges are convex from the felt's point of
+  // view — round them the same way (sweep 1) as any other outer corner,
+  // since they're really just that same corner, relocated to the notch's
+  // mouth. Each notch's own inner corner (where its two cut sides meet
+  // each other) is concave — it needs the opposite sweep (0) to curve
+  // *into* the notch rather than bulge out of it. All of these are safe to
+  // round in a way they weren't as separate fillet elements: this is still
+  // one shape, one clip-path, nothing to seam against.
   elFeltClipPath.setAttribute('d',
-    `M ${r} 0 H ${w-notchW-r} A ${r} ${r} 0 0 1 ${w-notchW} ${r} V ${notchH-r} `+
-    `A ${r} ${r} 0 0 0 ${w-notchW+r} ${notchH} H ${w-r} A ${r} ${r} 0 0 1 ${w} ${notchH+r} `+
-    `V ${h-r} A ${r} ${r} 0 0 1 ${w-r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h-r} `+
-    `V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`);
+    `M ${w-r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h-r} V ${menuH+r} `+
+    `A ${r} ${r} 0 0 1 ${r} ${menuH} H ${menuW-r} A ${r} ${r} 0 0 0 ${menuW} ${menuH-r} `+
+    `V ${r} A ${r} ${r} 0 0 1 ${menuW+r} 0 H ${w-clockW-r} `+
+    `A ${r} ${r} 0 0 1 ${w-clockW} ${r} V ${clockH-r} `+
+    `A ${r} ${r} 0 0 0 ${w-clockW+r} ${clockH} H ${w-r} A ${r} ${r} 0 0 1 ${w} ${clockH+r} `+
+    `V ${h-r} A ${r} ${r} 0 0 1 ${w-r} ${h} Z`);
 }
 
 let level=1,remSec=maxSec(1),pausedRemSec=maxSec(1);
