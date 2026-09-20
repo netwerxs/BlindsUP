@@ -468,10 +468,15 @@ html,body{width:100%;height:100%;
    whole felt), so it needs its own stacking context — position:relative
    plus a z-index above the zone's click-catcher .zone-half overlays, but
    still below #pause-overlay (z-index 8) so once paused it's simply
-   covered by that overlay rather than needing its own show/hide JS. */
+   covered by that overlay rather than needing its own show/hide JS.
+   The oval's width is fixed at 3x the buttons' own natural fit-content
+   width (22.8vh, from the button widths/gaps/padding below) with
+   justify-content:space-between, so the buttons themselves stay the same
+   size and just spread out across the wider pill. */
 .felt-transport{
   position:relative;z-index:1;opacity:0.25;
-  display:flex;align-items:center;padding:0.6vh;
+  display:flex;align-items:center;justify-content:space-between;
+  width:68.4vh;padding:0.6vh;
   background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.32);
   border-radius:999px;box-shadow:var(--inset-hi);
 }
@@ -998,7 +1003,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.241';
+const VERSION='v1.242';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
