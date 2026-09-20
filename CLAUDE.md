@@ -58,6 +58,8 @@ There's no special UI treatment for any level — the menu grid renders levels 1
 
 `maxSec(lv)` encodes the duration rule and is the single source of truth for level length.
 
+Manually changing the level (swipe/click/keyboard on the blind zone, `adjustLevel()`) only swaps which sb/bb pair is displayed — it never touches the countdown, so nudging the level up or down mid-level doesn't cost or gain time. The one exception is advancing into a level with a shorter max duration than the time currently showing (e.g. 14:00 left on 15-minute level 5, bumped up to 10-minute level 6) — that reads as broken (more time left than the level could ever hold), so `adjustLevel()` caps `remSec`/`pausedRemSec` down to the new level's own `maxSec()`, RTC-snapped (`snapToRTC()`) like every other place that sets the countdown, so this transition stays in sync with the wall clock too. Decreasing a level never trips this: levels only get shorter (or stay the same) as level increases, so `remSec` — already bounded by whatever level it came from — can't exceed a *lower* level's max.
+
 **Level 5 (5/10) is followed by a break.** When level 5 finishes, `tick()` freezes the countdown (same shape as the Esc-hold reset) and calls `showBreakAnnounce()`, which is the only thing that still shows the fullscreen `#announce` overlay — it displays "Break" (`#ann-break`) via the `#announce.break` CSS toggle. It plays the jingle once and holds the overlay for `BREAK_HOLD_MS` (1 minute). Once that elapses (or the overlay is tapped early, via `dismissAnnounce()`), `finishBreak()` sets `level=6`, resets `remSec`/`pausedRemSec`, and returns to the blind chooser (`showMenu(false)`), so the next level is always picked manually from the menu.
 
 ### Timer loop
