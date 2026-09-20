@@ -11,18 +11,20 @@ html,body{
 }
 
 /* ── ONE wood border ──
-   Previously the main frame (.wood-layout/.felt-frame) and the clock
-   were two separately-painted wood elements that had to be color- and
-   shadow-matched at their seam — which is exactly what kept breaking.
-   Here there is only one wood-painting element, .wood-layout, for the
-   entire viewport. The green felt is a single shape (#felt-surface)
-   clipped to a rounded rect with a rectangular notch bitten out of its
-   bottom-left corner — sized to fit the clock — via an SVG clip-path
-   built in JS (so the rounded corners stay true circles regardless of
-   the felt's aspect ratio, which a pure-CSS clip-path polygon can't
-   do). Wherever the felt is clipped away, the *same* wood-layout
-   background simply shows through underneath — there is nothing else
-   to paint there, so there is nothing that can seam. */
+   The main frame and the clock used to be two separately-painted wood
+   elements that had to be color- and shadow-matched at their seam —
+   exactly what kept breaking. Here there is only one wood-painting
+   element, .wood-layout, for the entire viewport. The green felt is a
+   single shape (#felt-surface) clipped to a rounded rect with a
+   rectangular notch bitten out of its bottom-left corner — sized to
+   #clock-platform's own rendered footprint, not a guess — via an SVG
+   clip-path built in JS (so the rounded corners stay true circles
+   regardless of the felt's aspect ratio, which a pure-CSS clip-path
+   polygon can't do). Wherever the felt is clipped away, the *same*
+   wood-layout background simply shows through underneath — there is
+   nothing else painted there, so there is nothing that can seam. This
+   is what shipped in index.html; this file is the isolated sandbox it
+   was worked out in. */
 .wood-layout{
   width:100%;height:100%;
   background:
@@ -78,9 +80,21 @@ html,body{
    be visible. `bottom/left: 0.25in` (not `0`) accounts for that: the
    containing block is .felt-frame's own padding box (its outer edge),
    so the offset has to re-add the padding that #felt-surface's box
-   would otherwise have absorbed. */
+   would otherwise have absorbed.
+   #clock-platform comes *before* #felt-surface in the DOM (unusual —
+   visually it reads as though it belongs after) and carries no z-index
+   at all, rather than the negative z-index a plain "sits behind"
+   reading would suggest: #felt-surface's own clip-path gives it a
+   stacking context of its own (any clip-path does, per spec, regardless
+   of position/z-index), and pairing that with a *negative*-z-index
+   sibling reliably made the sibling fail to paint at all in Chromium —
+   confirmed in index.html, where the clock actually has content behind
+   it (the countdown digits) worth staying behind. Two same-level boxes
+   (both left at the default z-index:auto) fall back to DOM order for
+   stacking ties, so putting the markup first gets the same "paints
+   behind if it overlaps" result without the bug. */
 #clock-platform{
-  position:absolute;bottom:0.25in;left:0.25in;z-index:6;
+  position:absolute;bottom:0.25in;left:0.25in;
   padding:0.25in 0.25in 0 0;
   pointer-events:none;
 }
@@ -111,22 +125,26 @@ html,body{
         <path id="feltClipPath"></path>
       </clipPath>
     </svg>
-    <div id="felt-surface"></div>
     <div id="clock-platform">
       <div id="clock-plaque"><span id="mb-clock">9:00</span></div>
     </div>
+    <div id="felt-surface"></div>
   </div>
 </div>
 <script>
 // Builds the felt's rounded-rect-with-a-notch clip path in the felt
-// surface's own pixel space, and sizes the clock's footprint to match
-// the notch exactly. Recomputed on resize since it's all pixel-based.
+// surface's own pixel space, sized to #clock-platform's own rendered
+// footprint (its natural size, from #clock-plaque's real content —
+// not a guess). Recomputed on resize since it's all pixel-based; the
+// real app also reruns this whenever the clock's digit count could
+// change its width (see updateClocks() in index.html).
 function layoutFeltClip(){
   var felt = document.getElementById('felt-surface');
   var w = felt.clientWidth, h = felt.clientHeight;
+  if (!w || !h) return;
   var r = 16;                    // outer corner radius, matches the real app
-  var notchW = w * 0.1945;       // clock footprint, proportional to felt size
-  var notchH = h * 0.1736;       // (matches the real app's measured proportions)
+  var clockPlatform = document.getElementById('clock-platform');
+  var notchW = clockPlatform.offsetWidth, notchH = clockPlatform.offsetHeight;
 
   var d = [
     'M', r, 0,
@@ -143,10 +161,6 @@ function layoutFeltClip(){
   ].join(' ');
 
   document.getElementById('feltClipPath').setAttribute('d', d);
-
-  var clockPlatform = document.getElementById('clock-platform');
-  clockPlatform.style.width = notchW + 'px';
-  clockPlatform.style.height = notchH + 'px';
 }
 window.addEventListener('resize', layoutFeltClip);
 layoutFeltClip();
