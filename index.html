@@ -165,11 +165,28 @@ html,body{width:100%;height:100%;
    blend, so these just inherit `.clock-wood` verbatim with no override. */
 .clock-rail-corner-tl{top:-16px;left:0;}
 .clock-rail-corner-br{left:100%;bottom:0;}
+/* Two effects, both borrowed verbatim from the main frame so the clock's
+   border reads as "the same kind of raised wood" rather than a flatter
+   imitation: the warm rim-light + drop-shadow pair traces this box's own
+   edge exactly like `.felt-frame::after` traces `.felt-surface`'s (wood
+   stepping down to the recessed pane), and the inset shadows mimic
+   `.felt-surface`'s own edge-darkening vignette so the plaque reads as a
+   puffy inset pane rather than a flat white rectangle — same idea, just
+   scaled down (px, not vh) to fit a pane this small. No overflow:hidden
+   here (unlike felt-surface), so — unlike that element — these can live
+   directly on `#clock-plaque` itself with no separate ::after needed. */
 #clock-plaque{
   position:relative;
   padding:1.2vh 1.8vw;
   background:radial-gradient(130% 130% at 35% 30%,#ffffff 0%,#e4e0d6 100%);
   border-radius:16px;
+  box-shadow:
+    0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5),
+    inset 0 0 20px rgba(0,0,0,0.18),
+    inset 0 6px 8px -5px rgba(0,0,0,0.45),
+    inset 0 -6px 8px -5px rgba(0,0,0,0.45),
+    inset 6px 0 8px -5px rgba(0,0,0,0.45),
+    inset -6px 0 8px -5px rgba(0,0,0,0.45);
 }
 #mb-clock{
   font-family:'Inter',sans-serif;font-weight:700;
@@ -920,7 +937,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.223';
+const VERSION='v1.224';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
