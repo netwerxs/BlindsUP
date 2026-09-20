@@ -196,27 +196,15 @@ html,body{width:100%;height:100%;
 /* Version label, centered on the bottom wood border — a separate fixed
    bar (not inside #top-menubar) since the bottom border belongs to each
    screen's own felt-frame rather than the shared top bar. `pointer-events:
-   none` so it never intercepts the felt's swipe/click zones underneath.
-   `padding-top` is a small buffer so the text doesn't sit flush against
-   the felt's edge — it's picked up automatically by layoutFeltClip()'s
-   measurement of this bar's own rendered box, the same way #top-menubar's
-   height and #mb-help's own padding feed the menu notch above, so there's
-   no separate constant to keep in sync. */
+   none` so it never intercepts the felt's swipe/click zones underneath. */
 #bottom-bar{
   position:fixed;left:0;right:0;bottom:0;z-index:41;
   display:flex;justify-content:center;
-  padding:0.4vh 0 calc(env(safe-area-inset-bottom) + 0.4vh);
+  padding-bottom:calc(env(safe-area-inset-bottom) + 0.4vh);
   pointer-events:none;
 }
-/* Same font treatment as the top bar's own labels (.mb-label) — family,
-   weight, letter-spacing, uppercase — so the version reads as one more
-   label in the same chrome rather than a differently-styled footnote;
-   only the color stays dimmer, since it's still meant to recede next to
-   the actual controls. Sized with the same clamp() as .mb-label too, for
-   the same short-landscape-screen reason (see --menubar-h above). */
 #mb-version{
-  font-family:'Inter',sans-serif;font-weight:600;
-  font-size:clamp(13px, 1.8vh, 18px);letter-spacing:0.12em;text-transform:uppercase;
+  font-size:1.1vh;font-weight:400;letter-spacing:0.08em;
   color:rgba(255,255,255,0.4);white-space:nowrap;
 }
 
@@ -1052,7 +1040,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.250';
+const VERSION='v1.249';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1076,7 +1064,6 @@ const elClockPlatform=document.getElementById('clock-platform');
 const elFeltClipPath=document.getElementById('feltClipPath');
 const elTopMenubar=document.getElementById('top-menubar');
 const elMbHelp=document.getElementById('mb-help');
-const elMbVersion=document.getElementById('mb-version');
 
 // Printed beside the clock in the top menu bar.
 document.getElementById('mb-version').textContent=VERSION;
@@ -1125,19 +1112,18 @@ function fitBlind(){
 }
 
 // Builds #feltClipPath's `d`: a rounded rect (radius matching .felt-surface's
-// own 16px) with THREE rectangular notches bitten out of it — two corner
-// notches on the top edge (top-right sized to #clock-platform's own
-// rendered footprint, see #clock-platform's comment for why a notch beats a
-// second painted layer; top-left sized to the top menu bar's actual button
-// content, #top-menubar/#mb-help), and one centered mid-edge notch on the
-// bottom, sized to the version label's own rendered box (#bottom-bar/
-// #mb-version) now that it's grown to match the menu bar's own font. Each
-// notch carves out just enough of the thicker margin to fit what's actually
-// sitting in it — everywhere else along the top and bottom stays at the
-// same plain 0.25in margin the left/right sides use. Pixel-based (not %),
-// so it stays exact regardless of the felt's aspect ratio; re-run on layout
-// changes that could move any of the boxes involved (resize, and whenever
-// the clock's own digit count can change its width — see updateClocks()).
+// own 16px) with TWO rectangular notches bitten out of its top edge — one at
+// the top-right sized to #clock-platform's own rendered footprint (see
+// #clock-platform's comment for why a notch beats a second painted layer),
+// and one at the top-left sized to the top menu bar's actual button content
+// (#top-menubar/#mb-help), so the felt only recedes to the thicker
+// --top-border margin directly behind the menu text — everywhere else along
+// the top (including the whole span under and around the clock) stays at
+// the same plain 0.25in margin the other three sides use. Pixel-based (not
+// %), so it stays exact regardless of the felt's aspect ratio; re-run on
+// layout changes that could move any of the boxes involved (resize, and
+// whenever the clock's own digit count can change its width — see
+// updateClocks()).
 let _lastFeltClipKey='';
 function layoutFeltClip(){
   const w=elFeltSurface.clientWidth,h=elFeltSurface.clientHeight;
@@ -1146,38 +1132,23 @@ function layoutFeltClip(){
   const feltRect=elFeltSurface.getBoundingClientRect();
   const menuW=Math.round(elMbHelp.getBoundingClientRect().right-feltRect.left);
   const menuH=Math.round(elTopMenubar.getBoundingClientRect().bottom-feltRect.top);
-  // The version notch is centered on the felt's own local width rather than
-  // measured off #mb-version's actual on-screen x-position, so it can't
-  // drift out of sync with the felt's center on a device with asymmetric
-  // safe-area insets (where #bottom-bar, centered on the *viewport*, and
-  // the felt, centered inside whatever safe area is left over, wouldn't
-  // quite agree on where "center" is).
-  const verRect=elMbVersion.getBoundingClientRect();
-  const verW=Math.round(verRect.width),verH=Math.round(feltRect.bottom-verRect.top);
-  const verX0=Math.round((w-verW)/2),verX1=verX0+verW;
-  const key=w+'|'+h+'|'+clockW+'|'+clockH+'|'+menuW+'|'+menuH+'|'+verW+'|'+verH;
+  const key=w+'|'+h+'|'+clockW+'|'+clockH+'|'+menuW+'|'+menuH;
   if(key===_lastFeltClipKey)return;
   _lastFeltClipKey=key;
   const r=16;                             // matches .felt-surface's own border-radius
-  // Each corner notch (top-left, top-right) has 3 corners of its own,
-  // besides the felt's 2 plain outer ones left (bottom-right/bottom-left —
-  // both top corners are spoken for by a notch now): the two corners where
-  // its mouth meets the felt's own plain edges are convex from the felt's
-  // point of view — round them the same way (sweep 1) as any other outer
-  // corner, since they're really just that same corner, relocated to the
-  // notch's mouth; its own inner corner (where its two cut sides meet each
-  // other) is concave — opposite sweep (0), to curve *into* the notch
-  // rather than bulge out of it. The bottom notch sits mid-edge rather than
-  // at a corner, so it has 4 of its own instead of 3 — the same 2 convex
-  // mouth corners, but 2 concave inner corners (both "roof" corners of the
-  // bite, not just one) since neither one is anchored to an existing felt
-  // corner the way a corner notch's single inner corner is. All of these
-  // are safe to round in a way they weren't as separate fillet elements:
-  // this is still one shape, one clip-path, nothing to seam against.
+  // Each notch has 3 corners of its own, besides the felt's 2 plain outer
+  // ones left (bottom-right/bottom-left — both top corners are spoken for
+  // by a notch now). For a given notch, the two corners where its mouth
+  // meets the felt's own plain edges are convex from the felt's point of
+  // view — round them the same way (sweep 1) as any other outer corner,
+  // since they're really just that same corner, relocated to the notch's
+  // mouth. Each notch's own inner corner (where its two cut sides meet
+  // each other) is concave — it needs the opposite sweep (0) to curve
+  // *into* the notch rather than bulge out of it. All of these are safe to
+  // round in a way they weren't as separate fillet elements: this is still
+  // one shape, one clip-path, nothing to seam against.
   elFeltClipPath.setAttribute('d',
-    `M ${w-r} ${h} H ${verX1+r} A ${r} ${r} 0 0 1 ${verX1} ${h-r} V ${h-verH+r} `+
-    `A ${r} ${r} 0 0 0 ${verX1-r} ${h-verH} H ${verX0+r} A ${r} ${r} 0 0 0 ${verX0} ${h-verH+r} `+
-    `V ${h-r} A ${r} ${r} 0 0 1 ${verX0-r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h-r} V ${menuH+r} `+
+    `M ${w-r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h-r} V ${menuH+r} `+
     `A ${r} ${r} 0 0 1 ${r} ${menuH} H ${menuW-r} A ${r} ${r} 0 0 0 ${menuW} ${menuH-r} `+
     `V ${r} A ${r} ${r} 0 0 1 ${menuW+r} 0 H ${w-clockW-r} `+
     `A ${r} ${r} 0 0 1 ${w-clockW} ${r} V ${clockH-r} `+
