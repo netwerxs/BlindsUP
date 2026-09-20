@@ -22,6 +22,11 @@
   --inset-hi:inset 0 1px 0 rgba(255,255,255,0.08);
   --glow-active:0 0 16px rgba(var(--accent-rgb),0.35);
   --menubar-h:4.2vh;
+  /* The top wood border's thickness — grown from the felt-frame's usual
+     0.25in margin to fit the menu bar's buttons at their normal size,
+     since the bar lives directly on this border rather than in a strip
+     of its own (see #top-menubar). */
+  --top-border:calc(env(safe-area-inset-top) + var(--menubar-h));
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;}
@@ -47,20 +52,25 @@ html,body{width:100%;height:100%;
 
 /* ── TOP MENU BAR ── */
 /* A standard left-to-right dropdown menu bar, shared by both screens (fixed,
-   sits above them via z-index rather than living inside either one), themed
-   to the same cherrywood/glass chrome as the rest of the UI rather than
-   literal OS gray. Covered by the sound-check gate, the level-up announce
-   and every full-screen overlay (all higher z-index), so it only shows over
-   the menu/timer screens themselves. */
+   sits above them via z-index rather than living inside either one).
+   It paints no wood of its own — an earlier version gave it its own
+   gradient strip above the real frame, which read as two separately-
+   painted pieces of "wood" with a seam between them (the same problem the
+   clock notch ran into, see #clock-platform below). The fix is the same
+   one used there: don't match two wood elements, use only one. The real
+   `.wood-layout` grain now extends all the way to the top of the
+   viewport, `.felt-frame`'s own top padding is grown to --top-border to
+   make room, and this bar is transparent, sitting exactly over that
+   border so its buttons read as part of the real frame. Covered by the
+   sound-check gate, the level-up announce and every full-screen overlay
+   (all higher z-index), so it only shows over the menu/timer screens
+   themselves. */
 #top-menubar{
   position:fixed;top:0;left:0;right:0;z-index:41;
-  height:calc(env(safe-area-inset-top) + var(--menubar-h));
+  height:var(--top-border);
   padding-top:env(safe-area-inset-top);
   padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
   display:flex;align-items:stretch;
-  background:linear-gradient(180deg,#3d1712 0%,#241009 100%);
-  border-bottom:1px solid rgba(0,0,0,0.6);
-  box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,180,140,0.12);
 }
 .mb-item{position:relative;display:flex;}
 .mb-label{
@@ -193,7 +203,6 @@ html,body{width:100%;height:100%;
 #menu-screen{
   position:fixed;inset:0;z-index:40;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding-top:calc(env(safe-area-inset-top) + var(--menubar-h));
   padding-right:env(safe-area-inset-right);
   padding-bottom:env(safe-area-inset-bottom);
   padding-left:env(safe-area-inset-left);
@@ -249,7 +258,7 @@ html,body{width:100%;height:100%;
 .exit-card .card-blinds{color:var(--accent);text-shadow:0 0 12px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
-#app{display:none;width:100vw;height:100vh;padding:calc(env(safe-area-inset-top) + var(--menubar-h)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+#app{display:none;width:100vw;height:100vh;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
 #app.visible{display:block;}
 /* One continuous cherrywood surface behind the border, framing the felt.
    Shared by the timer screen (#layout) and the menu screen (#menu-layout)
@@ -277,23 +286,25 @@ html,body{width:100%;height:100%;
   background-attachment:fixed;
 }
 /* The felt sits as a rounded-rect window cut into that wood surface — a
-   uniform 0.25in margin on all four sides. Shared by both screens' felt
-   frames. */
+   0.25in margin on the left/right/bottom, and --top-border on top (grown
+   to fit the top menu bar's buttons — see #top-menubar). Shared by both
+   screens' felt frames. */
 .felt-frame{
   grid-column:1;position:relative;
-  padding:0.25in;
-  /* Outer radius = inner radius + the 0.25in margin, so this curve and
-     the felt surface's are concentric (a true picture-frame corner)
+  padding:var(--top-border) 0.25in 0.25in 0.25in;
+  /* Outer radius = inner radius + the margin on that side, so this curve
+     and the felt surface's are concentric (a true picture-frame corner)
      instead of the wood curving at one radius while the felt underneath
-     stays square 0.25in further in. */
-  border-radius:calc(16px + 0.25in);overflow:hidden;
+     stays square further in. */
+  border-radius:calc(16px + var(--top-border)) calc(16px + var(--top-border)) calc(16px + 0.25in) calc(16px + 0.25in);
+  overflow:hidden;
 }
 /* The timer screen's own felt-frame leaves its bottom-left corner square
-   (overriding the uniform rounding above, which the menu screen's own
+   (overriding the rounding above, which the menu screen's own
    #menu-felt-frame keeps) — that whole corner is the clock's notch now,
    not a rounded corner, so nothing should round there. See #clock-platform
    above for the full picture. */
-#felt-frame{border-radius:calc(16px + 0.25in) calc(16px + 0.25in) calc(16px + 0.25in) 0;}
+#felt-frame{border-radius:calc(16px + var(--top-border)) calc(16px + var(--top-border)) calc(16px + 0.25in) 0;}
 /* One continuous felt surface filling the felt frame's content box exactly
    — the vignette/edge shadow lives here rather than on individual content
    panes (which have no padding of their own to throw the shadow's anchor
@@ -404,7 +415,7 @@ html,body{width:100%;height:100%;
    felt frames. */
 .felt-frame::after{
   content:'';position:absolute;pointer-events:none;z-index:5;
-  top:0.25in;left:0.25in;right:0.25in;bottom:0.25in;
+  top:var(--top-border);left:0.25in;right:0.25in;bottom:0.25in;
   border-radius:16px;
   box-shadow:0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5);
 }
@@ -1003,7 +1014,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.242';
+const VERSION='v1.243';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
