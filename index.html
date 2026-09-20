@@ -100,41 +100,49 @@ html,body{width:100%;height:100%;
    (`0.25in 0.25in 0 0`, the exact same thickness as `.felt-frame`'s own,
    not an arbitrary smaller value) that pushes `#clock-plaque` in from
    the top/right only — the bottom and left sides already sit flush
-   against the real rail, so nothing is added there. The wood itself
-   lives on three children sharing `.clock-wood` (the same
-   `repeating-linear-gradient`s + base `linear-gradient` as
-   `.wood-layout`, verbatim, plus `background-attachment:fixed` so the
-   grain's phase lines up with the real rail's instead of each element
-   starting its own cycle from its own box):
-   - `.clock-rail` is the main band — `inset:0` fills `#clock-platform`,
-     `border-radius:calc(16px + 0.25in)` (identical to `.felt-frame`'s
-     own outer-radius formula) plus `overflow:hidden` rounds and clips
-     its outer (top-right) corner, the one corner where two *added*
-     rail edges actually meet.
-   - `.clock-rail-corner-tl`/`-br` round the other two junctions — where
-     the top rail meets the real rail flush along the left edge, and
-     where the right rail meets the real rail flush along the bottom
-     edge — into a matching inside-corner fillet instead of a sharp
-     right angle, the same way a real wood frame's inside corners are
-     routed round rather than left square. Each is a small square
-     (`width/height:16px`) positioned so the actual junction point sits
-     at its inner corner, with a hard-edged `radial-gradient` `mask`
-     (centered at its own outer corner, radius 16px) that keeps only the
-     quarter-circle nearest the junction — the rest of the square stays
-     transparent so the felt shows through unchanged. They're plain
-     children of `#clock-platform` (not `.clock-rail`) specifically so
-     `.clock-rail`'s own `overflow:hidden` doesn't clip them, since both
-     extend outside `.clock-rail`'s own box (`-tl` above it, `-br` to its
-     right) — `#clock-platform` itself has no `overflow` set, so nothing
-     clips them.
+   against the real rail, so nothing is added there. `.clock-rail`
+   (`inset:0`, filling `#clock-platform`) is the wood: the same two
+   grain-line `repeating-linear-gradient`s *and* the same multi-stop
+   `linear-gradient(165deg,...)` base as `.wood-layout`, verbatim, plus
+   `background-attachment:fixed` so both line up in phase *and* shade
+   with the real rail instead of starting their own cycle from their
+   own box. Because the color is pixel-identical to the real rail's at
+   any given screen position, the two junctions where an *added* rail
+   edge meets the real rail (top edge meets the real rail down the left
+   side; right edge meets the real rail along the bottom) need no seam
+   treatment at all — no fillet, no gradient blend, not even a border —
+   they're both left as plain sharp right angles, exactly like the real
+   frame's own true corners are (see `.felt-frame`, which is just one
+   rectangle's padding with no seam construction at its corners either).
+   An earlier version routed those two junctions into a rounded fillet,
+   coped-corner style, on the theory that a picture frame's inside
+   corners are usually routed round rather than left square — but doing
+   that only works when the piece being routed is otherwise seamless to
+   begin with; once the colors matched exactly, the fillet's own rounded
+   mask was the *only* thing left interrupting the join, so removing it
+   (rather than trying to blend it better) is what finally let the wood
+   read as one continuous piece turning a sharp 90° corner rather than
+   two pieces joined by a curve. `border-radius:calc(16px + 0.25in)`
+   (identical to `.felt-frame`'s own outer-radius formula) plus
+   `overflow:hidden` rounds and clips only the *third* corner — top-right,
+   the one where two added rail edges meet each other rather than the
+   real rail — which is a genuinely new corner with nothing to stay
+   sharp in line with, so it gets the same soft outer curve the main
+   frame's true outer corners get.
    `#clock-plaque` needs `position:relative` for exactly one reason:
    positioned elements always paint above non-positioned ones regardless
-   of source order, so without it the (positioned, `z-index:auto`) rail
-   pieces before it in the DOM would paint over it instead of behind it.
-   `z-index:-1` on `#clock-platform` matches `.suit`'s own stacking, so
-   the whole assembly sits behind the countdown digits if they ever
-   overlap; `pointer-events:none` (inherited by every child) so none of
-   it ever intercepts the felt's swipe/click zones underneath. */
+   of source order, so without it the (positioned, `z-index:auto`)
+   `.clock-rail` before it in the DOM would paint over it instead of
+   behind it. `z-index:-1` on `#clock-platform` matches `.suit`'s own
+   stacking, so the whole assembly sits behind the countdown digits if
+   they ever overlap; `pointer-events:none` (inherited by every child)
+   so none of it ever intercepts the felt's swipe/click zones underneath.
+   `#clock-platform` deliberately carries no `box-shadow` of its own: a
+   blurred shadow softens whatever corner it's cast from, so shadowing
+   this box would have re-rounded the two sharp junctions above no
+   matter how tightly the color matched. Depth on the wood itself is
+   left to `#clock-plaque`'s own shadow below, which never reaches
+   those junctions since the plaque stops well short of them. */
 .clock-wood{
   background:
     repeating-linear-gradient(94deg,
@@ -146,40 +154,13 @@ html,body{width:100%;height:100%;
     linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
   background-attachment:fixed;
 }
-/* #clock-platform's own bottom/left edges land exactly on `#felt-surface`'s
-   real bottom/left edges, which already get `.felt-frame::after`'s warm
-   rim-light there. `.felt-frame::after`'s glow is omnidirectional
-   (`0 0 10px 2px`, no offset), so putting that same unshifted glow here
-   would trace *all four* sides of this box — doubling up on the bottom/
-   left, right on top of the real glow, which is what was leaving a
-   second, slightly-misaligned glow line right along the real rail. Only
-   the top/right edges are actually *added* by the clock and need a glow
-   of their own, so — like the dark cast-shadow pair just below, which
-   already uses the same directional-offset trick for the same reason —
-   these two are pushed toward their own edge with `-Xpx`/`Xpx` offsets
-   instead of sitting centered, so they don't reach the bottom/left. */
 #clock-platform{
   position:absolute;bottom:0;left:0;z-index:-1;
   padding:0.25in 0.25in 0 0;
   border-radius:0 calc(16px + 0.25in) 0 0;
-  box-shadow:
-    0 -10px 14px -8px rgba(0,0,0,0.55),10px 0 14px -8px rgba(0,0,0,0.55),
-    0 -6px 10px -3px rgba(255,190,150,0.28),6px 0 10px -3px rgba(255,190,150,0.28),
-    0 -2px 3px -1px rgba(0,0,0,0.5),2px 0 3px -1px rgba(0,0,0,0.5);
   pointer-events:none;
 }
 .clock-rail{position:absolute;inset:0;border-radius:0 calc(16px + 0.25in) 0 0;overflow:hidden;}
-.clock-rail-corner{
-  position:absolute;width:16px;height:16px;
-  -webkit-mask-image:radial-gradient(circle at 100% 0%,transparent 16px,#000 16px);
-  mask-image:radial-gradient(circle at 100% 0%,transparent 16px,#000 16px);
-}
-/* `.clock-wood`'s base layer is now the same viewport-anchored gradient
-   as the real rail (not a flat color), so at any given screen position
-   the fillet's color is pixel-identical to the real rail's — no seam to
-   blend, so these just inherit `.clock-wood` verbatim with no override. */
-.clock-rail-corner-tl{top:-16px;left:0;}
-.clock-rail-corner-br{left:100%;bottom:0;}
 /* Two effects, both borrowed verbatim from the main frame so the clock's
    border reads as "the same kind of raised wood" rather than a flatter
    imitation: the warm rim-light + drop-shadow pair traces this box's own
@@ -785,8 +766,6 @@ body.split-open #rotate-prompt{display:none!important;}
     <span class="suit suit-spades" aria-hidden="true">&#9824;</span>
     <div id="clock-platform">
       <div class="clock-rail clock-wood"></div>
-      <div class="clock-rail-corner clock-rail-corner-tl clock-wood"></div>
-      <div class="clock-rail-corner clock-rail-corner-br clock-wood"></div>
       <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
     </div>
     <div id="cd-inner">
@@ -952,7 +931,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.226';
+const VERSION='v1.227';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
