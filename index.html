@@ -146,21 +146,26 @@ html,body{width:100%;height:100%;
     linear-gradient(165deg,#3d1712 0%,#5c2a1e 30%,#431c15 55%,#552419 80%,#361310 100%);
   background-attachment:fixed;
 }
-/* The bottom/left edges are the real rail, which already reads as raised
-   via `.felt-frame::after`'s warm rim-light where it steps down to the
-   felt. Without a matching glow of its own, the clock's *added* top/right
-   rail read as a flatter, lower step by comparison — so the same
-   `0 0 10px 2px`/`0 2px 3px` pair from `.felt-frame::after` is layered
-   in here too, tracing this box's own edge exactly as it does there, so
-   the added rail reads at the same raised height as the real one instead
-   of stepping down to it. */
+/* #clock-platform's own bottom/left edges land exactly on `#felt-surface`'s
+   real bottom/left edges, which already get `.felt-frame::after`'s warm
+   rim-light there. `.felt-frame::after`'s glow is omnidirectional
+   (`0 0 10px 2px`, no offset), so putting that same unshifted glow here
+   would trace *all four* sides of this box — doubling up on the bottom/
+   left, right on top of the real glow, which is what was leaving a
+   second, slightly-misaligned glow line right along the real rail. Only
+   the top/right edges are actually *added* by the clock and need a glow
+   of their own, so — like the dark cast-shadow pair just below, which
+   already uses the same directional-offset trick for the same reason —
+   these two are pushed toward their own edge with `-Xpx`/`Xpx` offsets
+   instead of sitting centered, so they don't reach the bottom/left. */
 #clock-platform{
   position:absolute;bottom:0;left:0;z-index:-1;
   padding:0.25in 0.25in 0 0;
   border-radius:0 calc(16px + 0.25in) 0 0;
   box-shadow:
     0 -10px 14px -8px rgba(0,0,0,0.55),10px 0 14px -8px rgba(0,0,0,0.55),
-    0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5);
+    0 -6px 10px -3px rgba(255,190,150,0.28),6px 0 10px -3px rgba(255,190,150,0.28),
+    0 -2px 3px -1px rgba(0,0,0,0.5),2px 0 3px -1px rgba(0,0,0,0.5);
   pointer-events:none;
 }
 .clock-rail{position:absolute;inset:0;border-radius:0 calc(16px + 0.25in) 0 0;overflow:hidden;}
@@ -947,7 +952,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.225';
+const VERSION='v1.226';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
