@@ -318,6 +318,39 @@ html,body{width:100%;height:100%;
    the timer screen's felt gets this — #menu-felt-surface has no clock,
    so it keeps the plain rounded rect from .felt-surface above. */
 #felt-surface{display:grid;grid-template-rows:1fr 1fr;clip-path:url(#feltClip);}
+/* #felt-glow wraps #felt-surface for exactly one reason: `filter` and
+   `clip-path` on the *same* element don't compose the way you'd expect.
+   `filter` runs before `clip-path` in the rendering pipeline, so a
+   `filter:drop-shadow(...)` placed directly on #felt-surface would see
+   its *pre-clip* rectangular shape (no notch) as its source — and then
+   `clip-path` would clip the combined result (felt + shadow) back down
+   to the exact notched outline, discarding the shadow's entire outward
+   bleed at every edge, notch included, since bleeding *outward* is by
+   definition outside that outline (confirmed empirically: the same
+   drop-shadow was clearly visible with `clip-path` temporarily disabled,
+   and invisible everywhere — not just at the notch — with it enabled).
+   Splitting the two across parent/child fixes it: #felt-surface's own
+   clip-path still cuts the notch as before, but by the time #felt-glow's
+   filter runs, it's operating on #felt-surface's *already-clipped*
+   rendered output — notch included — so the shadow it casts follows that
+   exact silhouette, and #felt-glow itself has no clip-path of its own to
+   discard the bleed a second time.
+   This replaces `.felt-frame::after`'s `box-shadow` for this screen
+   (disabled below): box-shadow is generated from an element's own
+   rectangular box, with no notion of a clip-path at all, so it traced
+   the felt's plain outer corners but not the notch's own edges — those
+   aren't real box edges, just a clip-path cut through the middle of one.
+   `drop-shadow` instead projects from the actual rendered alpha shape,
+   so it follows the notch's cut exactly like it follows the outer
+   corners, with the same two-layer treatment (warm rim-light, dark
+   accent) `.felt-frame::after` used; the 2px `box-shadow` spread has no
+   `drop-shadow` equivalent, approximated with a touch more blur instead. */
+#felt-glow{
+  width:100%;height:100%;
+  filter:
+    drop-shadow(0 0 11px rgba(255,190,150,0.28))
+    drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
 /* While paused, the felt strobes red/blue instead of its usual green — a
    deliberate hard cut every 3s (not a fade), via keyframe pairs that hold
    the same value across each 3s half of the 6s cycle so nothing
@@ -349,11 +382,17 @@ html,body{width:100%;height:100%;
   border-radius:16px;
   box-shadow:0 0 10px 2px rgba(255,190,150,0.28),0 2px 3px rgba(0,0,0,0.5);
 }
-/* Clipped to the same notched shape as #felt-surface, so this glow traces
-   the notch's edges too instead of just the felt's plain outer corners —
-   the payoff of the two sharing one shape rather than needing a second,
-   separately-aimed glow for the clock's portion of the edge. */
-#felt-frame::after{clip-path:url(#feltClip);}
+/* Disabled for the timer screen: clip-path doesn't stop box-shadow from
+   being generated relative to this pseudo-element's own plain rectangular
+   box, so clipping it to the notched shape (an earlier version of this
+   rule) traced the felt's outer corners but left the notch's own edges
+   with no glow at all — box-shadow has no notion of a clip-path cutting
+   through the middle of that box. #felt-surface's own `filter:drop-
+   shadow(...)` (see there) replaces this for #felt-frame, since drop-
+   shadow follows the actual rendered shape rather than the box it came
+   from. #menu-felt-frame (no clock, no notch, no drop-shadow) still gets
+   the plain box-shadow version via the shared rule above. */
+#felt-frame::after{content:none;}
 
 .pill-btn{
   background:rgba(255,255,255,0.02);
@@ -757,6 +796,7 @@ body.split-open #rotate-prompt{display:none!important;}
   <div id="clock-platform">
     <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
   </div>
+  <div id="felt-glow">
   <div id="felt-surface" class="felt-surface">
   <div id="blind-zone">
     <span class="suit suit-clubs" aria-hidden="true">&#9827;</span>
@@ -790,6 +830,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"></div>
+  </div>
   </div>
   </div>
   <div id="pause-overlay" onclick="resumeGame()">
@@ -935,7 +976,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.237';
+const VERSION='v1.238';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
