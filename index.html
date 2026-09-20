@@ -1040,7 +1040,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.246';
+const VERSION='v1.247';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2203,12 +2203,21 @@ bindSwipe(elCdZone,dx=>adjustTime(dx>0?-1:1));
 // Manually changing the blind level (swipe/click/keyboard on the blind
 // zone) only swaps which sb/bb pair is displayed — it never touches the
 // countdown, so nudging the level up or down mid-level doesn't cost or
-// gain time.
+// gain time. The one exception is advancing into a level with a shorter
+// max duration than the time currently showing (e.g. 14:00 left on a
+// 15-minute level 5, bumped up to 10-minute level 6) — that reads as
+// broken (more time left than the level could ever hold), so it's
+// capped down to the new level's own max instead. Decreasing a level
+// never trips this: levels only get shorter (or stay the same) as level
+// increases, so remSec — already bounded by whatever level it came
+// from — can't exceed a *lower* level's max.
 function adjustLevel(dir){
   cancelSnap();advancing=false;advanceWall=0;
   const nv=Math.max(1,Math.min(BLINDS.length,level+dir));
   if(nv===level)return;
   level=nv;
+  const cap=maxSec(nv);
+  if(remSec>cap){remSec=cap;pausedRemSec=cap;launchWall=Date.now();}
   levelStartWall=0;render();
 }
 
