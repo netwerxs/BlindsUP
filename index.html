@@ -437,38 +437,8 @@ html,body{width:100%;height:100%;
    stay flat. #blind-zone/#cd-zone are just transparent content panes over
    that shared surface, so there's no seam between them. */
 #blind-zone{
-  grid-row:1;grid-column:1;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
-}
-.suit{
-  font-size:18vh;line-height:1;
-  pointer-events:none;user-select:none;
-  text-shadow:0 2px 6px rgba(0,0,0,0.35);
-}
-.suit-clubs{color:#111;}
-.suit-diamonds{color:var(--danger);}
-.suit-hearts{color:var(--danger);}
-.suit-spades{color:#111;}
-/* Corner placement, used only by #announce's fullscreen overlay — the
-   felt's own suits sit in .suit-row instead (see there). */
-.suit.corner{position:absolute;z-index:-1;}
-.suit.corner.suit-clubs{top:2vh;left:2vw;}
-.suit.corner.suit-diamonds{top:2vh;right:2vw;}
-.suit.corner.suit-spades{bottom:2vh;right:2vw;}
-/* A single horizontal row of all four suits, centered on the felt as a
-   whole rather than living inside #blind-zone/#cd-zone individually —
-   it spans both of #felt-surface's grid rows (grid-row:1/span 2), so
-   flex's align-items:center lands it at the felt's true vertical middle,
-   straddling the seam between the blind and countdown halves. Equal
-   horizontal padding leaves matching small gaps at both ends; z-index:-1
-   (grid items honor z-index without needing position set) keeps it
-   behind both zones' numerals, matching how the old corner glyphs sat
-   behind their own zone's text. */
-.suit-row{
-  grid-row:1 / span 2;grid-column:1;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 3vw;pointer-events:none;z-index:-1;
 }
 #blind-inner{
   display:flex;align-items:center;justify-content:center;
@@ -478,7 +448,6 @@ html,body{width:100%;height:100%;
 .b-amp{font-size:1em;font-weight:700;line-height:0.85;color:var(--white);align-self:center;margin:0 0.25em;}
 
 #cd-zone{
-  grid-row:2;grid-column:1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.48vh;
   overflow:hidden;cursor:ew-resize;position:relative;z-index:0;
 }
@@ -561,7 +530,7 @@ html,body{width:100%;height:100%;
 }
 #announce.visible{display:flex;}
 /* A soft glow behind the numerals (not on them) marks the moment — sits at
-   the same z-index tier as the corner suits so it stays behind all text. */
+   z-index:-1 so it stays behind all text. */
 #announce::before{
   content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;
   background:radial-gradient(ellipse 46vh 20vh at 50% 42%,rgba(var(--accent-rgb),0.16) 0%,rgba(var(--accent-rgb),0) 65%);
@@ -857,12 +826,6 @@ body.split-open #rotate-prompt{display:none!important;}
   </div>
   <div id="felt-glow">
   <div id="felt-surface" class="felt-surface">
-  <div class="suit-row" aria-hidden="true">
-    <span class="suit suit-clubs">&#9827;</span>
-    <span class="suit suit-diamonds">&#9830;</span>
-    <span class="suit suit-hearts">&#9829;</span>
-    <span class="suit suit-spades">&#9824;</span>
-  </div>
   <div id="blind-zone">
     <div id="blind-inner">
       <span class="b-num" id="bSB">1</span>
@@ -1030,15 +993,12 @@ body.split-open #rotate-prompt{display:none!important;}
 
 <!-- ANNOUNCE -->
 <div id="announce" onclick="dismissAnnounce()" role="status" aria-live="assertive" aria-atomic="true">
-  <span class="suit corner suit-clubs" aria-hidden="true">&#9827;</span>
-  <span class="suit corner suit-diamonds" aria-hidden="true">&#9830;</span>
-  <span class="suit corner suit-spades" aria-hidden="true">&#9824;</span>
   <div class="ann-num" id="ann-break">Break</div>
   <div class="ann-tap">tap to dismiss</div>
 </div>
 
 <script>
-const VERSION='v1.240';
+const VERSION='v1.241';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
