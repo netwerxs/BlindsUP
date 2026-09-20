@@ -935,7 +935,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.236';
+const VERSION='v1.237';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1022,9 +1022,23 @@ function layoutFeltClip(){
   if(key===_lastFeltClipKey)return;
   _lastFeltClipKey=key;
   const r=16;                             // matches .felt-surface's own border-radius
+  // The notch has 3 corners of its own, besides the 3 plain outer ones
+  // (top-left/top-right/bottom-right, rounded above): where the bottom
+  // edge meets the notch's right side, and where the notch's top side
+  // meets the left edge, are both convex from the felt's own point of
+  // view — round them the same way (sweep 1) as the outer 3, since
+  // they're really just that same corner, relocated to the notch's
+  // mouth. The notch's own inner corner (where its right and top sides
+  // meet each other) is concave from the felt's point of view — it needs
+  // the opposite sweep (0) to curve *into* the notch rather than bulge
+  // out of it. All three are safe to round now in a way they weren't as
+  // a separate `.clock-rail-corner` fillet element: this is still one
+  // shape, one clip-path, nothing to seam against.
   elFeltClipPath.setAttribute('d',
     `M ${r} 0 H ${w-r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h-r} A ${r} ${r} 0 0 1 ${w-r} ${h} `+
-    `H ${notchW} V ${h-notchH} H 0 V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`);
+    `H ${notchW+r} A ${r} ${r} 0 0 1 ${notchW} ${h-r} V ${h-notchH+r} `+
+    `A ${r} ${r} 0 0 0 ${notchW-r} ${h-notchH} H ${r} A ${r} ${r} 0 0 1 0 ${h-notchH-r} `+
+    `V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`);
 }
 
 let level=1,remSec=maxSec(1),pausedRemSec=maxSec(1);
