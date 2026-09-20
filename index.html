@@ -1040,7 +1040,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.247';
+const VERSION='v1.248';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2217,7 +2217,12 @@ function adjustLevel(dir){
   if(nv===level)return;
   level=nv;
   const cap=maxSec(nv);
-  if(remSec>cap){remSec=cap;pausedRemSec=cap;launchWall=Date.now();}
+  // snapToRTC(), not a bare `cap` — same reasoning as adjustTime()'s own
+  // newRem below: a bare whole-minute value has :00 seconds, which would
+  // make this particular countdown hit 0 in sync with *launchWall*
+  // instead of the wall clock, silently breaking RTC alignment for this
+  // one transition even though every other level start/adjustment keeps it.
+  if(remSec>cap){const snapped=snapToRTC(cap);remSec=snapped;pausedRemSec=snapped;launchWall=Date.now();}
   levelStartWall=0;render();
 }
 
