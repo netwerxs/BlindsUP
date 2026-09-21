@@ -526,28 +526,22 @@ html,body{width:100%;height:100%;
 #blind-inner.flash{animation:bigflash 0.28s ease;}
 @keyframes bigflash{0%{opacity:1;}35%{opacity:0;}100%{opacity:1;}}
 
-/* A small always-there transport control stacked right under the
-   countdown, both grouped and centered together in #cd-zone (the felt's
-   upper half) — one oval housing three old-school symbol-only buttons:
-   Rewind (adjustTime, +1min — swipe left on #cd-zone means the same
-   thing), Pause (togglePause), Fast Forward (adjustTime, -1min). It's a
-   normal flex child of #cd-zone (not absolutely positioned over the
-   whole felt), so it needs its own stacking context — position:relative
-   plus a z-index above the zone's click-catcher .zone-half overlays, but
-   still below #pause-overlay (z-index 8) so once paused it's simply
-   covered by that overlay rather than needing its own show/hide JS.
-   The oval's width is fixed at 3x the buttons' own natural fit-content
-   width (22.8vh, from the button widths/gaps/padding below) with
-   justify-content:space-between, so the buttons themselves stay the same
-   size and just spread out across the wider pill. */
-.felt-transport{
-  position:relative;z-index:1;opacity:0.25;
-  display:flex;align-items:center;justify-content:space-between;
-  width:68.4vh;padding:0.6vh;
-  background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.32);
-  border-radius:999px;box-shadow:var(--inset-hi);
-}
+/* Small always-there transport buttons, dim (opacity 0.25) so they read
+   as secondary to the big digits. Rewind (adjustTime, +1min — swipe left
+   on #cd-zone means the same thing) and Fast Forward (adjustTime, -1min)
+   flank the countdown itself, in a plain centered flex row (.cd-row) so
+   they stay vertically aligned with the digits with no magic numbers.
+   Pause (togglePause) sits on its own underneath, in normal flex-column
+   flow. Every .transport-btn is its own position:relative/z-index:1
+   stacking context — needed since each is a normal-flow (or, for the
+   blind-zone pair below, absolutely-positioned) sibling of the zone's
+   click-catcher .zone-half overlays, which are absolutely positioned and
+   would otherwise paint on top and swallow clicks — but still below
+   #pause-overlay (z-index 8) so once paused they're simply covered by
+   that overlay rather than needing their own show/hide JS. */
+.cd-row{display:flex;align-items:center;justify-content:center;gap:3vw;}
 .transport-btn{
+  position:relative;z-index:1;opacity:0.25;
   background:none;border:none;padding:0;cursor:pointer;
   width:6vh;height:6vh;border-radius:50%;
   display:flex;align-items:center;justify-content:center;gap:0.8vh;
@@ -559,10 +553,20 @@ html,body{width:100%;height:100%;
 .transport-btn .tri{width:0;height:0;border-top:1.3vh solid transparent;border-bottom:1.3vh solid transparent;}
 .transport-btn .tri-left{border-right:1.6vh solid var(--white);}
 .transport-btn .tri-right{border-left:1.6vh solid var(--white);}
-/* Pause is the primary control of the three, so it gets a larger button
-   and a correspondingly bigger || symbol than Rewind/Fast Forward. */
+/* Pause is the primary control, so it gets a larger button and a
+   correspondingly bigger || symbol than any Rewind/Fast Forward pair. */
 .transport-btn-main{width:8vh;height:8vh;}
 .transport-btn-main .bar{width:1.3vh;height:3.6vh;}
+/* The blind-zone's Rewind/Fast Forward (level down/up) can't be normal
+   flex siblings of #blind-inner — fitBlind() sizes its text off
+   #blind-zone's own clientWidth, unaware of any space flex siblings would
+   claim — so instead they're pinned to the zone's edges, vertically
+   centered on its full-height #blind-inner via margin-top (not
+   transform, which .transport-btn:active already uses for its press
+   scale). #blind-zone/#cd-zone are already position:relative. */
+.zone-side-btn{position:absolute;top:50%;margin-top:-3vh;}
+.zone-side-btn-left{left:1.5vw;}
+.zone-side-btn-right{right:1.5vw;}
 
 /* PAUSE — a translucent tap-to-resume layer over the felt (not the whole
    screen, so the top menu bar stays reachable) rather than navigating away
@@ -899,32 +903,38 @@ body.split-open #rotate-prompt{display:none!important;}
   <div id="felt-glow">
   <div id="felt-surface" class="felt-surface">
   <div id="cd-zone">
-    <div id="cd-inner">
-      <span class="cd-num" id="cdMin">15</span>
-      <span class="cd-colon">:</span>
-      <span class="cd-num" id="cdSec">00</span>
-    </div>
-    <div class="felt-transport">
+    <div class="cd-row">
       <button class="transport-btn" onclick="adjustTime(1)" aria-label="Rewind 1 minute" title="Rewind 1 minute">
         <span class="tri tri-left"></span><span class="tri tri-left"></span>
       </button>
-      <button id="btn-felt-pause" class="transport-btn transport-btn-main" onclick="togglePause()" aria-label="Pause" title="Pause">
-        <span class="bar"></span><span class="bar"></span>
-      </button>
+      <div id="cd-inner">
+        <span class="cd-num" id="cdMin">15</span>
+        <span class="cd-colon">:</span>
+        <span class="cd-num" id="cdSec">00</span>
+      </div>
       <button class="transport-btn" onclick="adjustTime(-1)" aria-label="Fast forward 1 minute" title="Fast forward 1 minute">
         <span class="tri tri-right"></span><span class="tri tri-right"></span>
       </button>
     </div>
+    <button id="btn-felt-pause" class="transport-btn transport-btn-main" onclick="togglePause()" aria-label="Pause" title="Pause">
+      <span class="bar"></span><span class="bar"></span>
+    </button>
     <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"></div>
   </div>
 
   <div id="blind-zone">
+    <button class="transport-btn zone-side-btn zone-side-btn-left" onclick="adjustLevel(-1)" aria-label="Decrease level" title="Decrease level">
+      <span class="tri tri-left"></span><span class="tri tri-left"></span>
+    </button>
     <div id="blind-inner">
       <span class="b-num" id="bSB">1</span>
       <span class="b-amp">/</span>
       <span class="b-num" id="bBB">2</span>
     </div>
+    <button class="transport-btn zone-side-btn zone-side-btn-right" onclick="adjustLevel(1)" aria-label="Increase level" title="Increase level">
+      <span class="tri tri-right"></span><span class="tri tri-right"></span>
+    </button>
     <div class="zone-half zone-left no-touch-only" onclick="adjustLevel(-1)"></div>
     <div class="zone-half zone-right no-touch-only" onclick="adjustLevel(1)"></div>
   </div>
@@ -1070,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.255';
+const VERSION='v1.256';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
