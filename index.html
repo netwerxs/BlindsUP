@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.259';
+const VERSION='v1.260';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2141,7 +2141,14 @@ function beginCountdown(){
 
 function resumeGame(){
   getCtx(); // unlock AudioContext within this user-gesture handler (iOS requires it)
-  if(pausedRemSec===0){remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;advancing=false;}
+  // pausedRemSec===0 means the level had already fully expired at the
+  // moment of pausing — restart it fresh, same as selectBlind(). Unlike
+  // that fresh start, there's no levelStartWall here today, so
+  // displayRemSec() shows the raw RTC-snapped value immediately instead
+  // of masking it with the usual clean-countdown-then-flip window; set
+  // it so this stays consistent with every other place a countdown
+  // starts fresh, however rarely this branch is actually hit.
+  if(pausedRemSec===0){remSec=snapToRTC(maxSec(level));pausedRemSec=remSec;advancing=false;levelStartWall=Date.now();}
   else{
     // Correct for however long we were paused by the minimum amount
     // needed to stay RTC-aligned, rather than the pause silently
