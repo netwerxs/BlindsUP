@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.260';
+const VERSION='v1.261';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1818,20 +1818,6 @@ function snapToRTC(baseSec){
   return baseSec+(ss<30?-ss:60-ss);
 }
 
-// Same idea, but the result may never exceed baseSec — for wherever a
-// value is being capped down to a hard max (a level's own maxSec()),
-// where snapToRTC()'s usual nearest-:00 rounding can land up to 30s
-// *past* baseSec on the ss>=30 half of the clock, silently defeating the
-// cap (e.g. showing 10:24 on a 10:00-max level). Falls back to the same-
-// minute :00 (baseSec-ss, always <= baseSec) only when the nearest
-// boundary would otherwise overshoot. Takes `ss` rather than reading the
-// clock itself so a caller that also needs the raw seconds-of-minute
-// value (adjustTime()) only reads it once.
-function capToRTC(baseSec,ss){
-  const nearest=baseSec+(ss<30?-ss:60-ss);
-  return nearest>baseSec?baseSec-ss:nearest;
-}
-
 // Signed difference between two RTC seconds-of-minute readings, folded to
 // the smallest-magnitude equivalent (range (-30, 30]) so a pause/resume
 // only ever nudges the countdown by the minimum amount needed to land
@@ -2291,15 +2277,16 @@ function adjustLevel(dir){
   if(nv===level)return;
   level=nv;
   const cap=maxSec(nv);
-  // capToRTC(), not a bare `cap` — same reasoning as adjustTime()'s own
-  // newRem below: a bare whole-minute value has :00 seconds, which would
-  // make this particular countdown hit 0 in sync with *launchWall*
-  // instead of the wall clock, silently breaking RTC alignment for this
-  // one transition even though every other level start/adjustment keeps
-  // it. capToRTC() specifically (not snapToRTC()) since this is capping
-  // remSec *down* to cap — snapToRTC()'s nearest-:00 rounding could land
-  // past cap and defeat the whole point of this branch.
-  if(remSec>cap){const snapped=capToRTC(cap,new Date().getSeconds());remSec=snapped;pausedRemSec=snapped;launchWall=Date.now();}
+  // Bare `cap`, not RTC-snapped: an RTC-aligned second near cap is either
+  // up to 30s *past* it (defeating the cap outright) or, once ruled out,
+  // up to 59s *under* it (the two RTC-aligned points bracketing a whole
+  // minute are a full minute apart, so ruling out the one ahead leaves
+  // only the one a minute behind) — on the wrong half of the clock that
+  // can land at or below whatever remSec already was, reading as if
+  // nothing happened. A bare cap is deterministic and always correct;
+  // this one transition loses RTC sync, same trade `adjustTime()` makes
+  // at its own max below, but every other level start/adjustment keeps it.
+  if(remSec>cap){remSec=cap;pausedRemSec=cap;launchWall=Date.now();}
   levelStartWall=0;render();
 }
 
@@ -2313,24 +2300,23 @@ function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   const newMin=Math.ceil(remSec/60-0.5)+dir;
   if(newMin<0)return;
   const maxMin=maxSec(level)/60;
-  // Pushing +1 past the level's own max reads the same as freshly picking
-  // it (see selectBlind()/beginCountdown()) — cap to that max instead of
-  // silently no-op'ing, and reuse displayRemSec()'s clean-countdown-then-
-  // flip window (its comment above) so this shows a plain 15:00/10:00
-  // rather than an odd RTC-snapped number.
-  const capped=newMin>maxMin;
-  const targetMin=capped?maxMin:newMin;
+  const targetMin=Math.min(newMin,maxMin);
   const ss=new Date().getSeconds();
-  // capToRTC(), not snapToRTC(), whenever targetMin lands ON the level's
-  // max — whether by capping past it or by +1 landing there exactly —
-  // since snapToRTC()'s nearest-:00 rounding can land up to 30s past the
-  // cap (e.g. 10:24 on a 10:00-max level), which is exactly the "more
-  // time than the level could ever hold" problem the cap exists to
-  // prevent. Off the max, snapToRTC()'s usual ±30s nearest rounding is
-  // fine — there's no ceiling to defeat.
-  const newRem=targetMin===0?(60-ss)%60:targetMin===maxMin?capToRTC(targetMin*60,ss):snapToRTC(targetMin*60);
+  // A bare max, not RTC-snapped, whenever targetMin lands ON the level's
+  // own max — whether by overshooting past it or by +1 landing exactly
+  // there. snapToRTC()'s nearest-:00 rounding can land up to 30s *past*
+  // the max (e.g. 10:24 on a 10:00-max level); once that's ruled out, the
+  // only other RTC-aligned option is up to 59s *under* it (the two
+  // aligned points bracketing a whole minute are a full minute apart) —
+  // on the wrong half of the clock that can land at or below wherever
+  // remSec already was, reading as if the button did nothing (or even
+  // took time away). A bare max is deterministic and always moves
+  // forward; RTC sync resumes at the level's next real transition, same
+  // trade adjustLevel() makes at its own cap. Off the max, snapToRTC()'s
+  // usual ±30s nearest rounding is fine — there's no ceiling to defeat.
+  const newRem=targetMin===0?(60-ss)%60:targetMin===maxMin?maxSec(level):snapToRTC(targetMin*60);
   remSec=newRem;pausedRemSec=newRem;
-  launchWall=Date.now();levelStartWall=capped?Date.now():0;render();
+  launchWall=Date.now();levelStartWall=0;render();
 }
 
 // Auto-advancing to the next level no longer shows the fullscreen
