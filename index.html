@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.257';
+const VERSION='v1.258';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2287,11 +2287,19 @@ function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
   // on the same value instead of advancing. Round to the nearest minute
   // instead (ties break down, matching snapToRTC's own -29..+30 range).
   const newMin=Math.ceil(remSec/60-0.5)+dir;
-  if(newMin<0||newMin*60>maxSec(level)+59)return;
+  if(newMin<0)return;
+  const maxMin=maxSec(level)/60;
+  // Pushing +1 past the level's own max reads the same as freshly picking
+  // it (see selectBlind()/beginCountdown()) — cap to that max instead of
+  // silently no-op'ing, and reuse displayRemSec()'s clean-countdown-then-
+  // flip window (its comment above) so this shows a plain 15:00/10:00
+  // rather than an odd RTC-snapped number.
+  const capped=newMin>maxMin;
+  const targetMin=capped?maxMin:newMin;
   const ss=new Date().getSeconds();
-  const newRem=newMin===0?(60-ss)%60:snapToRTC(newMin*60);
+  const newRem=targetMin===0?(60-ss)%60:snapToRTC(targetMin*60);
   remSec=newRem;pausedRemSec=newRem;
-  launchWall=Date.now();levelStartWall=0;render();
+  launchWall=Date.now();levelStartWall=capped?Date.now():0;render();
 }
 
 // Auto-advancing to the next level no longer shows the fullscreen
