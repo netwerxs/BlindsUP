@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.264';
+const VERSION='v1.265';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2049,9 +2049,13 @@ function updatePauseLabel(){
 // resume within the window can't extend or replay it. Any manual
 // adjustLevel()/adjustTime() input clears `levelStartWall`, flipping the
 // display to the real synced value immediately rather than waiting out
-// the rest of the window — except adjustTime(1) (Rewind) hitting its own
-// max, which re-arms `levelStartWall` instead: that restarts the level
-// exactly like a fresh menu pick, so it gets a fresh masked window too.
+// the rest of the window — with two exceptions: adjustTime(1) (Rewind)
+// hitting its own max re-arms `levelStartWall` instead, since that
+// restarts the level exactly like a fresh menu pick and gets a fresh
+// masked window too; and adjustTime(-1) (Fast forward) pressed *while*
+// still inside the window just clears it and reveals the real value,
+// without also acting on a number the player never actually saw — the
+// actual -1 minute takes a second press once the real value is showing.
 //
 // The same trick covers the auto-advance freeze (`advancing`/`advanceWall`,
 // set in tick()): rather than sitting frozen on the full duration for
@@ -2294,6 +2298,15 @@ function adjustLevel(dir){
 
 function adjustTime(dir){ // +1 = add one minute (Rewind), -1 = subtract one minute (Fast forward)
   cancelSnap();advancing=false;advanceWall=0;
+  // Fast forward while the flip-delay window (see displayRemSec()) is still
+  // masking the display: the player is looking at a fake clean countdown,
+  // not the real remSec, so subtracting a minute from it would land on a
+  // number they never actually saw. Just reveal the true synced value —
+  // remSec is already correct, only the display was lying — and treat the
+  // actual -1 minute as the *next* press, once they're seeing the real one.
+  if(dir<0&&levelStartWall&&(Date.now()-levelStartWall)/1000<FLIP_DELAY_SEC){
+    levelStartWall=0;render();return;
+  }
   levelStartWall=0;
   if(dir>0){
     const cap=maxSec(level);
