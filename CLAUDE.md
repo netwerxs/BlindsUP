@@ -44,17 +44,17 @@ All mutable state is global:
 
 ### Blind schedule
 
-`BLINDS` is a 29-entry array of explicit `{sb, bb}` pairs. Level semantics:
+`BLINDS` is a 30-entry array of explicit `{sb, bb}` pairs. Level semantics:
 
 - Levels 1–10: `sb = level*100, bb = level*200` (15-minute countdown for 1–5, 10-minute countdown from level 6)
 - Levels 11–13: +500/+1000 per level (1500/3000, 2000/4000, 2500/5000), 10-minute countdown
-- Levels 14–29: +1000/+2000 per level (3000/6000 up to 18000/36000), 10-minute countdown
+- Levels 14–30: +1000/+2000 per level (3000/6000 up to 19000/38000), 10-minute countdown
 
 Blind values are always shown as full integers (no `k`/thousands abbreviation) — `render()`, the menu cards, and the resume button all read `bl.sb`/`bl.bb` straight from `BLINDS`.
 
-`fitBlind()` (via the shared `fitText()`) shrinks `#blind-inner` from its vh baseline when a wide pair (e.g. `18000 / 36000`) would overrun the available width, snapping back to full size when it fits. The container owns the font-size (`.b-num`/`.b-amp` are `1em`); `fitBlind()` is called every `render()` but early-returns unless the text or width changed, and is also wired to `resize`.
+`fitBlind()` (via the shared `fitText()`) shrinks `#blind-inner` from its vh baseline when a wide pair (e.g. `19000 / 38000`) would overrun the available width, snapping back to full size when it fits. The container owns the font-size (`.b-num`/`.b-amp` are `1em`); `fitBlind()` is called every `render()` but early-returns unless the text or width changed, and is also wired to `resize`.
 
-There's no special UI treatment for any level — the menu grid renders levels 1–28 identically (`Level N` / `sb/bb` / duration); level 29 is only reachable via auto-advance and has no menu card (its slot is given to the EXIT card instead). The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
+There's no special UI treatment for any level — every level (1–30) gets an identical menu card (`sb/bb`), grouped into two bordered, labeled boxes: **Rebuy** (levels 1–5, 100/200 through 500/1000) and **Freezeout** (levels 6–30, the rest), built by the menu-grid IIFE. The menu grid does highlight whichever card matches the current `level` (class `.current`, kept in sync by `updateMenuHighlight()`, called from `showMenu()`), so the grid doubles as a lightweight progress indicator.
 
 `maxSec(lv)` encodes the duration rule and is the single source of truth for level length.
 
@@ -96,7 +96,7 @@ A top-level label's click on Game or Help goes through `menuLabelClick(id)` rath
 
 **New** (Game menu; `resetToMenu()` internally) stops the countdown if one's running (`freezeCountdown()`) and brings up the picker screen (`showMenu()`) — the same behavior Pause itself used to have, before Pause became an in-place overlay. Unlike the Esc-hold reset, it doesn't force `level` back to 1: the current level stays highlighted on the grid, and picking any card (including the highlighted one) starts it fresh, since `selectBlind()` always resnaps `remSec`. Also clears `#pause-overlay`'s `visible` class in case New is clicked while already paused.
 
-**Exit** (the Game menu's Exit item and the menu grid's EXIT card) both call `exitApp()` — drops full screen if active, then `window.close()` (a no-op in contexts the browser won't let a script close, e.g. a normal tab the user opened themselves rather than an installed PWA).
+**Exit** (the Game menu's Exit item) calls `exitApp()` — drops full screen if active, then `window.close()` (a no-op in contexts the browser won't let a script close, e.g. a normal tab the user opened themselves rather than an installed PWA).
 
 **Pausing stays on the timer screen** rather than navigating to the menu screen — `togglePause()` calls `freezeCountdown()` (stops the tick, stops any in-flight alarm, snapshots `pausedRemSec`/`pauseSecRTC`) and shows `#pause-overlay`, a translucent tap-to-resume layer (`onclick="resumeGame()"`) sized to exactly cover the felt (it's a sibling of `#felt-surface` inside `#felt-frame`, which is already `position:relative`, so `inset:0` matches the felt's own rounded rect). Sitting on top of `#blind-zone`/`#cd-zone` also means it silently absorbs any swipe/click that would otherwise adjust the level or time while paused. The top bar itself (`z-index:41`) sits above the overlay (`z-index:8`), so Game/Payout/Help — and Resume itself — stay reachable while paused. `enterRunningState()` clears the overlay's `visible` class every time it runs, so it can never linger into a fresh countdown even if some other path (like the Esc-hold reset) left it set.
 

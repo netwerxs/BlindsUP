@@ -264,7 +264,7 @@ html,body{width:100%;height:100%;
    tap to choose rather than a slot routed into the frame. Every card is
    the same size (the grid's equal-width columns + one shared aspect-ratio
    take care of that), sized to comfortably fit the widest blinds pair
-   (18000/36000) on one line. Sized to 75% of its grid cell (25% smaller
+   (19000/38000) on one line. Sized to 75% of its grid cell (25% smaller
    than a full-width card) and centered in the cell. */
 .blind-card{
   width:75%;aspect-ratio:2.4/1;
@@ -1070,7 +1070,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.254';
+const VERSION='v1.255';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1099,8 +1099,8 @@ const elMbHelp=document.getElementById('mb-help');
 document.getElementById('mb-version').textContent=VERSION;
 
 // Levels 1-10 follow sb=i*100/bb=i*200; levels 11-13 step up by +500/+1000 per
-// level (1500/3000, 2000/4000, 2500/5000); levels 14-29 jump by +1000/+2000 per
-// level, 3000/6000 up to 18000/36000.
+// level (1500/3000, 2000/4000, 2500/5000); levels 14-30 jump by +1000/+2000 per
+// level, 3000/6000 up to 19000/38000.
 const BLINDS=[
   {sb:100,bb:200},{sb:200,bb:400},{sb:300,bb:600},{sb:400,bb:800},{sb:500,bb:1000},
   {sb:600,bb:1200},{sb:700,bb:1400},{sb:800,bb:1600},{sb:900,bb:1800},{sb:1000,bb:2000},
@@ -1108,7 +1108,7 @@ const BLINDS=[
   {sb:2000,bb:4000},{sb:2500,bb:5000},{sb:3000,bb:6000},{sb:4000,bb:8000},{sb:5000,bb:10000},
   {sb:6000,bb:12000},{sb:7000,bb:14000},{sb:8000,bb:16000},{sb:9000,bb:18000},{sb:10000,bb:20000},
   {sb:11000,bb:22000},{sb:12000,bb:24000},{sb:13000,bb:26000},{sb:14000,bb:28000},{sb:15000,bb:30000},
-  {sb:16000,bb:32000},{sb:17000,bb:34000},{sb:18000,bb:36000}
+  {sb:16000,bb:32000},{sb:17000,bb:34000},{sb:18000,bb:36000},{sb:19000,bb:38000}
 ];
 
 function maxSec(lv){if(lv<=5)return 15*60;return 10*60;}
@@ -1758,10 +1758,9 @@ function closeSplit(){
 })();
 
 // ── Build menu grid ───────────────────────────────────────────────
-// Levels 1-5 (100/200 through 500/1000) are the Rebuy blinds; levels 6-28
-// are the Freezeout blinds — each range gets its own bordered, labeled
-// group. Level 29 (18000/36000) is only reachable via auto-advance and
-// has no menu card.
+// Levels 1-5 (100/200 through 500/1000) are the Rebuy blinds; levels 6-30
+// (600/1200 through 19000/38000) are the Freezeout blinds — each range
+// gets its own bordered, labeled group. Every level has a menu card.
 (function(){
   const REBUY_LEVELS=5;
   const grid=document.getElementById('blind-grid');
@@ -1780,7 +1779,7 @@ function closeSplit(){
   freezeGrid.className='blind-group-grid';
   freezeGroup.appendChild(freezeGrid);
 
-  for(let i=1;i<BLINDS.length;i++){
+  for(let i=1;i<=BLINDS.length;i++){
     const bl=BLINDS[i-1];
     const card=document.createElement('div');
     card.className='blind-card';
@@ -2073,14 +2072,12 @@ function render(){
 }
 
 // Highlights the menu card matching the current/last-played level, so the
-// grid reads as a progress map rather than 28 identical picker tiles.
-// Level 29 (the jump-schedule cap, only reachable via auto-advance) has no
-// selectable card and is left unhighlighted.
+// grid reads as a progress map rather than 30 identical picker tiles.
 function updateMenuHighlight(){
   const grid=document.getElementById('blind-grid');
   const cards=grid.querySelectorAll('.blind-card');
   cards.forEach(c=>c.classList.remove('current'));
-  if(level>=1&&level<BLINDS.length){
+  if(level>=1&&level<=BLINDS.length){
     const card=cards[level-1];
     if(card)card.classList.add('current');
   }
