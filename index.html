@@ -222,11 +222,41 @@ html,body{width:100%;height:100%;
   color:var(--dim);flex-shrink:0;
 }
 #blind-grid{
+  display:flex;flex-direction:column;
+  gap:2.2vh;
+  width:100%;flex:1;
+  justify-content:center;
+}
+/* Each blind range (Rebuy / Freezeout) gets its own bordered glass panel
+   — chrome, per the visual-design rule, so the box itself can carry the
+   backdrop-blur/inset-highlight treatment even though the cards inside
+   stay flat. The label sits on the border like a fieldset legend. */
+.blind-group{
+  position:relative;
+  border:1px solid rgba(255,255,255,0.16);
+  border-radius:24px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  box-shadow:var(--shadow-elev1),var(--inset-hi);
+  padding:2.6vh 1.2vw 1.2vh;
+}
+.blind-group-label{
+  position:absolute;top:0;left:2vw;transform:translateY(-50%);
+  padding:0.3em 0.9em;border-radius:999px;
+  background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:1px solid rgba(255,255,255,0.16);
+  box-shadow:var(--shadow-elev1);
+  font-size:1.5vh;font-weight:600;
+  letter-spacing:0.3em;text-transform:uppercase;
+  color:var(--white);white-space:nowrap;
+}
+.blind-group-grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:1.2vh 1.5vw;
-  width:100%;flex:1;
-  align-content:center;
+  width:100%;
 }
 /* Level cards read as the same cherrywood pill buttons as the side panel,
    but raised (embossed) rather than carved into the wood — a drop shadow
@@ -234,9 +264,11 @@ html,body{width:100%;height:100%;
    tap to choose rather than a slot routed into the frame. Every card is
    the same size (the grid's equal-width columns + one shared aspect-ratio
    take care of that), sized to comfortably fit the widest blinds pair
-   (18000/36000) on one line. */
+   (18000/36000) on one line. Sized to 75% of its grid cell (25% smaller
+   than a full-width card) and centered in the cell. */
 .blind-card{
-  width:100%;aspect-ratio:2.4/1;
+  width:75%;aspect-ratio:2.4/1;
+  justify-self:center;
   border-radius:100px;
   background:radial-gradient(130% 160% at 50% 28%,#3a1d12 0%,#2c150d 55%,#1a0d08 100%);
   border:1px solid rgba(0,0,0,0.5);
@@ -258,13 +290,11 @@ html,body{width:100%;height:100%;
 }
 .blind-card.current .card-blinds{color:var(--accent);}
 .card-blinds{
-  font-size:2.6vh;font-weight:800;
+  font-size:1.95vh;font-weight:800;
   letter-spacing:-0.02em;color:var(--white);
   text-align:center;white-space:nowrap;padding:0 0.8vh;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;
 }
-.exit-card{border-color:rgba(var(--accent-rgb),0.5);}
-.exit-card .card-blinds{color:var(--accent);text-shadow:0 0 12px rgba(var(--accent-rgb),0.3);}
 
 /* ── APP ── */
 #app{display:none;width:100vw;height:100vh;padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
@@ -919,7 +949,7 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
     <div class="help-section">
       <div class="help-heading">Exit</div>
-      <div class="help-body">The <b>EXIT</b> card on the menu closes the app (where the browser allows it) and drops out of full screen.</div>
+      <div class="help-body">The Game menu's <b>Exit</b> item closes the app (where the browser allows it) and drops out of full screen.</div>
     </div>
     <div class="help-section">
       <div class="help-heading">Changing Blinds</div>
@@ -1040,7 +1070,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.249';
+const VERSION='v1.254';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1728,24 +1758,39 @@ function closeSplit(){
 })();
 
 // ── Build menu grid ───────────────────────────────────────────────
-// The last slot (level 29, 18000/36000) is given up to an EXIT card — that level
-// is still reachable via normal auto-advance, just not directly selectable
-// from the menu.
+// Levels 1-5 (100/200 through 500/1000) are the Rebuy blinds; levels 6-28
+// are the Freezeout blinds — each range gets its own bordered, labeled
+// group. Level 29 (18000/36000) is only reachable via auto-advance and
+// has no menu card.
 (function(){
+  const REBUY_LEVELS=5;
   const grid=document.getElementById('blind-grid');
+
+  const rebuyGroup=document.createElement('div');
+  rebuyGroup.className='blind-group';
+  rebuyGroup.innerHTML='<div class="blind-group-label">Rebuy</div>';
+  const rebuyGrid=document.createElement('div');
+  rebuyGrid.className='blind-group-grid';
+  rebuyGroup.appendChild(rebuyGrid);
+
+  const freezeGroup=document.createElement('div');
+  freezeGroup.className='blind-group';
+  freezeGroup.innerHTML='<div class="blind-group-label">Freezeout</div>';
+  const freezeGrid=document.createElement('div');
+  freezeGrid.className='blind-group-grid';
+  freezeGroup.appendChild(freezeGrid);
+
   for(let i=1;i<BLINDS.length;i++){
     const bl=BLINDS[i-1];
     const card=document.createElement('div');
     card.className='blind-card';
     card.innerHTML=`<div class="card-blinds">${bl.sb}/${bl.bb}</div>`;
     card.addEventListener('click',()=>selectBlind(i));
-    grid.appendChild(card);
+    (i<=REBUY_LEVELS?rebuyGrid:freezeGrid).appendChild(card);
   }
-  const exitCard=document.createElement('div');
-  exitCard.className='blind-card exit-card';
-  exitCard.innerHTML='<div class="card-blinds">EXIT</div>';
-  exitCard.addEventListener('click',exitApp);
-  grid.appendChild(exitCard);
+
+  grid.appendChild(rebuyGroup);
+  grid.appendChild(freezeGroup);
 })();
 
 // Try to close the app outright; where the browser refuses (a normal tab,
@@ -2033,9 +2078,10 @@ function render(){
 // selectable card and is left unhighlighted.
 function updateMenuHighlight(){
   const grid=document.getElementById('blind-grid');
-  Array.from(grid.children).forEach(c=>c.classList.remove('current'));
+  const cards=grid.querySelectorAll('.blind-card');
+  cards.forEach(c=>c.classList.remove('current'));
   if(level>=1&&level<BLINDS.length){
-    const card=grid.children[level-1];
+    const card=cards[level-1];
     if(card)card.classList.add('current');
   }
 }
