@@ -193,32 +193,6 @@ html,body{width:100%;height:100%;
   font-family:'Inter',sans-serif;font-weight:700;
   font-size:11vh;color:#111;line-height:1;white-space:nowrap;
 }
-/* An ornate wood corbel "supporting" the clock plaque from below — a
-   second child of #clock-platform, mounted flush with the plaque's own
-   right edge (already flush with the real wood border) and reaching
-   about 3/4 of the plaque's width in toward its middle. `top` pulls it up
-   by #clock-platform's own 0.25in bottom padding so it touches the
-   plaque's actual visible underside rather than #clock-platform's padded
-   box edge. `width:75%`/`aspect-ratio` (matching the SVG's own viewBox,
-   so nothing stretches) size it relative to #clock-platform, so it
-   tracks the plaque's own rendered width automatically as the clock's
-   digit count changes it — no JS measurement needed, unlike the felt's
-   notch. It needs its own explicit z-index, unlike #clock-plaque, since
-   it's the one thing in this corner meant to sit in FRONT of the felt
-   below it rather than behind: #clock-platform and #clock-plaque have no
-   stacking context of their own, so they stay grouped with
-   #clock-platform's own deliberately-behind-the-felt paint order (plain
-   DOM order, see #clock-platform above); giving just this element a
-   z-index lifts it out of that group to compete directly against
-   #felt-glow's own context (created by its `filter`) on z-index terms,
-   where a positive value wins. */
-#clock-support{
-  position:absolute;top:calc(100% - 0.25in);right:0;
-  width:75%;aspect-ratio:100/50;
-  z-index:1;display:block;overflow:visible;
-  pointer-events:none;
-  filter:drop-shadow(0 3px 4px rgba(0,0,0,0.45));
-}
 /* Version label, centered on the bottom wood border — a separate fixed
    bar (not inside #top-menubar) since the bottom border belongs to each
    screen's own felt-frame rather than the shared top bar. `pointer-events:
@@ -891,24 +865,6 @@ body.split-open #rotate-prompt{display:none!important;}
   </svg>
   <div id="clock-platform">
     <div id="clock-plaque"><span id="mb-clock">&mdash;</span></div>
-    <svg id="clock-support" viewBox="0 0 100 50" aria-hidden="true">
-      <defs>
-        <linearGradient id="clockSupportWood" x1="20%" y1="0%" x2="90%" y2="100%">
-          <stop offset="0%" stop-color="#6a3222"/>
-          <stop offset="45%" stop-color="#4a2116"/>
-          <stop offset="100%" stop-color="#2a120d"/>
-        </linearGradient>
-      </defs>
-      <path d="M100,0 L100,38 C85,41 60,45 38,44 C22,43 10,37 6,27 C3,19 8,11 16,10 C22,9 25,14 19,16 C30,6 55,1 100,0 Z"
-        fill="url(#clockSupportWood)" stroke="rgba(255,190,150,0.3)" stroke-width="1"/>
-      <path d="M96,2 C70,4 40,9 21,15"
-        fill="none" stroke="rgba(255,205,170,0.4)" stroke-width="1"/>
-      <path d="M92,8 C78,11 55,20 34,22 C20,24 12,20 10,14"
-        fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
-      <path d="M92,12 C79,15 57,24 36,26"
-        fill="none" stroke="rgba(255,190,150,0.18)" stroke-width="1"/>
-      <circle cx="17" cy="13" r="3.5" fill="#2a120d" stroke="rgba(255,190,150,0.25)" stroke-width="0.6"/>
-    </svg>
   </div>
   <div id="felt-glow">
   <div id="felt-surface" class="felt-surface">
@@ -1084,7 +1040,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.252';
+const VERSION='v1.249';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
