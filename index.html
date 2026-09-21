@@ -919,8 +919,8 @@ body.split-open #rotate-prompt{display:none!important;}
     <button id="btn-felt-pause" class="transport-btn transport-btn-main" onclick="togglePause()" aria-label="Pause" title="Pause">
       <span class="bar"></span><span class="bar"></span>
     </button>
-    <div class="zone-half zone-left no-touch-only" onclick="adjustTime(-1)"></div>
-    <div class="zone-half zone-right no-touch-only" onclick="adjustTime(1)"></div>
+    <div class="zone-half zone-left no-touch-only" onclick="adjustTime(1)"></div>
+    <div class="zone-half zone-right no-touch-only" onclick="adjustTime(-1)"></div>
   </div>
 
   <div id="blind-zone">
@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.256';
+const VERSION='v1.257';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
