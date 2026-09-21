@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.263';
+const VERSION='v1.264';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2049,7 +2049,9 @@ function updatePauseLabel(){
 // resume within the window can't extend or replay it. Any manual
 // adjustLevel()/adjustTime() input clears `levelStartWall`, flipping the
 // display to the real synced value immediately rather than waiting out
-// the rest of the window.
+// the rest of the window — except adjustTime(1) (Rewind) hitting its own
+// max, which re-arms `levelStartWall` instead: that restarts the level
+// exactly like a fresh menu pick, so it gets a fresh masked window too.
 //
 // The same trick covers the auto-advance freeze (`advancing`/`advanceWall`,
 // set in tick()): rather than sitting frozen on the full duration for
