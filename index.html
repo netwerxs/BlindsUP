@@ -1080,7 +1080,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.262';
+const VERSION='v1.263';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2284,39 +2284,44 @@ function adjustLevel(dir){
   // only the one a minute behind) — on the wrong half of the clock that
   // can land at or below whatever remSec already was, reading as if
   // nothing happened. A bare cap is deterministic and always correct;
-  // this one transition loses RTC sync, same trade `adjustTime()` makes
-  // at its own max below, but every other level start/adjustment keeps it.
+  // this one transition loses RTC sync, resuming at the level's next
+  // real transition, same as every other manual level start/adjustment.
   if(remSec>cap){remSec=cap;pausedRemSec=cap;launchWall=Date.now();}
   levelStartWall=0;render();
 }
 
-function adjustTime(dir){ // +1 = add one minute, -1 = subtract one minute
+function adjustTime(dir){ // +1 = add one minute (Rewind), -1 = subtract one minute (Fast forward)
   cancelSnap();advancing=false;advanceWall=0;
-  // remSec is usually already RTC-snapped, which can sit up to 30s to either
-  // side of a clean minute mark. Math.floor would sometimes read that as one
-  // minute short (e.g. 13:59 reads as minute 13), making +1 silently re-land
-  // on the same value instead of advancing. Round to the nearest minute
-  // instead (ties break down, matching snapToRTC's own -29..+30 range).
-  const newMin=Math.ceil(remSec/60-0.5)+dir;
-  if(newMin<0)return;
-  const maxMin=maxSec(level)/60;
-  const targetMin=Math.min(newMin,maxMin);
-  const ss=new Date().getSeconds();
-  // A bare max, not RTC-snapped, whenever targetMin lands ON the level's
-  // own max — whether by overshooting past it or by +1 landing exactly
-  // there. snapToRTC()'s nearest-:00 rounding can land up to 30s *past*
-  // the max (e.g. 10:24 on a 10:00-max level); once that's ruled out, the
-  // only other RTC-aligned option is up to 59s *under* it (the two
-  // aligned points bracketing a whole minute are a full minute apart) —
-  // on the wrong half of the clock that can land at or below wherever
-  // remSec already was, reading as if the button did nothing (or even
-  // took time away). A bare max is deterministic and always moves
-  // forward; RTC sync resumes at the level's next real transition, same
-  // trade adjustLevel() makes at its own cap. Off the max, snapToRTC()'s
-  // usual ±30s nearest rounding is fine — there's no ceiling to defeat.
-  const newRem=targetMin===0?(60-ss)%60:targetMin===maxMin?maxSec(level):snapToRTC(targetMin*60);
-  remSec=newRem;pausedRemSec=newRem;
-  launchWall=Date.now();levelStartWall=0;render();
+  levelStartWall=0;
+  if(dir>0){
+    const cap=maxSec(level);
+    if(remSec+60<=cap){
+      // Room for a full minute: a plain relative add. Since it's an exact
+      // multiple of 60, it can't disturb remSec's existing RTC alignment
+      // (adding whole minutes never changes where a value sits relative
+      // to the nearest :00), so there's no need to re-snap here at all.
+      remSec+=60;
+    }else{
+      // No room left in the level — restart it fresh, exactly as if just
+      // picked from the menu: RTC-snapped, with the same flip-delay masked
+      // display (levelStartWall) so the clean-looking start doesn't
+      // visibly jump once it flips to the real synced value.
+      remSec=snapToRTC(cap);
+      levelStartWall=Date.now();
+    }
+  }else{
+    // remSec is usually already RTC-snapped, which can sit up to 30s to either
+    // side of a clean minute mark. Math.floor would sometimes read that as one
+    // minute short (e.g. 13:59 reads as minute 13), making -1 silently re-land
+    // on the same value instead of receding. Round to the nearest minute
+    // instead (ties break down, matching snapToRTC's own -29..+30 range).
+    const newMin=Math.ceil(remSec/60-0.5)-1;
+    if(newMin<0)return;
+    const ss=new Date().getSeconds();
+    remSec=newMin===0?(60-ss)%60:snapToRTC(newMin*60);
+  }
+  pausedRemSec=remSec;
+  launchWall=Date.now();render();
 }
 
 // Auto-advancing to the next level no longer shows the fullscreen
