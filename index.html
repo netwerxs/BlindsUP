@@ -761,15 +761,15 @@ body.no-touch .no-touch-only{display:flex;}
 }
 .split-line .val{font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
 .split-line .hnote{font-size:1.5vh;font-weight:400;color:rgba(0,0,0,0.4);margin-left:0.4em;}
-.sp-house-edit{display:flex;align-items:baseline;gap:0.15em;}
+.sp-house-edit{display:flex;align-items:baseline;}
 .sp-dollar{font-weight:700;color:#111;}
 .sp-house-input{
   text-align:right;font-weight:700;color:#111;font-family:inherit;
   font-size:inherit;font-variant-numeric:tabular-nums;
-  border:none;border-bottom:1px dashed rgba(0,0,0,0.35);background:transparent;
-  padding:0;
+  border:none;background:transparent;
+  padding:0;-webkit-appearance:none;appearance:none;
 }
-.sp-house-input:focus{outline:none;border-bottom-color:#111;}
+.sp-house-input:focus{outline:none;}
 .sp-house-input::placeholder{color:rgba(0,0,0,0.3);}
 .split-payouts{
   border-top:1px solid rgba(0,0,0,0.2);
@@ -1090,7 +1090,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.275';
+const VERSION='v1.276';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
