@@ -761,6 +761,18 @@ body.no-touch .no-touch-only{display:flex;}
 }
 .split-line .val{font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
 .split-line .hnote{font-size:1.5vh;font-weight:400;color:rgba(0,0,0,0.4);margin-left:0.4em;}
+.sp-house-edit{display:flex;align-items:baseline;gap:0.15em;}
+.sp-dollar{font-weight:700;color:#111;}
+.sp-house-input{
+  width:5.5em;text-align:right;font-weight:700;color:#111;font-family:inherit;
+  font-size:inherit;font-variant-numeric:tabular-nums;
+  border:none;border-bottom:1px dashed rgba(0,0,0,0.35);background:transparent;
+  padding:0;-moz-appearance:textfield;
+}
+.sp-house-input:focus{outline:none;border-bottom-color:#111;}
+.sp-house-input::-webkit-outer-spin-button,
+.sp-house-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.sp-house-input::placeholder{color:rgba(0,0,0,0.3);}
 .split-payouts{
   border-top:1px solid rgba(0,0,0,0.2);
   margin-top:0.8vh;padding-top:0.9vh;
@@ -1046,7 +1058,7 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="split-results">
       <div class="split-line"><span>Prize Pool</span><span class="val" id="sp-gross">$0.00</span></div>
       <div class="split-payout">
-        <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="val" id="sp-house">$0.00</span></div>
+        <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="sp-house-edit"><span class="sp-dollar">$</span><input id="sp-house" class="sp-house-input" type="number" inputmode="decimal" min="0" step="1" placeholder="0.00" aria-label="House amount — edit to override the calculated 10% split"></span></div>
         <div class="po-bills" id="sp-house-bills">&mdash;</div>
       </div>
       <div class="split-payouts">
@@ -1080,7 +1092,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.271';
+const VERSION='v1.272';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1096,6 +1108,7 @@ const elMenuScreen=document.getElementById('menu-screen');
 const elSoundcheckScreen=document.getElementById('soundcheck-screen');
 const elAnnounce=document.getElementById('announce');
 const elSplitOverlay=document.getElementById('split-overlay');
+const elHouseOverride=document.getElementById('sp-house');
 const elMbClock=document.getElementById('mb-clock');
 const elPauseOverlay=document.getElementById('pause-overlay');
 const elPauseLabel=document.getElementById('pause-label');
@@ -1329,11 +1342,14 @@ async function nativeInstall(e){
 // Top 3 each time the app is freshly opened, but once the user picks a mode
 // from the selector during a session (`splitModeTouched`), that choice
 // sticks for the rest of the session rather than reverting on next open.
-// Every place still distributes the whole 90%
-// pool, so the house base stays 10%. Each payout is rounded to the nearest
-// whole $5; the small difference is settled against the house cut (which can
-// therefore land a little above or below its base 10%), and the raw
-// pre-round figure is shown next to each place. Every stack is dealt out of
+// Every place distributes the whole payout pool — normally the flat 90% of
+// the prize pool, or (see splitRecalc's `houseTarget`) whatever's left after
+// an explicit House override typed into the House field, which also swaps
+// the "10%" note for whatever percentage that override actually works out
+// to. Each payout is rounded to the nearest whole $5; the small difference
+// is settled against the house cut (which can therefore land a little above
+// or below its base), and the raw pre-round figure is shown next to each
+// place. Every stack is dealt out of
 // `inv` internally (largest-first) so the House dollar figure is always
 // right; the *bill* breakdowns — per place and the House leftover — are only
 // rendered when every payout comes out exact, and hidden everywhere the
@@ -1346,6 +1362,11 @@ const CUSTOM_SIZES={custom3:3,custom4:4,custom5:5,custom6:6,custom7:7};
 const PAYOUT_STORE_KEY='bu-payout-scheme';
 let splitMode='top3';   // 'top3' | 'top4' | 'custom3'..'custom7'
 let customPcts=null;    // active Custom mode's percentages — integers summing to 100
+// null = House is the auto 10% cut. A number = the user has typed a dollar
+// override into the House field (#sp-house): the payout pool becomes
+// gross-minus-that-amount instead of gross*0.90, and the House % note shows
+// whatever percentage that override actually works out to instead of "10%".
+let houseOverride=null;
 
 function isCustomMode(){
   return Object.prototype.hasOwnProperty.call(CUSTOM_SIZES,splitMode);
@@ -1647,7 +1668,11 @@ function splitRecalc(){
     document.getElementById('sp'+d+'sub').textContent=fmtMoney(n*d);
     gross+=n*d;
   });
-  const pool=gross*0.90;
+  // Normally the payout pool is a flat 90% of the prize pool. If the user has
+  // typed a House override, the pool is instead whatever's left after taking
+  // that override off the top (never negative, and never more than gross).
+  const houseTarget=houseOverride!=null?Math.min(houseOverride,gross):gross*0.10;
+  const pool=gross-houseTarget;
 
   // dealBills(amount): pull `amount` from `inv` largest-first, mutating `inv`.
   // Returns {text:"2×$100 · 1×$20" breakdown, short:$ still owed after
@@ -1694,24 +1719,34 @@ function splitRecalc(){
     }).join('  ');
   })();
 
-  // House keeps everything not paid out — the base 10%, adjusted by whatever
-  // the nearest-$5 rounding added or removed (so this can dip below 10%).
-  const roundLeft=house-gross*0.10;
+  // House keeps everything not paid out — the base cut (10%, or the user's
+  // override), adjusted by whatever the nearest-$5 rounding added or removed
+  // (so this can land a little above or below that base).
+  const roundLeft=house-houseTarget;
+  const housePct=gross>0?Math.round(houseTarget/gross*1000)/10:10;
 
   // Whatever bills are left in `inv` after the payouts are the house's.
   const hparts=[];
   SPLIT_DENOMS.forEach(d=>{if(inv[d]>0)hparts.push(inv[d]+'×$'+d);});
 
-  document.getElementById('sp-house').textContent=fmtMoney(house);
   document.getElementById('sp-house-note').textContent=
-    roundLeft>=0.05?'10% + '+fmtMoney(roundLeft):
-    roundLeft<=-0.05?'10% − '+fmtMoney(-roundLeft):'10%';
+    roundLeft>=0.05?housePct+'% + '+fmtMoney(roundLeft):
+    roundLeft<=-0.05?housePct+'% − '+fmtMoney(-roundLeft):housePct+'%';
   document.getElementById('sp-house-bills').textContent=
     (balanced&&gross>0&&hparts.length)?hparts.join('  ·  '):'—';
+
+  // Keep the House field synced to the live computed amount unless the user
+  // is actively overriding it (or typing into it right now) — an override
+  // stays exactly what they typed rather than being overwritten by the
+  // rounding-adjusted actual `house` figure.
+  if(houseOverride==null&&document.activeElement!==elHouseOverride){
+    elHouseOverride.value=gross>0?String(Math.round(house*100)/100):'';
+  }
 }
 
 function splitClear(){
   SPLIT_DENOMS.forEach(d=>{document.getElementById('sp'+d).value='0';});
+  houseOverride=null;
   splitRecalc();
 }
 
@@ -1765,6 +1800,16 @@ function closeSplit(){
     splitRecalc();
   });
   document.getElementById('sp-mode').addEventListener('change',e=>setSplitMode(e.target.value));
+  elHouseOverride.addEventListener('input',()=>{
+    const v=parseFloat(elHouseOverride.value);
+    houseOverride=(elHouseOverride.value.trim()===''||!Number.isFinite(v)||v<0)?null:v;
+    splitRecalc();
+  });
+  // On blur, resync to the live computed value if the field was left empty
+  // (or invalid) rather than leaving it blank — same as it looks on open.
+  elHouseOverride.addEventListener('blur',()=>{
+    if(houseOverride==null)splitRecalc();
+  });
 })();
 
 // ── Build menu grid ───────────────────────────────────────────────
