@@ -1090,7 +1090,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.276';
+const VERSION='v1.277';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1764,11 +1764,13 @@ function splitRecalc(){
   document.getElementById('sp-house-bills').textContent=
     (balanced&&gross>0&&hparts.length)?hparts.join('  ·  '):'—';
 
-  // Keep the House field synced to the live computed amount unless the user
-  // is actively overriding it (or typing into it right now) — an override
-  // stays exactly what they typed rather than being overwritten by the
-  // rounding-adjusted actual `house` figure.
-  if(houseOverride==null&&document.activeElement!==elHouseOverride){
+  // The field always displays the real cash the house ends up with — the
+  // same figure the bill breakdown below it totals to — never the raw
+  // override target itself, since a target that gets outgrown by rounding
+  // (see roundLeft above) would otherwise sit right above a bill list that
+  // adds up to something else. It's only left untouched while the user is
+  // actively typing into it, so their keystrokes aren't overwritten mid-edit.
+  if(document.activeElement!==elHouseOverride){
     elHouseOverride.value=gross>0?fmtHouseInput(house):'';
   }
   sizeHouseInput();
@@ -1842,14 +1844,12 @@ function closeSplit(){
     houseOverride=(elHouseOverride.value.trim()===''||!Number.isFinite(v)||v<0)?null:v;
     splitRecalc();
   });
-  // On blur, resync to the live computed value if the field was left empty
-  // (or invalid) rather than leaving it blank — same as it looks on open.
-  // Otherwise, reformat whatever override is in effect to match the $X.XX
-  // styling used everywhere else in the sheet.
-  elHouseOverride.addEventListener('blur',()=>{
-    if(houseOverride==null)splitRecalc();
-    else{elHouseOverride.value=fmtHouseInput(houseOverride);sizeHouseInput();}
-  });
+  // On blur, redraw with the real computed house figure (splitRecalc's sync
+  // line handles this now that the field is no longer focused) — covers both
+  // a cleared/invalid field reverting to the live default and a valid
+  // override settling onto the actual post-rounding cash rather than the
+  // raw number typed.
+  elHouseOverride.addEventListener('blur',splitRecalc);
 })();
 
 // ── Build menu grid ───────────────────────────────────────────────
