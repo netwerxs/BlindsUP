@@ -1090,7 +1090,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.274';
+const VERSION='v1.275';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1554,8 +1554,15 @@ function sizeHouseInput(){
     elHouseMeasure.style.cssText='position:fixed;top:-9999px;left:-9999px;visibility:hidden;white-space:pre;';
     document.body.appendChild(elHouseMeasure);
   }
+  // Copied as individual longhand properties rather than the 'font' shorthand:
+  // Chrome serializes that shorthand's computed value as '' whenever
+  // font-variant-numeric isn't 'normal' (which it never is here — this input
+  // is tabular-nums), silently leaving the span on its inherited default font.
   const cs=getComputedStyle(elHouseOverride);
-  elHouseMeasure.style.font=cs.font;
+  elHouseMeasure.style.fontFamily=cs.fontFamily;
+  elHouseMeasure.style.fontSize=cs.fontSize;
+  elHouseMeasure.style.fontWeight=cs.fontWeight;
+  elHouseMeasure.style.fontStyle=cs.fontStyle;
   elHouseMeasure.style.letterSpacing=cs.letterSpacing;
   elHouseMeasure.style.fontVariantNumeric=cs.fontVariantNumeric;
   elHouseMeasure.textContent=elHouseOverride.value||elHouseOverride.placeholder;
