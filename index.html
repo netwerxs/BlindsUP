@@ -764,7 +764,7 @@ body.no-touch .no-touch-only{display:flex;}
 .sp-house-edit{display:flex;align-items:baseline;gap:0.15em;}
 .sp-dollar{font-weight:700;color:#111;}
 .sp-house-input{
-  width:7em;text-align:right;font-weight:700;color:#111;font-family:inherit;
+  text-align:right;font-weight:700;color:#111;font-family:inherit;
   font-size:inherit;font-variant-numeric:tabular-nums;
   border:none;border-bottom:1px dashed rgba(0,0,0,0.35);background:transparent;
   padding:0;
@@ -1090,7 +1090,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.273';
+const VERSION='v1.274';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1542,6 +1542,25 @@ function fmtMoney(v){
 function fmtHouseInput(v){
   return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+// The House field has no fixed width — a plain <input> defaults to ~20
+// characters wide, which would reopen the same "$" ... gap this is meant to
+// fix. Instead, size it to its own text every time that text changes, via a
+// hidden same-font measuring span (the input's own font is set in vh units,
+// so this reads the computed px value rather than guessing a fixed em width).
+let elHouseMeasure=null;
+function sizeHouseInput(){
+  if(!elHouseMeasure){
+    elHouseMeasure=document.createElement('span');
+    elHouseMeasure.style.cssText='position:fixed;top:-9999px;left:-9999px;visibility:hidden;white-space:pre;';
+    document.body.appendChild(elHouseMeasure);
+  }
+  const cs=getComputedStyle(elHouseOverride);
+  elHouseMeasure.style.font=cs.font;
+  elHouseMeasure.style.letterSpacing=cs.letterSpacing;
+  elHouseMeasure.style.fontVariantNumeric=cs.fontVariantNumeric;
+  elHouseMeasure.textContent=elHouseOverride.value||elHouseOverride.placeholder;
+  elHouseOverride.style.width=(elHouseMeasure.scrollWidth+2)+'px';
+}
 function fmtWhole(v){return '$'+v.toLocaleString('en-US');}
 
 // Label for the Payout sheet: today's date, or — for a game still running in
@@ -1745,6 +1764,7 @@ function splitRecalc(){
   if(houseOverride==null&&document.activeElement!==elHouseOverride){
     elHouseOverride.value=gross>0?fmtHouseInput(house):'';
   }
+  sizeHouseInput();
 }
 
 function splitClear(){
@@ -1808,6 +1828,7 @@ function closeSplit(){
   // place, so editing never has to parse through a comma mid-number.
   elHouseOverride.addEventListener('focus',()=>{
     elHouseOverride.value=elHouseOverride.value.replace(/,/g,'');
+    sizeHouseInput();
   });
   elHouseOverride.addEventListener('input',()=>{
     const v=parseFloat(elHouseOverride.value.replace(/,/g,''));
@@ -1820,7 +1841,7 @@ function closeSplit(){
   // styling used everywhere else in the sheet.
   elHouseOverride.addEventListener('blur',()=>{
     if(houseOverride==null)splitRecalc();
-    else elHouseOverride.value=fmtHouseInput(houseOverride);
+    else{elHouseOverride.value=fmtHouseInput(houseOverride);sizeHouseInput();}
   });
 })();
 
