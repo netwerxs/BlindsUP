@@ -764,14 +764,12 @@ body.no-touch .no-touch-only{display:flex;}
 .sp-house-edit{display:flex;align-items:baseline;gap:0.15em;}
 .sp-dollar{font-weight:700;color:#111;}
 .sp-house-input{
-  width:5.5em;text-align:right;font-weight:700;color:#111;font-family:inherit;
+  width:7em;text-align:right;font-weight:700;color:#111;font-family:inherit;
   font-size:inherit;font-variant-numeric:tabular-nums;
   border:none;border-bottom:1px dashed rgba(0,0,0,0.35);background:transparent;
-  padding:0;-moz-appearance:textfield;
+  padding:0;
 }
 .sp-house-input:focus{outline:none;border-bottom-color:#111;}
-.sp-house-input::-webkit-outer-spin-button,
-.sp-house-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .sp-house-input::placeholder{color:rgba(0,0,0,0.3);}
 .split-payouts{
   border-top:1px solid rgba(0,0,0,0.2);
@@ -1058,7 +1056,7 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="split-results">
       <div class="split-line"><span>Prize Pool</span><span class="val" id="sp-gross">$0.00</span></div>
       <div class="split-payout">
-        <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="sp-house-edit"><span class="sp-dollar">$</span><input id="sp-house" class="sp-house-input" type="number" inputmode="decimal" min="0" step="1" placeholder="0.00" aria-label="House amount — edit to override the calculated 10% split"></span></div>
+        <div class="split-line"><span>House <span class="hnote" id="sp-house-note">10%</span></span><span class="sp-house-edit"><span class="sp-dollar">$</span><input id="sp-house" class="sp-house-input" type="text" inputmode="decimal" placeholder="0.00" aria-label="House amount — edit to override the calculated 10% split"></span></div>
         <div class="po-bills" id="sp-house-bills">&mdash;</div>
       </div>
       <div class="split-payouts">
@@ -1092,7 +1090,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.272';
+const VERSION='v1.273';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1539,6 +1537,11 @@ function breakCountOf(produced,denom){
 function fmtMoney(v){
   return '$'+(Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+// Same two-decimal/comma formatting as fmtMoney, minus the leading '$' —
+// used for the House field, whose '$' lives in a separate sibling span.
+function fmtHouseInput(v){
+  return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function fmtWhole(v){return '$'+v.toLocaleString('en-US');}
 
 // Label for the Payout sheet: today's date, or — for a game still running in
@@ -1740,7 +1743,7 @@ function splitRecalc(){
   // stays exactly what they typed rather than being overwritten by the
   // rounding-adjusted actual `house` figure.
   if(houseOverride==null&&document.activeElement!==elHouseOverride){
-    elHouseOverride.value=gross>0?String(Math.round(house*100)/100):'';
+    elHouseOverride.value=gross>0?fmtHouseInput(house):'';
   }
 }
 
@@ -1800,15 +1803,24 @@ function closeSplit(){
     splitRecalc();
   });
   document.getElementById('sp-mode').addEventListener('change',e=>setSplitMode(e.target.value));
+  // While the field is focused it holds a plain editable number (no commas);
+  // stripping them here covers the formatted value splitRecalc/blur left in
+  // place, so editing never has to parse through a comma mid-number.
+  elHouseOverride.addEventListener('focus',()=>{
+    elHouseOverride.value=elHouseOverride.value.replace(/,/g,'');
+  });
   elHouseOverride.addEventListener('input',()=>{
-    const v=parseFloat(elHouseOverride.value);
+    const v=parseFloat(elHouseOverride.value.replace(/,/g,''));
     houseOverride=(elHouseOverride.value.trim()===''||!Number.isFinite(v)||v<0)?null:v;
     splitRecalc();
   });
   // On blur, resync to the live computed value if the field was left empty
   // (or invalid) rather than leaving it blank — same as it looks on open.
+  // Otherwise, reformat whatever override is in effect to match the $X.XX
+  // styling used everywhere else in the sheet.
   elHouseOverride.addEventListener('blur',()=>{
     if(houseOverride==null)splitRecalc();
+    else elHouseOverride.value=fmtHouseInput(houseOverride);
   });
 })();
 
