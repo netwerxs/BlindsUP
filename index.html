@@ -678,6 +678,7 @@ body.no-touch .no-touch-only{display:flex;}
   z-index:100;flex-direction:column;align-items:center;justify-content:center;gap:3vh;
 }
 @media(orientation:portrait){#rotate-prompt{display:flex;}}
+#rotate-payout-btn{font-size:4vw;padding:1.5vh 8vw;}
 #rotate-icon{font-size:15vw;line-height:1;}
 #rotate-text{
   font-size:4vw;font-weight:200;letter-spacing:0.4em;
@@ -843,6 +844,7 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="rotate-prompt">
   <div id="rotate-icon">&#8635;</div>
   <div id="rotate-text">Rotate to landscape</div>
+  <button class="pill-btn" id="rotate-payout-btn" onclick="openSplit()">Payout</button>
 </div>
 
 <!-- SOUND CHECK -->
@@ -1095,7 +1097,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.278';
+const VERSION='v1.279';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
