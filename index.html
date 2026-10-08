@@ -793,9 +793,11 @@ body.no-touch .no-touch-only{display:flex;}
   line-height:1.4;
 }
 .sp-break-hint:empty{display:none;}
-.sp-recent{display:flex;flex-direction:column;gap:0.6vh;padding:0.6vh 0;font-size:1.9vh;}
+.sp-recent{display:flex;flex-direction:column;gap:0.8vh;width:100%;max-width:min(440px,92vw);font-size:2vh;color:#111;}
 .sp-recent[hidden],#sp-recent-btn[hidden]{display:none;}
-.sp-recent button{display:flex;justify-content:space-between;gap:1em;text-align:left;font:inherit;color:inherit;background:var(--glass-bg,rgba(255,255,255,0.08));border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:0.6vh 1em;cursor:pointer;}
+.sp-recent-head{font-weight:700;text-transform:uppercase;letter-spacing:0.1em;font-size:1.7vh;}
+.sp-recent button{display:flex;justify-content:space-between;gap:1em;text-align:left;font:inherit;color:#111;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.25);border-radius:8px;padding:1vh 1em;cursor:pointer;}
+.sp-recent button:active{background:rgba(0,0,0,0.15);}
 .split-payout{display:flex;flex-direction:column;gap:0.2vh;}
 #sp-custom-rows{display:flex;flex-direction:column;gap:0.8vh;}
 .sp-pct-text{margin-left:0.5em;font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
@@ -1097,7 +1099,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.279';
+const VERSION='v1.280';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1819,6 +1821,8 @@ function renderRecent(){
   btn.hidden=h.length===0;
   if(!h.length)box.hidden=true;
   box.textContent='';
+  const head=document.createElement('div');head.className='sp-recent-head';
+  head.textContent='Tap a count to restore it';box.appendChild(head);
   h.forEach((e,i)=>{
     const b=document.createElement('button');
     b.type='button';
@@ -1831,7 +1835,11 @@ function renderRecent(){
     box.appendChild(b);
   });
 }
-function toggleRecent(){const b=document.getElementById('sp-recent');b.hidden=!b.hidden;}
+function toggleRecent(){
+  const b=document.getElementById('sp-recent');
+  b.hidden=!b.hidden;
+  if(!b.hidden)b.scrollIntoView({block:'nearest'});
+}
 function restoreCounts(i){
   const e=loadHistory()[i];
   if(!e)return;
