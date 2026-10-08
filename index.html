@@ -792,6 +792,9 @@ body.no-touch .no-touch-only{display:flex;}
   line-height:1.4;
 }
 .sp-break-hint:empty{display:none;}
+.sp-recent{display:flex;flex-direction:column;gap:0.6vh;padding:0.6vh 0;font-size:1.9vh;}
+.sp-recent[hidden],#sp-recent-btn[hidden]{display:none;}
+.sp-recent button{display:flex;justify-content:space-between;gap:1em;text-align:left;font:inherit;color:inherit;background:var(--glass-bg,rgba(255,255,255,0.08));border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:0.6vh 1em;cursor:pointer;}
 .split-payout{display:flex;flex-direction:column;gap:0.2vh;}
 #sp-custom-rows{display:flex;flex-direction:column;gap:0.8vh;}
 .sp-pct-text{margin-left:0.5em;font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
@@ -1077,8 +1080,10 @@ body.split-open #rotate-prompt{display:none!important;}
       </div>
     </div>
   </div>
+  <div class="sp-recent" id="sp-recent" hidden></div>
   <div class="split-actions">
     <button class="pill-btn" onclick="splitClear()">Clear</button>
+    <button class="pill-btn" id="sp-recent-btn" onclick="toggleRecent()" hidden>Recent</button>
     <button class="pill-btn" onclick="closeSplit()">Close</button>
   </div>
 </div>
@@ -1090,7 +1095,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.277';
+const VERSION='v1.278';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1697,6 +1702,7 @@ function splitRecalc(){
     document.getElementById('sp'+d+'sub').textContent=fmtMoney(n*d);
     gross+=n*d;
   });
+  saveCounts();
   // Normally the payout pool is a flat 90% of the prize pool. If the user has
   // typed a House override, the pool is instead whatever's left after taking
   // that override off the top (never negative, and never more than gross).
@@ -1776,7 +1782,66 @@ function splitRecalc(){
   sizeHouseInput();
 }
 
+// Bill counts survive leaving/restarting: the live counts autosave on every
+// recalc, and the last few non-empty counts are kept as a history (pushed when
+// Clear wipes them or a Recent entry replaces them) that can be restored.
+const COUNTS_KEY='bu-payout-counts',HISTORY_KEY='bu-payout-history',HISTORY_MAX=5;
+function readCounts(){
+  const c={};
+  SPLIT_DENOMS.forEach(d=>{const n=parseInt(document.getElementById('sp'+d).value,10);c[d]=Number.isFinite(n)&&n>0?n:0;});
+  return c;
+}
+function countsTotal(c){return SPLIT_DENOMS.reduce((t,d)=>t+d*(c[d]||0),0);}
+function sameCounts(a,b){return SPLIT_DENOMS.every(d=>(a[d]||0)===(b[d]||0));}
+function loadHistory(){
+  try{const h=JSON.parse(localStorage.getItem(HISTORY_KEY));return Array.isArray(h)?h:[];}catch(e){return [];}
+}
+function pushHistory(c){
+  if(countsTotal(c)<=0)return;
+  const h=loadHistory().filter(e=>!sameCounts(e.c,c));
+  h.unshift({t:Date.now(),c});
+  try{localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(0,HISTORY_MAX)));}catch(e){}
+  renderRecent();
+}
+function saveCounts(){
+  try{localStorage.setItem(COUNTS_KEY,JSON.stringify(readCounts()));}catch(e){}
+}
+function loadCounts(){
+  try{
+    const c=JSON.parse(localStorage.getItem(COUNTS_KEY));
+    if(c)SPLIT_DENOMS.forEach(d=>{const n=parseInt(c[d],10);document.getElementById('sp'+d).value=String(Number.isFinite(n)&&n>0?n:0);});
+  }catch(e){}
+}
+function renderRecent(){
+  const h=loadHistory(),box=document.getElementById('sp-recent'),btn=document.getElementById('sp-recent-btn');
+  btn.hidden=h.length===0;
+  if(!h.length)box.hidden=true;
+  box.textContent='';
+  h.forEach((e,i)=>{
+    const b=document.createElement('button');
+    b.type='button';
+    const when=new Date(e.t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    const parts=SPLIT_DENOMS.filter(d=>e.c[d]>0).map(d=>e.c[d]+'×$'+d).join(' · ');
+    const l=document.createElement('span');l.textContent=when+' — '+parts;
+    const r=document.createElement('strong');r.textContent=fmtMoney(countsTotal(e.c));
+    b.append(l,r);
+    b.onclick=()=>restoreCounts(i);
+    box.appendChild(b);
+  });
+}
+function toggleRecent(){const b=document.getElementById('sp-recent');b.hidden=!b.hidden;}
+function restoreCounts(i){
+  const e=loadHistory()[i];
+  if(!e)return;
+  pushHistory(readCounts());
+  SPLIT_DENOMS.forEach(d=>{document.getElementById('sp'+d).value=String(e.c[d]||0);});
+  houseOverride=null;
+  document.getElementById('sp-recent').hidden=true;
+  splitRecalc();
+}
+
 function splitClear(){
+  pushHistory(readCounts());
   SPLIT_DENOMS.forEach(d=>{document.getElementById('sp'+d).value='0';});
   houseOverride=null;
   splitRecalc();
@@ -1832,6 +1897,8 @@ function closeSplit(){
     splitRecalc();
   });
   document.getElementById('sp-mode').addEventListener('change',e=>setSplitMode(e.target.value));
+  loadCounts();
+  renderRecent();
   // While the field is focused it holds a plain editable number (no commas);
   // stripping them here covers the formatted value splitRecalc/blur left in
   // place, so editing never has to parse through a comma mid-number.
