@@ -1088,11 +1088,11 @@ body.split-open #rotate-prompt{display:none!important;}
     </div>
   </div>
   <div class="split-actions">
-    <button class="pill-btn" onclick="splitClear()">Clear</button>
     <button class="pill-btn" id="sp-recent-btn" onclick="toggleRecent()" hidden>Recent</button>
     <button class="pill-btn" onclick="closeSplit()">Close</button>
   </div>
   <div class="sp-recent" id="sp-recent" hidden></div>
+  <div class="split-actions"><button class="pill-btn" onclick="splitClear()">Clear</button></div>
 </div>
 
 <!-- ANNOUNCE -->
@@ -1102,7 +1102,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.283';
+const VERSION='v1.284';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1858,11 +1858,11 @@ function restoreCounts(i){
   splitRecalc();
 }
 
+// Clear wipes every saved count and keeps only the current one as the sole row.
 function splitClear(){
+  try{localStorage.removeItem(HISTORY_KEY);}catch(e){}
   pushHistory(readCounts());
-  SPLIT_DENOMS.forEach(d=>{document.getElementById('sp'+d).value='0';});
-  houseOverride=null;
-  splitRecalc();
+  renderRecent();
 }
 
 // Re-render the mode select and payout rows from the current
