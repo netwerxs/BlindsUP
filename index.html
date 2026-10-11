@@ -872,12 +872,6 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="mb-dropdown">
       <button onclick="event.stopPropagation();closeAllMenus();resetToMenu();">New</button>
       <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck();">Sound Check</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playTune('toccata');">Toccata (Bach)</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playTune('beethoven');">Beethoven&#39;s 5th</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playTune('mountain');">Mountain King</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playTune('smoke');">Smoke on the Water</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playTune('seven');">Seven Nation Army</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playTune('sweet');">Sweet Child o&#39; Mine</button>
       <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();">Update</button>
       <button onclick="event.stopPropagation();closeAllMenus();exitApp();">Exit</button>
     </div>
@@ -1132,7 +1126,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.294';
+const VERSION='v1.295';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2155,8 +2149,8 @@ function bellNote(ctx,bus,freq,when,dur,vol){
 }
 function playAlarm(){
   stopAlarm();
-  // Sweet Child lick first, then the bell arpeggio and final chime.
-  const lead=playTune('sweetShort',true)+0.2;
+  // Guitar lick, then bells in D that start on its final held D.
+  const lead=playLick();
   const ctx=getCtx(),master=ctx.createGain(),wet=ctx.createGain(),conv=ctx.createConvolver();
   // Kept low and soft for cheap speakers: no highs (lowpass) and a limiter
   // so stacked notes + reverb can't push the cone into crackling.
@@ -2168,11 +2162,11 @@ function playAlarm(){
   bus.connect(master);bus.connect(conv);conv.connect(wet);wet.connect(master);
   master.connect(lp);lp.connect(lim);lim.connect(ctx.destination);
   // Ascending arpeggio, the same notes back down in reverse, then a long
-  // C5+E5 bell chime.
-  const up=[261.63,329.63,392.00,523.25]; // C4-E4-G4-C5, an octave lower
+  // D5+F#5 bell chime.
+  const up=[293.66,369.99,440.00,587.33]; // D4-F#4-A4-D5, a D major arpeggio
   up.concat(up.slice().reverse()).forEach((f,k)=>bellNote(ctx,bus,f,lead+k*0.15,1.2,0.6));
-  bellNote(ctx,bus,523.25,lead+1.2,4,0.6);
-  bellNote(ctx,bus,659.25,lead+1.2,4,0.35);
+  bellNote(ctx,bus,587.33,lead+1.2,4,0.6);
+  bellNote(ctx,bus,739.99,lead+1.2,4,0.35);
   alarmNodes.push({stop(){try{master.disconnect();}catch(e){}}});
 }
 
@@ -2221,34 +2215,19 @@ function playWoodClack(){
 // device volume after adjusting the hardware buttons. Deliberately unlike any
 // other sound in the app (no percussive click, no arpeggio) so it's never
 // mistaken for a timer event. Purely a sound effect — never touches timer state.
-// Rock-style renditions of famous tunes, menu-only (never auto-played): detuned
-// sawtooth pairs through a waveshaper for guitar-style crunch, lowpassed and
-// limited so they stay safe on small speakers. Each tune is [note,beats]
-// pairs ('R' = rest); `beat` is seconds per beat, `accel` (optional) scales
-// the beat after every note so a tune can speed up.
+// The alarm opens with a distorted-guitar lick (detuned sawtooth pairs through
+// a waveshaper, lowpassed and limited so it stays safe on small speakers)
+// and rings straight into bells in the same key (D), so it plays as one
+// phrase. [note,beats] pairs; `LICK_BEAT` is seconds per beat.
 const NOTE_SEMI={C:0,'C#':1,Db:1,D:2,Eb:3,E:4,F:5,'F#':6,G:7,Ab:8,A:9,Bb:10,B:11};
 function noteHz(n){
   const m=/^([A-G][#b]?)(\d)$/.exec(n);
   return 440*Math.pow(2,(NOTE_SEMI[m[1]]-9)/12+(+m[2]-4));
 }
-const TUNES={
-  toccata:{beat:.4,notes:[['A4',.25],['G4',.25],['A4',3],['R',1],['G4',.5],['F4',.5],['E4',.5],['D4',.5],['C#4',1],['D4',3]]},
-  beethoven:{beat:.42,notes:[['R',.5],['G4',.5],['G4',.5],['G4',.5],['Eb4',3],['R',.5],['F4',.5],['F4',.5],['F4',.5],['D4',3]]},
-  mountain:{beat:.34,accel:.985,notes:[
-    ['B3',.5],['C#4',.5],['D4',.5],['E4',.5],['F#4',.5],['D4',.5],['F#4',1.5],
-    ['C4',.5],['D4',.5],['Eb4',.5],['F4',.5],['G4',.5],['Eb4',.5],['G4',1.5],
-    ['B3',.5],['C#4',.5],['D4',.5],['E4',.5],['F#4',.5],['D4',.5],['F#4',1.5],
-    ['C4',.5],['D4',.5],['Eb4',.5],['F4',.5],['G4',.5],['Eb4',.5],['G4',3]]},
-  smoke:{beat:.3,notes:[['G3',1],['Bb3',1],['C4',1.5],['R',.5],['G3',1],['Bb3',1],['Db4',.5],['C4',1.5],['R',.5],['G3',1],['Bb3',1],['C4',1.5],['R',.5],['Bb3',1],['G3',2]]},
-  seven:{beat:.3,notes:[['E4',1.5],['E4',.5],['G4',1.5],['E4',1.5],['D4',1],['C4',1],['B3',3]]},
-  sweetShort:{beat:.3,notes:['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4'].map(n=>[n,.5]).concat([['D4',1]])},
-  sweet:{beat:.3,notes:['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4','D4','D5','A4','G4','G5','A4','F#5','A4'].map(n=>[n,.5]).concat([['D4',2]])}
-};
-// Returns the tune's length in seconds. `keep` leaves any already-playing
-// alarm nodes alone (playAlarm() chains a chime after a tune).
-function playTune(name,keep){
-  if(!keep)stopAlarm();
-  const T=TUNES[name];if(!T)return 0;
+const LICK_BEAT=.3;
+const LICK=['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4'].map(n=>[n,.5]).concat([['D4',2]]);
+// Plays the lick; returns the seconds-from-now at which its final (held) note starts.
+function playLick(){
   const ctx=getCtx(),out=ctx.createGain(),sh=ctx.createWaveShaper(),lp=ctx.createBiquadFilter(),lim=ctx.createDynamicsCompressor();
   const curve=new Float32Array(256);
   for(let k=0;k<256;k++){const x=k/128-1;curve[k]=Math.tanh(4*x);}
@@ -2256,23 +2235,23 @@ function playTune(name,keep){
   lim.threshold.value=-14;lim.knee.value=10;lim.ratio.value=12;
   out.gain.value=0.35;
   out.connect(sh);sh.connect(lp);lp.connect(lim);lim.connect(ctx.destination);
-  let t=ctx.currentTime+0.05,beat=T.beat;
-  T.notes.forEach(([n,b])=>{
-    const d=b*beat;
-    if(n!=='R')[1,1.006].forEach(det=>{
+  const t0=ctx.currentTime+0.05;
+  let t=t0,lastStart=0;
+  LICK.forEach(([n,b],idx)=>{
+    const d=b*LICK_BEAT,len=d*(idx===LICK.length-1?1.6:0.92);
+    if(idx===LICK.length-1)lastStart=t-ctx.currentTime;
+    [1,1.006].forEach(det=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.type='sawtooth';o.frequency.value=noteHz(n)*det;
-      const len=d*0.92;
       g.gain.setValueAtTime(0.0001,t);
       g.gain.linearRampToValueAtTime(0.5,t+0.01);
       g.gain.exponentialRampToValueAtTime(0.0001,t+len);
       o.connect(g);g.connect(out);o.start(t);o.stop(t+len+0.05);
     });
     t+=d;
-    if(T.accel)beat*=T.accel;
   });
   alarmNodes.push({stop(){try{out.disconnect();}catch(e){}}});
-  return t-ctx.currentTime;
+  return lastStart;
 }
 
 function playSoundcheck(){
