@@ -161,7 +161,7 @@ html,body{width:100%;height:100%;
    junctions no matter how well anything else matched. Depth on the wood
    itself doesn't need faking any more (it's the same real wood); depth
    on the plaque is `#clock-plaque`'s own shadow below. */
-#clock-platform{
+#clock-platform,#menu-clock-platform{
   position:absolute;top:0.25in;right:0.25in;
   padding:0 0 0.25in 0.25in;
   pointer-events:none;
@@ -176,7 +176,7 @@ html,body{width:100%;height:100%;
    scaled down (px, not vh) to fit a pane this small. No overflow:hidden
    here (unlike felt-surface), so — unlike that element — these can live
    directly on `#clock-plaque` itself with no separate ::after needed. */
-#clock-plaque{
+#clock-plaque,#menu-clock-plaque{
   position:relative;
   padding:1.2vh 1.8vw;
   background:radial-gradient(130% 130% at 35% 30%,#ffffff 0%,#e4e0d6 100%);
@@ -189,7 +189,7 @@ html,body{width:100%;height:100%;
     inset 6px 0 8px -5px rgba(0,0,0,0.45),
     inset -6px 0 8px -5px rgba(0,0,0,0.45);
 }
-#mb-clock{
+#mb-clock,#menu-mb-clock{
   font-family:'Inter',sans-serif;font-weight:700;
   font-size:11vh;color:#111;line-height:1;white-space:nowrap;
 }
@@ -220,13 +220,6 @@ html,body{width:100%;height:100%;
   font-size:2vh;font-weight:200;
   letter-spacing:0.5em;text-transform:uppercase;
   color:var(--dim);flex-shrink:0;
-}
-#menu-clock{
-  position:absolute;top:2vh;right:2vw;z-index:1;pointer-events:none;
-  padding:0.8vh 1.4vw;border-radius:12px;
-  background:radial-gradient(130% 130% at 35% 30%,#ffffff 0%,#e4e0d6 100%);
-  box-shadow:0 2px 3px rgba(0,0,0,0.5),inset 0 0 14px rgba(0,0,0,0.18);
-  font-family:'Inter',sans-serif;font-weight:700;font-size:5vh;color:#111;line-height:1;white-space:nowrap;
 }
 #blind-grid{
   display:flex;flex-direction:column;
@@ -364,7 +357,7 @@ html,body{width:100%;height:100%;
    rounded corner, so nothing should round there. (The menu screen's own
    #menu-felt-frame keeps the shared rule's uniform thick top margin and
    rounding unchanged — it has no notch of its own.) */
-#felt-frame{
+#felt-frame,#menu-felt-frame{
   padding-top:0.25in;
   border-radius:calc(16px + 0.25in) 0 calc(16px + 0.25in) calc(16px + 0.25in);
 }
@@ -402,6 +395,7 @@ html,body{width:100%;height:100%;
    against a clear darkening gradient at the felt's true edges).
    #felt-glow's `url(#feltVignette)` replaces it — see there. */
 #felt-surface{display:grid;grid-template-rows:1fr 1fr;clip-path:url(#feltClip);box-shadow:none;}
+#menu-felt-surface{clip-path:url(#menuFeltClip);box-shadow:none;}
 /* #felt-glow wraps #felt-surface for exactly one reason: `filter` and
    `clip-path` on the *same* element don't compose the way you'd expect.
    `filter` runs before `clip-path` in the rendering pipeline, so a
@@ -444,10 +438,16 @@ html,body{width:100%;height:100%;
    its "source" is #felt-surface's already-clipped output, notch
    included, so — like the drop-shadows — it darkens near the notch's
    edges exactly like it darkens near the real ones. */
-#felt-glow{
+#felt-glow,#menu-felt-glow{
   width:100%;height:100%;
   filter:
     url(#feltVignette)
+    drop-shadow(0 0 11px rgba(255,190,150,0.28))
+    drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+#menu-felt-glow{
+  filter:
+    url(#menuFeltVignette)
     drop-shadow(0 0 11px rgba(255,190,150,0.28))
     drop-shadow(0 2px 3px rgba(0,0,0,0.5));
 }
@@ -492,7 +492,7 @@ html,body{width:100%;height:100%;
    shadow follows the actual rendered shape rather than the box it came
    from. #menu-felt-frame (no clock, no notch, no drop-shadow) still gets
    the plain box-shadow version via the shared rule above. */
-#felt-frame::after{content:none;}
+#felt-frame::after,#menu-felt-frame::after{content:none;}
 
 .pill-btn{
   background:rgba(255,255,255,0.02);
@@ -897,10 +897,27 @@ body.split-open #rotate-prompt{display:none!important;}
 <div id="menu-layout" class="wood-layout">
 
   <div id="menu-felt-frame" class="felt-frame">
+  <svg width="0" height="0" style="position:absolute">
+    <clipPath id="menuFeltClip" clipPathUnits="userSpaceOnUse"><path id="menuFeltClipPath"></path></clipPath>
+    <filter id="menuFeltVignette" x="-30%" y="-30%" width="160%" height="160%">
+      <feComponentTransfer in="SourceAlpha" result="inv">
+        <feFuncA type="table" tableValues="1 0"></feFuncA>
+      </feComponentTransfer>
+      <feGaussianBlur in="inv" stdDeviation="20" result="blur"></feGaussianBlur>
+      <feFlood flood-color="#000000" flood-opacity="0.6" result="flood"></feFlood>
+      <feComposite in="flood" in2="blur" operator="in" result="shadow"></feComposite>
+      <feComposite in="shadow" in2="SourceAlpha" operator="in" result="clipped"></feComposite>
+      <feComposite in="clipped" in2="SourceGraphic" operator="over"></feComposite>
+    </filter>
+  </svg>
+  <div id="menu-clock-platform">
+    <div id="menu-clock-plaque"><span id="menu-mb-clock">&mdash;</span></div>
+  </div>
+  <div id="menu-felt-glow">
   <div id="menu-felt-surface" class="felt-surface">
-    <div id="menu-clock">&mdash;</div>
     <div class="menu-title">Select Starting Blind</div>
     <div id="blind-grid"></div>
+  </div>
   </div>
   </div>
 
@@ -1109,7 +1126,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.288';
+const VERSION='v1.289';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1132,6 +1149,10 @@ const elPauseLabel=document.getElementById('pause-label');
 const elFeltSurface=document.getElementById('felt-surface');
 const elClockPlatform=document.getElementById('clock-platform');
 const elFeltClipPath=document.getElementById('feltClipPath');
+const elMenuClock=document.getElementById('menu-mb-clock');
+const elMenuFeltSurface=document.getElementById('menu-felt-surface');
+const elMenuClockPlatform=document.getElementById('menu-clock-platform');
+const elMenuFeltClipPath=document.getElementById('menuFeltClipPath');
 const elTopMenubar=document.getElementById('top-menubar');
 const elMbHelp=document.getElementById('mb-help');
 
@@ -1194,17 +1215,7 @@ function fitBlind(){
 // layout changes that could move any of the boxes involved (resize, and
 // whenever the clock's own digit count can change its width — see
 // updateClocks()).
-let _lastFeltClipKey='';
-function layoutFeltClip(){
-  const w=elFeltSurface.clientWidth,h=elFeltSurface.clientHeight;
-  if(!w||!h)return;                       // #app still hidden — nothing to measure
-  const clockW=elClockPlatform.offsetWidth,clockH=elClockPlatform.offsetHeight;
-  const feltRect=elFeltSurface.getBoundingClientRect();
-  const menuW=Math.round(elMbHelp.getBoundingClientRect().right-feltRect.left);
-  const menuH=Math.round(elTopMenubar.getBoundingClientRect().bottom-feltRect.top);
-  const key=w+'|'+h+'|'+clockW+'|'+clockH+'|'+menuW+'|'+menuH;
-  if(key===_lastFeltClipKey)return;
-  _lastFeltClipKey=key;
+function feltClipD(w,h,menuW,menuH,clockW,clockH){
   const r=16;                             // matches .felt-surface's own border-radius
   // Each notch has 3 corners of its own, besides the felt's 2 plain outer
   // ones left (bottom-right/bottom-left — both top corners are spoken for
@@ -1217,13 +1228,41 @@ function layoutFeltClip(){
   // *into* the notch rather than bulge out of it. All of these are safe to
   // round in a way they weren't as separate fillet elements: this is still
   // one shape, one clip-path, nothing to seam against.
-  elFeltClipPath.setAttribute('d',
-    `M ${w-r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h-r} V ${menuH+r} `+
+  return `M ${w-r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h-r} V ${menuH+r} `+
     `A ${r} ${r} 0 0 1 ${r} ${menuH} H ${menuW-r} A ${r} ${r} 0 0 0 ${menuW} ${menuH-r} `+
     `V ${r} A ${r} ${r} 0 0 1 ${menuW+r} 0 H ${w-clockW-r} `+
     `A ${r} ${r} 0 0 1 ${w-clockW} ${r} V ${clockH-r} `+
     `A ${r} ${r} 0 0 0 ${w-clockW+r} ${clockH} H ${w-r} A ${r} ${r} 0 0 1 ${w} ${clockH+r} `+
-    `V ${h-r} A ${r} ${r} 0 0 1 ${w-r} ${h} Z`);
+    `V ${h-r} A ${r} ${r} 0 0 1 ${w-r} ${h} Z`;
+}
+let _lastFeltClipKey='';
+function layoutFeltClip(){
+  const w=elFeltSurface.clientWidth,h=elFeltSurface.clientHeight;
+  if(!w||!h)return;                       // #app still hidden — nothing to measure
+  const clockW=elClockPlatform.offsetWidth,clockH=elClockPlatform.offsetHeight;
+  const feltRect=elFeltSurface.getBoundingClientRect();
+  const menuW=Math.round(elMbHelp.getBoundingClientRect().right-feltRect.left);
+  const menuH=Math.round(elTopMenubar.getBoundingClientRect().bottom-feltRect.top);
+  const key=w+'|'+h+'|'+clockW+'|'+clockH+'|'+menuW+'|'+menuH;
+  if(key===_lastFeltClipKey)return;
+  _lastFeltClipKey=key;
+  elFeltClipPath.setAttribute('d',feltClipD(w,h,menuW,menuH,clockW,clockH));
+}
+
+// Same notched clip as the timer screen's felt (see layoutFeltClip), so the
+// picker's clock sits in the wood border exactly the same way.
+let _lastMenuClipKey='';
+function layoutMenuClip(){
+  const w=elMenuFeltSurface.clientWidth,h=elMenuFeltSurface.clientHeight;
+  if(!w||!h)return;
+  const clockW=elMenuClockPlatform.offsetWidth,clockH=elMenuClockPlatform.offsetHeight;
+  const feltRect=elMenuFeltSurface.getBoundingClientRect();
+  const menuW=Math.round(elMbHelp.getBoundingClientRect().right-feltRect.left);
+  const menuH=Math.round(elTopMenubar.getBoundingClientRect().bottom-feltRect.top);
+  const key=w+'|'+h+'|'+clockW+'|'+clockH+'|'+menuW+'|'+menuH;
+  if(key===_lastMenuClipKey)return;
+  _lastMenuClipKey=key;
+  elMenuFeltClipPath.setAttribute('d',feltClipD(w,h,menuW,menuH,clockW,clockH));
 }
 
 let level=1,remSec=maxSec(1),pausedRemSec=maxSec(1);
@@ -2232,7 +2271,8 @@ function fmtTime(d,ampm){
 function fmtClock(){return fmtTime(new Date());}
 function updateClocks(){
   elMbClock.textContent=fmtClock();
-  document.getElementById('menu-clock').textContent=fmtClock();
+  elMenuClock.textContent=fmtClock();
+  layoutMenuClip();
   layoutFeltClip();                       // clock digit count can change its width
   updatePauseLabel();
   // Nothing else redraws the countdown during the auto-advance freeze
@@ -2318,6 +2358,7 @@ function showMenu(){
   elApp.classList.remove('visible');
   updateMenuHighlight();
   elMenuScreen.style.display='flex';
+  layoutMenuClip();
 }
 
 // Shared tail for entering (or resuming) the running countdown state.
@@ -2724,6 +2765,7 @@ window.addEventListener('resize',()=>{
 // handler above bails early for no-touch / same-width, so do this separately).
 window.addEventListener('resize',fitBlind);
 window.addEventListener('resize',layoutFeltClip);
+window.addEventListener('resize',layoutMenuClip);
 
 // On iOS PWA, app resumes from suspension rather than reloading — the
 // countdown may have kept running while backgrounded, so catch it up.
