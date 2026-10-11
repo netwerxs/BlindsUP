@@ -796,8 +796,11 @@ body.no-touch .no-touch-only{display:flex;}
 .sp-recent{display:flex;flex-direction:column;gap:0.8vh;width:100%;max-width:min(440px,92vw);font-size:2vh;color:#111;}
 .sp-recent[hidden],#sp-recent-btn[hidden]{display:none;}
 .sp-recent-head{font-weight:700;text-transform:uppercase;letter-spacing:0.1em;font-size:1.7vh;}
-.sp-recent button{display:flex;justify-content:space-between;gap:1em;text-align:left;font:inherit;color:#111;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.25);border-radius:8px;padding:1vh 1em;cursor:pointer;}
-.sp-recent button:active{background:rgba(0,0,0,0.15);}
+.sp-recent-tbl{width:100%;border-collapse:collapse;text-align:center;font-variant-numeric:tabular-nums;}
+.sp-recent-tbl th,.sp-recent-tbl td{border:1px solid rgba(0,0,0,0.25);padding:0.6vh 0.4em;}
+.sp-recent-tbl th{background:rgba(0,0,0,0.1);}
+.sp-recent-tbl tbody tr{cursor:pointer;}
+.sp-recent-tbl tbody tr:active{background:rgba(0,0,0,0.15);}
 .split-payout{display:flex;flex-direction:column;gap:0.2vh;}
 #sp-custom-rows{display:flex;flex-direction:column;gap:0.8vh;}
 .sp-pct-text{margin-left:0.5em;font-weight:700;color:#111;font-variant-numeric:tabular-nums;}
@@ -1084,12 +1087,12 @@ body.split-open #rotate-prompt{display:none!important;}
       </div>
     </div>
   </div>
-  <div class="sp-recent" id="sp-recent" hidden></div>
   <div class="split-actions">
     <button class="pill-btn" onclick="splitClear()">Clear</button>
     <button class="pill-btn" id="sp-recent-btn" onclick="toggleRecent()" hidden>Recent</button>
     <button class="pill-btn" onclick="closeSplit()">Close</button>
   </div>
+  <div class="sp-recent" id="sp-recent" hidden></div>
 </div>
 
 <!-- ANNOUNCE -->
@@ -1099,7 +1102,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.280';
+const VERSION='v1.281';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1789,7 +1792,7 @@ function splitRecalc(){
 // Bill counts survive leaving/restarting: the live counts autosave on every
 // recalc, and the last few non-empty counts are kept as a history (pushed when
 // Clear wipes them or a Recent entry replaces them) that can be restored.
-const COUNTS_KEY='bu-payout-counts',HISTORY_KEY='bu-payout-history',HISTORY_MAX=5;
+const COUNTS_KEY='bu-payout-counts',HISTORY_KEY='bu-payout-history',HISTORY_MAX=5,HISTORY_TTL=3*3600*1000;
 function readCounts(){
   const c={};
   SPLIT_DENOMS.forEach(d=>{const n=parseInt(document.getElementById('sp'+d).value,10);c[d]=Number.isFinite(n)&&n>0?n:0;});
@@ -1798,7 +1801,9 @@ function readCounts(){
 function countsTotal(c){return SPLIT_DENOMS.reduce((t,d)=>t+d*(c[d]||0),0);}
 function sameCounts(a,b){return SPLIT_DENOMS.every(d=>(a[d]||0)===(b[d]||0));}
 function loadHistory(){
-  try{const h=JSON.parse(localStorage.getItem(HISTORY_KEY));return Array.isArray(h)?h:[];}catch(e){return [];}
+  try{const h=JSON.parse(localStorage.getItem(HISTORY_KEY));if(!Array.isArray(h))return [];
+    // Drop counts older than 3 hours, but always keep the newest saved one.
+    return h.filter((e,i)=>i===0||Date.now()-e.t<HISTORY_TTL);}catch(e){return [];}
 }
 function pushHistory(c){
   if(countsTotal(c)<=0)return;
@@ -1823,17 +1828,18 @@ function renderRecent(){
   box.textContent='';
   const head=document.createElement('div');head.className='sp-recent-head';
   head.textContent='Tap a count to restore it';box.appendChild(head);
-  h.forEach((e,i)=>{
-    const b=document.createElement('button');
-    b.type='button';
-    const when=new Date(e.t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-    const parts=SPLIT_DENOMS.filter(d=>e.c[d]>0).map(d=>e.c[d]+'×$'+d).join(' · ');
-    const l=document.createElement('span');l.textContent=when+' — '+parts;
-    const r=document.createElement('strong');r.textContent=fmtMoney(countsTotal(e.c));
-    b.append(l,r);
-    b.onclick=()=>restoreCounts(i);
-    box.appendChild(b);
+  const tbl=document.createElement('table');tbl.className='sp-recent-tbl';
+  const hr=tbl.createTHead().insertRow();
+  ['Time'].concat(SPLIT_DENOMS.map(d=>'$'+d),['Pool']).forEach(t=>{const th=document.createElement('th');th.textContent=t;hr.appendChild(th);});
+  const tb=tbl.createTBody();
+  h.map((e,i)=>({e,i})).sort((x,y)=>x.e.t-y.e.t).forEach(({e,i})=>{
+    const r=tb.insertRow();
+    const d=new Date(e.t);
+    const time=(d.getHours()%12||12)+':'+String(d.getMinutes()).padStart(2,'0');
+    [time].concat(SPLIT_DENOMS.map(x=>e.c[x]||0),['$'+countsTotal(e.c)]).forEach(v=>{r.insertCell().textContent=v;});
+    r.onclick=()=>restoreCounts(i);
   });
+  box.appendChild(tbl);
 }
 function toggleRecent(){
   const b=document.getElementById('sp-recent');
