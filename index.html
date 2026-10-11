@@ -1132,7 +1132,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.292';
+const VERSION='v1.293';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2155,6 +2155,8 @@ function bellNote(ctx,bus,freq,when,dur,vol){
 }
 function playAlarm(){
   stopAlarm();
+  // Sweet Child lick first, then the bell arpeggio and final chime.
+  const lead=playTune('sweet',true)+0.2;
   const ctx=getCtx(),master=ctx.createGain(),wet=ctx.createGain(),conv=ctx.createConvolver();
   // Kept low and soft for cheap speakers: no highs (lowpass) and a limiter
   // so stacked notes + reverb can't push the cone into crackling.
@@ -2168,9 +2170,9 @@ function playAlarm(){
   // Ascending arpeggio, the same notes back down in reverse, then a long
   // C5+E5 bell chime.
   const up=[261.63,329.63,392.00,523.25]; // C4-E4-G4-C5, an octave lower
-  up.concat(up.slice().reverse()).forEach((f,k)=>bellNote(ctx,bus,f,k*0.15,1.2,0.6));
-  bellNote(ctx,bus,523.25,1.2,5,0.6);
-  bellNote(ctx,bus,659.25,1.2,5,0.35);
+  up.concat(up.slice().reverse()).forEach((f,k)=>bellNote(ctx,bus,f,lead+k*0.15,1.2,0.6));
+  bellNote(ctx,bus,523.25,lead+1.2,5,0.6);
+  bellNote(ctx,bus,659.25,lead+1.2,5,0.35);
   alarmNodes.push({stop(){try{master.disconnect();}catch(e){}}});
 }
 
@@ -2241,9 +2243,11 @@ const TUNES={
   seven:{beat:.3,notes:[['E4',1.5],['E4',.5],['G4',1.5],['E4',1.5],['D4',1],['C4',1],['B3',3]]},
   sweet:{beat:.3,notes:['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4','D4','D5','A4','G4','G5','A4','F#5','A4'].map(n=>[n,.5]).concat([['D4',2]])}
 };
-function playTune(name){
-  stopAlarm();
-  const T=TUNES[name];if(!T)return;
+// Returns the tune's length in seconds. `keep` leaves any already-playing
+// alarm nodes alone (playAlarm() chains a chime after a tune).
+function playTune(name,keep){
+  if(!keep)stopAlarm();
+  const T=TUNES[name];if(!T)return 0;
   const ctx=getCtx(),out=ctx.createGain(),sh=ctx.createWaveShaper(),lp=ctx.createBiquadFilter(),lim=ctx.createDynamicsCompressor();
   const curve=new Float32Array(256);
   for(let k=0;k<256;k++){const x=k/128-1;curve[k]=Math.tanh(4*x);}
@@ -2267,6 +2271,7 @@ function playTune(name){
     if(T.accel)beat*=T.accel;
   });
   alarmNodes.push({stop(){try{out.disconnect();}catch(e){}}});
+  return t-ctx.currentTime;
 }
 
 function playSoundcheck(){
