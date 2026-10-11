@@ -1132,7 +1132,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.293';
+const VERSION='v1.294';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2156,7 +2156,7 @@ function bellNote(ctx,bus,freq,when,dur,vol){
 function playAlarm(){
   stopAlarm();
   // Sweet Child lick first, then the bell arpeggio and final chime.
-  const lead=playTune('sweet',true)+0.2;
+  const lead=playTune('sweetShort',true)+0.2;
   const ctx=getCtx(),master=ctx.createGain(),wet=ctx.createGain(),conv=ctx.createConvolver();
   // Kept low and soft for cheap speakers: no highs (lowpass) and a limiter
   // so stacked notes + reverb can't push the cone into crackling.
@@ -2171,8 +2171,8 @@ function playAlarm(){
   // C5+E5 bell chime.
   const up=[261.63,329.63,392.00,523.25]; // C4-E4-G4-C5, an octave lower
   up.concat(up.slice().reverse()).forEach((f,k)=>bellNote(ctx,bus,f,lead+k*0.15,1.2,0.6));
-  bellNote(ctx,bus,523.25,lead+1.2,5,0.6);
-  bellNote(ctx,bus,659.25,lead+1.2,5,0.35);
+  bellNote(ctx,bus,523.25,lead+1.2,4,0.6);
+  bellNote(ctx,bus,659.25,lead+1.2,4,0.35);
   alarmNodes.push({stop(){try{master.disconnect();}catch(e){}}});
 }
 
@@ -2241,6 +2241,7 @@ const TUNES={
     ['C4',.5],['D4',.5],['Eb4',.5],['F4',.5],['G4',.5],['Eb4',.5],['G4',3]]},
   smoke:{beat:.3,notes:[['G3',1],['Bb3',1],['C4',1.5],['R',.5],['G3',1],['Bb3',1],['Db4',.5],['C4',1.5],['R',.5],['G3',1],['Bb3',1],['C4',1.5],['R',.5],['Bb3',1],['G3',2]]},
   seven:{beat:.3,notes:[['E4',1.5],['E4',.5],['G4',1.5],['E4',1.5],['D4',1],['C4',1],['B3',3]]},
+  sweetShort:{beat:.3,notes:['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4'].map(n=>[n,.5]).concat([['D4',1]])},
   sweet:{beat:.3,notes:['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4','D4','D5','A4','G4','G5','A4','F#5','A4'].map(n=>[n,.5]).concat([['D4',2]])}
 };
 // Returns the tune's length in seconds. `keep` leaves any already-playing
