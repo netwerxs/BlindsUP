@@ -1102,7 +1102,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.281';
+const VERSION='v1.282';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1832,7 +1832,7 @@ function renderRecent(){
   const hr=tbl.createTHead().insertRow();
   ['Time'].concat(SPLIT_DENOMS.map(d=>'$'+d),['Pool']).forEach(t=>{const th=document.createElement('th');th.textContent=t;hr.appendChild(th);});
   const tb=tbl.createTBody();
-  h.map((e,i)=>({e,i})).sort((x,y)=>x.e.t-y.e.t).forEach(({e,i})=>{
+  h.map((e,i)=>({e,i})).sort((x,y)=>y.e.t-x.e.t).forEach(({e,i})=>{
     const r=tb.insertRow();
     const d=new Date(e.t);
     const time=(d.getHours()%12||12)+':'+String(d.getMinutes()).padStart(2,'0');
