@@ -1109,7 +1109,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.286';
+const VERSION='v1.287';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2115,10 +2115,12 @@ function playAlarm(){
   const bus=ctx.createGain();
   bus.connect(master);bus.connect(conv);conv.connect(wet);wet.connect(master);
   master.connect(ctx.destination);
-  // Ascending arpeggio (C5-E5-G5-C6) resolving into a long C6+E6 bell chime.
-  [523.25,659.25,783.99,1046.50].forEach((f,k)=>bellNote(ctx,bus,f,k*0.15,1.2,0.6));
-  bellNote(ctx,bus,1046.50,0.6,2.6,0.6);
-  bellNote(ctx,bus,1318.51,0.6,2.6,0.35);
+  // Ascending arpeggio (C5-E5-G5-C6), the same notes back down in reverse,
+  // then a long C6+E6 bell chime.
+  const up=[523.25,659.25,783.99,1046.50];
+  up.concat(up.slice().reverse()).forEach((f,k)=>bellNote(ctx,bus,f,k*0.15,1.2,0.6));
+  bellNote(ctx,bus,1046.50,1.2,2.6,0.6);
+  bellNote(ctx,bus,1318.51,1.2,2.6,0.35);
   alarmNodes.push({stop(){try{master.disconnect();}catch(e){}}});
 }
 
