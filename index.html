@@ -1126,7 +1126,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.295';
+const VERSION='v1.296';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2150,7 +2150,7 @@ function bellNote(ctx,bus,freq,when,dur,vol){
 function playAlarm(){
   stopAlarm();
   // Guitar lick, then bells in D that start on its final held D.
-  const lead=playLick();
+  const lick=playLick(),lead=lick.lastStart;
   const ctx=getCtx(),master=ctx.createGain(),wet=ctx.createGain(),conv=ctx.createConvolver();
   // Kept low and soft for cheap speakers: no highs (lowpass) and a limiter
   // so stacked notes + reverb can't push the cone into crackling.
@@ -2167,7 +2167,13 @@ function playAlarm(){
   up.concat(up.slice().reverse()).forEach((f,k)=>bellNote(ctx,bus,f,lead+k*0.15,1.2,0.6));
   bellNote(ctx,bus,587.33,lead+1.2,4,0.6);
   bellNote(ctx,bus,739.99,lead+1.2,4,0.35);
-  alarmNodes.push({stop(){try{master.disconnect();}catch(e){}}});
+  const disposeBells=()=>{[bus,conv,wet,master,lp,lim].forEach(n=>{try{n.disconnect();}catch(e){}});};
+  alarmNodes.push({stop:disposeBells});
+  // Tear the whole graph down once the sound and its reverb tail are done.
+  // Left connected, idle Convolver/Compressor/Biquad nodes keep processing
+  // decaying-to-denormal values forever, which on iOS shows up as periodic
+  // static pulses after the alarm.
+  setTimeout(()=>{lick.dispose();disposeBells();},(Math.max(lick.end,lead+1.2+4)+2.5)*1000);
 }
 
 function stopAlarm(){
@@ -2250,8 +2256,9 @@ function playLick(){
     });
     t+=d;
   });
-  alarmNodes.push({stop(){try{out.disconnect();}catch(e){}}});
-  return lastStart;
+  const dispose=()=>{[out,sh,lp,lim].forEach(n=>{try{n.disconnect();}catch(e){}});};
+  alarmNodes.push({stop:dispose});
+  return {lastStart,dispose,end:t-ctx.currentTime};
 }
 
 function playSoundcheck(){
