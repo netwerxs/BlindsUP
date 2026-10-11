@@ -1109,7 +1109,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.285';
+const VERSION='v1.286';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2083,18 +2083,43 @@ function zzfx(vol=1,randomness=.05,frequency=220,attack=0,sustain=0,release=.1,s
   return src;
 }
 
+// Generated room reverb (decaying stereo noise) — built once, no asset file.
+let reverbIR=null;
+function getReverbIR(ctx){
+  if(reverbIR)return reverbIR;
+  const len=Math.floor(ctx.sampleRate*1.8);
+  reverbIR=ctx.createBuffer(2,len,ctx.sampleRate);
+  for(let c=0;c<2;c++){
+    const d=reverbIR.getChannelData(c);
+    for(let k=0;k<len;k++)d[k]=(Math.random()*2-1)*Math.pow(1-k/len,3);
+  }
+  return reverbIR;
+}
+// One struck-bell note: inharmonic sine partials, each decaying faster the
+// higher it is, into a shared master bus.
+function bellNote(ctx,bus,freq,when,dur,vol){
+  [[1,1,1],[2,.45,.7],[2.76,.3,.5],[4.1,.18,.35],[5.4,.1,.25]].forEach(([r,a,dm])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o.frequency.value=freq*r;
+    const t=ctx.currentTime+when,d=dur*dm;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(vol*a,t+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g);g.connect(bus);o.start(t);o.stop(t+d+0.05);
+  });
+}
 function playAlarm(){
   stopAlarm();
-  // Ascending major arpeggio (C5-E5-G5-C6) on a warm triangle tone,
-  // resolving into a soft shimmering two-note chime tail.
-  const notes=[523.25,659.25,783.99,1046.50];
-  notes.forEach((freq,i)=>{
-    alarmTimeouts.push(setTimeout(()=>alarmNodes.push(zzfx(1,0,freq,.01,.1,.2,1,1,0,0,0,0,0,0,0,0,0,1,.02)),i*150));
-  });
-  alarmTimeouts.push(setTimeout(()=>{
-    alarmNodes.push(zzfx(0.9,0,1046.50,.02,1.6,.6,1,1,0,0,0,0,0,0,.015,0,0,1,.05));
-    alarmNodes.push(zzfx(0.5,0,1318.51,.02,1.6,.6,1,1,0,0,0,0,0,0,.015,0,0,1,.05));
-  },notes.length*150));
+  const ctx=getCtx(),master=ctx.createGain(),wet=ctx.createGain(),conv=ctx.createConvolver();
+  master.gain.value=0.5;wet.gain.value=0.45;conv.buffer=getReverbIR(ctx);
+  const bus=ctx.createGain();
+  bus.connect(master);bus.connect(conv);conv.connect(wet);wet.connect(master);
+  master.connect(ctx.destination);
+  // Ascending arpeggio (C5-E5-G5-C6) resolving into a long C6+E6 bell chime.
+  [523.25,659.25,783.99,1046.50].forEach((f,k)=>bellNote(ctx,bus,f,k*0.15,1.2,0.6));
+  bellNote(ctx,bus,1046.50,0.6,2.6,0.6);
+  bellNote(ctx,bus,1318.51,0.6,2.6,0.35);
+  alarmNodes.push({stop(){try{master.disconnect();}catch(e){}}});
 }
 
 function stopAlarm(){
