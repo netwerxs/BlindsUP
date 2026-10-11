@@ -1102,7 +1102,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.282';
+const VERSION='v1.283';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1807,7 +1807,9 @@ function loadHistory(){
 }
 function pushHistory(c){
   if(countsTotal(c)<=0)return;
-  const h=loadHistory().filter(e=>!sameCounts(e.c,c));
+  const old=loadHistory();
+  if(old.length&&sameCounts(old[0].c,c))return; // already the top row
+  const h=old.filter(e=>!sameCounts(e.c,c));
   h.unshift({t:Date.now(),c});
   try{localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(0,HISTORY_MAX)));}catch(e){}
   renderRecent();
@@ -1891,13 +1893,19 @@ function openSplit(){
   loadPayoutSettings();
   if(!splitModeTouched)splitMode='top3';
   renderPayoutUI();
+  pushHistory(readCounts()); // current counts become the top Recent row
   elSplitOverlay.classList.add('visible');
   document.body.classList.add('split-open');
 }
 function closeSplit(){
+  pushHistory(readCounts());
   elSplitOverlay.classList.remove('visible');
   document.body.classList.remove('split-open');
 }
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&elSplitOverlay.classList.contains('visible'))pushHistory(readCounts());
+});
 
 (function(){
   const box=document.getElementById('split-denoms');
