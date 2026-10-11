@@ -872,7 +872,12 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="mb-dropdown">
       <button onclick="event.stopPropagation();closeAllMenus();resetToMenu();">New</button>
       <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck();">Sound Check</button>
-      <button onclick="event.stopPropagation();closeAllMenus();playRiff();">Rock Riff</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playTune('toccata');">Toccata (Bach)</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playTune('beethoven');">Beethoven&#39;s 5th</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playTune('mountain');">Mountain King</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playTune('smoke');">Smoke on the Water</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playTune('seven');">Seven Nation Army</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playTune('sweet');">Sweet Child o&#39; Mine</button>
       <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();">Update</button>
       <button onclick="event.stopPropagation();closeAllMenus();exitApp();">Exit</button>
     </div>
@@ -1127,7 +1132,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.291';
+const VERSION='v1.292';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2214,11 +2219,31 @@ function playWoodClack(){
 // device volume after adjusting the hardware buttons. Deliberately unlike any
 // other sound in the app (no percussive click, no arpeggio) so it's never
 // mistaken for a timer event. Purely a sound effect — never touches timer state.
-// An easter-egg hard-rock riff (a loose homage, not a transcription): detuned
+// Rock-style renditions of famous tunes, menu-only (never auto-played): detuned
 // sawtooth pairs through a waveshaper for guitar-style crunch, lowpassed and
-// limited so it stays safe on small speakers. Menu-only; never auto-played.
-function playRiff(){
+// limited so they stay safe on small speakers. Each tune is [note,beats]
+// pairs ('R' = rest); `beat` is seconds per beat, `accel` (optional) scales
+// the beat after every note so a tune can speed up.
+const NOTE_SEMI={C:0,'C#':1,Db:1,D:2,Eb:3,E:4,F:5,'F#':6,G:7,Ab:8,A:9,Bb:10,B:11};
+function noteHz(n){
+  const m=/^([A-G][#b]?)(\d)$/.exec(n);
+  return 440*Math.pow(2,(NOTE_SEMI[m[1]]-9)/12+(+m[2]-4));
+}
+const TUNES={
+  toccata:{beat:.4,notes:[['A4',.25],['G4',.25],['A4',3],['R',1],['G4',.5],['F4',.5],['E4',.5],['D4',.5],['C#4',1],['D4',3]]},
+  beethoven:{beat:.42,notes:[['R',.5],['G4',.5],['G4',.5],['G4',.5],['Eb4',3],['R',.5],['F4',.5],['F4',.5],['F4',.5],['D4',3]]},
+  mountain:{beat:.34,accel:.985,notes:[
+    ['B3',.5],['C#4',.5],['D4',.5],['E4',.5],['F#4',.5],['D4',.5],['F#4',1.5],
+    ['C4',.5],['D4',.5],['Eb4',.5],['F4',.5],['G4',.5],['Eb4',.5],['G4',1.5],
+    ['B3',.5],['C#4',.5],['D4',.5],['E4',.5],['F#4',.5],['D4',.5],['F#4',1.5],
+    ['C4',.5],['D4',.5],['Eb4',.5],['F4',.5],['G4',.5],['Eb4',.5],['G4',3]]},
+  smoke:{beat:.3,notes:[['G3',1],['Bb3',1],['C4',1.5],['R',.5],['G3',1],['Bb3',1],['Db4',.5],['C4',1.5],['R',.5],['G3',1],['Bb3',1],['C4',1.5],['R',.5],['Bb3',1],['G3',2]]},
+  seven:{beat:.3,notes:[['E4',1.5],['E4',.5],['G4',1.5],['E4',1.5],['D4',1],['C4',1],['B3',3]]},
+  sweet:{beat:.3,notes:['D4','D5','A4','G4','G5','A4','F#5','A4','C4','C5','G4','F4','F5','G4','E5','G4','D4','D5','A4','G4','G5','A4','F#5','A4'].map(n=>[n,.5]).concat([['D4',2]])}
+};
+function playTune(name){
   stopAlarm();
+  const T=TUNES[name];if(!T)return;
   const ctx=getCtx(),out=ctx.createGain(),sh=ctx.createWaveShaper(),lp=ctx.createBiquadFilter(),lim=ctx.createDynamicsCompressor();
   const curve=new Float32Array(256);
   for(let k=0;k<256;k++){const x=k/128-1;curve[k]=Math.tanh(4*x);}
@@ -2226,23 +2251,20 @@ function playRiff(){
   lim.threshold.value=-14;lim.knee.value=10;lim.ratio.value=12;
   out.gain.value=0.35;
   out.connect(sh);sh.connect(lp);lp.connect(lim);lim.connect(ctx.destination);
-  const D=293.66,C=261.63,u=0.2;
-  const phrase=[[D,1],[D,1],[C,1],[D,3]];
-  let t=ctx.currentTime+0.05;
-  [0,1].forEach(()=>{
-    phrase.forEach(([f,n])=>{
-      [1,1.006].forEach(det=>{
-        const o=ctx.createOscillator(),g=ctx.createGain();
-        o.type='sawtooth';o.frequency.value=f*det;
-        const d=n*u*0.92;
-        g.gain.setValueAtTime(0.0001,t);
-        g.gain.linearRampToValueAtTime(0.5,t+0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001,t+d);
-        o.connect(g);g.connect(out);o.start(t);o.stop(t+d+0.05);
-      });
-      t+=n*u;
+  let t=ctx.currentTime+0.05,beat=T.beat;
+  T.notes.forEach(([n,b])=>{
+    const d=b*beat;
+    if(n!=='R')[1,1.006].forEach(det=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sawtooth';o.frequency.value=noteHz(n)*det;
+      const len=d*0.92;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(0.5,t+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+len);
+      o.connect(g);g.connect(out);o.start(t);o.stop(t+len+0.05);
     });
-    t+=u; // breath between phrases
+    t+=d;
+    if(T.accel)beat*=T.accel;
   });
   alarmNodes.push({stop(){try{out.disconnect();}catch(e){}}});
 }
