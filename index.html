@@ -872,6 +872,7 @@ body.split-open #rotate-prompt{display:none!important;}
     <div class="mb-dropdown">
       <button onclick="event.stopPropagation();closeAllMenus();resetToMenu();">New</button>
       <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck();">Sound Check</button>
+      <button onclick="event.stopPropagation();closeAllMenus();playSoundcheck2();">Sound Check 2</button>
       <button id="btn-check-update" onclick="event.stopPropagation();checkForUpdates();">Update</button>
       <button onclick="event.stopPropagation();closeAllMenus();exitApp();">Exit</button>
     </div>
@@ -1126,7 +1127,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.296';
+const VERSION='v1.297';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2263,6 +2264,18 @@ function playLick(){
 
 function playSoundcheck(){
   zzfx(1,0.02,480,.01,.12,.08,5,1,0,0,0,0,.02,0,0,0,0,1,.02,.5);
+}
+
+// Sound Check 2: plays a bundled mp3; selecting it again while playing stops it.
+let soundcheck2Audio=null;
+function playSoundcheck2(){
+  if(soundcheck2Audio&&!soundcheck2Audio.paused){
+    soundcheck2Audio.pause();
+    soundcheck2Audio.currentTime=0;
+    return;
+  }
+  if(!soundcheck2Audio)soundcheck2Audio=new Audio('sounds/Arnold-If-you-want-to-be-a-champion.mp3');
+  soundcheck2Audio.play().catch(()=>{});
 }
 
 // ── Sound check ───────────────────────────────────────────────────
