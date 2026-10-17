@@ -1101,6 +1101,7 @@ body.split-open #rotate-prompt{display:none!important;}
           <select id="sp-mode" class="sp-mode-sel" aria-label="Payout split">
             <option value="top3">Top 3 &middot; 50 / 30 / 20</option>
             <option value="top4">Top 4 &middot; 50 / 25 / 15 / 10</option>
+            <option value="custom2">Custom 2 Paid</option>
             <option value="custom3">Custom 3 Paid</option>
             <option value="custom4">Custom 4 Paid</option>
             <option value="custom5">Custom 5 Paid</option>
@@ -1127,7 +1128,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.301';
+const VERSION='v1.302';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -1385,8 +1386,8 @@ async function nativeInstall(e){
 // ── Split the pot (prize-pool cash-count calculator) ──────────────
 // Count the physical bills in the pot by denomination, take 10% off the top
 // for the house, and split what's left. The "Payout split" selector offers
-// two fixed presets — Top 3 (50/30/20) and Top 4 (50/25/15/10) — plus Custom
-// 3..7 Paid, each a fixed payee count whose percentages default to 1st = 50%,
+// two fixed presets — Top 3 (50/30/20) and Top 4 (50/25/15/10) — plus 
+// 2..7 Paid, each a fixed payee count whose percentages default to 1st = 50%,
 // remaining 50% split evenly across the rest (largest-remainder rounded —
 // see defaultPcts()), and are then editable per place via +/− steps of 1%
 // (see stepPct()). Stepping a place's percentage redistributes the places
@@ -1415,9 +1416,9 @@ async function nativeInstall(e){
 // overlay.
 const SPLIT_DENOMS=[100,50,20,10,5];
 const PAYOUT_PRESETS={top3:[50,30,20],top4:[50,25,15,10]};
-const CUSTOM_SIZES={custom3:3,custom4:4,custom5:5,custom6:6,custom7:7};
+const CUSTOM_SIZES={custom2:2,custom3:3,custom4:4,custom5:5,custom6:6,custom7:7};
 const PAYOUT_STORE_KEY='bu-payout-scheme';
-let splitMode='top3';   // 'top3' | 'top4' | 'custom3'..'custom7'
+let splitMode='top3';   // 'top3' | 'top4' | 'custom2'..'custom7'
 let customPcts=null;    // active Custom mode's percentages — integers summing to 100
 // null = House is the auto 10% cut. A number = the user has typed a dollar
 // override into the House field (#sp-house): the payout pool becomes
