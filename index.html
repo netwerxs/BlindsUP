@@ -1127,7 +1127,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.298';
+const VERSION='v1.299';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2178,6 +2178,7 @@ function playAlarm(){
 }
 
 function stopAlarm(){
+  stopClip();
   alarmTimeouts.forEach(clearTimeout);alarmTimeouts=[];
   alarmNodes.forEach(n=>{try{n.stop();}catch(e){}});alarmNodes=[];
 }
@@ -2268,14 +2269,34 @@ function playSoundcheck(){
 
 // Sound Check 2: plays a bundled mp3; selecting it again while playing stops it.
 let soundcheck2Audio=null;
-function playSoundcheck2(){
-  if(soundcheck2Audio&&!soundcheck2Audio.paused){
-    soundcheck2Audio.pause();
-    soundcheck2Audio.currentTime=0;
-    return;
-  }
+function getClip(){
   if(!soundcheck2Audio)soundcheck2Audio=new Audio('sounds/Arnold-If-you-want-to-be-a-champion.mp3');
-  soundcheck2Audio.play().catch(()=>{});
+  return soundcheck2Audio;
+}
+function stopClip(){
+  if(!soundcheck2Audio)return;
+  soundcheck2Audio.onended=null;
+  soundcheck2Audio.pause();
+  soundcheck2Audio.currentTime=0;
+}
+function playSoundcheck2(){
+  if(soundcheck2Audio&&!soundcheck2Audio.paused){stopClip();return;}
+  const a=getClip();
+  a.onended=null;
+  a.play().catch(()=>{});
+}
+
+// Level-end sound: a 1-in-CLIP_ODDS chance of playing the mp3 first, with the
+// alarm following once it ends; otherwise just the alarm. stopAlarm() cancels
+// a pending clip (and its follow-up alarm) via stopClip().
+const CLIP_ODDS=25;
+function playAlarmMaybeClip(){
+  if(Math.random()*CLIP_ODDS>=1){playAlarm();return;}
+  stopAlarm();
+  const a=getClip();
+  a.currentTime=0;
+  a.onended=()=>{a.onended=null;playAlarm();};
+  a.play().catch(()=>{a.onended=null;playAlarm();});
 }
 
 // ── Sound check ───────────────────────────────────────────────────
@@ -2665,7 +2686,7 @@ function adjustTime(dir){ // +1 = add one minute (Rewind), -1 = subtract one min
 // "Blinds Up" overlay — just the alarm chime plus a quick flash on the
 // blind numerals, so the countdown screen itself never gets interrupted.
 function levelUpCue(){
-  playAlarm();
+  playAlarmMaybeClip();
   elBlindInner.classList.add('flash');
   setTimeout(()=>elBlindInner.classList.remove('flash'),300);
 }
@@ -2687,7 +2708,7 @@ function showBreakAnnounce(){
   elAnnounce.classList.add('visible');
   elBlindInner.classList.add('flash');
   setTimeout(()=>elBlindInner.classList.remove('flash'),300);
-  playAlarm();
+  playAlarmMaybeClip();
   announceTO=setTimeout(finishBreak,BREAK_HOLD_MS);
 }
 
