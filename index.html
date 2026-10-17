@@ -1127,7 +1127,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.299';
+const VERSION='v1.300';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2289,7 +2289,7 @@ function playSoundcheck2(){
 // Level-end sound: a 1-in-CLIP_ODDS chance of playing the mp3 first, with the
 // alarm following once it ends; otherwise just the alarm. stopAlarm() cancels
 // a pending clip (and its follow-up alarm) via stopClip().
-const CLIP_ODDS=25;
+const CLIP_ODDS=1;
 function playAlarmMaybeClip(){
   if(Math.random()*CLIP_ODDS>=1){playAlarm();return;}
   stopAlarm();
