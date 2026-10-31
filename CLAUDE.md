@@ -42,6 +42,10 @@ All mutable state is global:
 | `pauseSecRTC` | RTC second-of-minute recorded at pause, used to correct drift on resume |
 | `audioCtx`, `alarmNodes`, `alarmTimeouts` | Web Audio API context and active oscillator nodes / pending sound timeouts |
 
+### Game-state persistence
+
+`saveGame()` snapshots `{level, rem, running, savedAt, pauseWall}` to `localStorage` (`bu-game-state`) on every `updateClocks()` 1s heartbeat and immediately on `visibilitychange`→hidden / `pagehide`, so a reload, an OS-killed PWA, or a dead battery doesn't lose the game. It only writes while a countdown is on the timer screen (`running` && `#app.visible`) and removes the key otherwise (New → menu, Esc-hold reset, level-5 break). `restoreGame()`, called once at startup right after `render()`, puts the game back on the timer screen **paused** (pause overlay, strobe, reminder alarm) — one tap resumes, and that tap is also the user gesture iOS needs to re-enable audio/fullscreen/wake lock. A game that was running when it died has the elapsed time taken off the clock; a paused one is restored exactly. Snapshots older than 12h (`GAME_TTL`) or malformed are ignored. `persistReady` keeps the first heartbeat (which runs before `restoreGame()`) from wiping the snapshot before it is read.
+
 ### Blind schedule
 
 `BLINDS` is a 30-entry array of explicit `{sb, bb}` pairs. Level semantics:

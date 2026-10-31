@@ -1127,7 +1127,7 @@ body.split-open #rotate-prompt{display:none!important;}
 </div>
 
 <script>
-const VERSION='v1.303';
+const VERSION='v1.304';
 
 // ── DOM cache ─────────────────────────────────────────────────────
 const elBSB=document.getElementById('bSB');
@@ -2323,7 +2323,60 @@ function fmtTime(d,ampm){
   return s;
 }
 function fmtClock(){return fmtTime(new Date());}
+// ── Game-state persistence ────────────────────────────────────────
+// Snapshots the live game to localStorage (every updateClocks() heartbeat,
+// plus immediately when the page is hidden/closed) so a reload, an OS-killed
+// PWA, or a dead battery doesn't lose the level and time. restoreGame()
+// (called once at startup) puts it back on the timer screen *paused* — a
+// single tap on the pause overlay resumes, and that tap is also the user
+// gesture iOS needs before audio/fullscreen/wake lock will work again.
+const GAME_KEY='bu-game-state',GAME_TTL=12*3600*1000;
+let persistReady=false; // false until startup's restoreGame() has run, so the
+                        // very first heartbeat can't wipe a snapshot before it's read
+function saveGame(){
+  if(!persistReady)return;
+  try{
+    // Only a game that's actually on the timer screen is worth restoring.
+    // (running stays true across a pause and across New → menu, so also
+    // require the timer screen to be showing.)
+    if(!running||!elApp.classList.contains('visible')){localStorage.removeItem(GAME_KEY);return;}
+    const now=Date.now();
+    // Real remaining seconds right now: frozen when paused or mid-advance
+    // (remSec already holds the new level's full duration), else derived
+    // from launchWall the same way tick() does.
+    const rem=paused||advancing?remSec:Math.max(0,pausedRemSec-(now-launchWall)/1000);
+    localStorage.setItem(GAME_KEY,JSON.stringify({v:1,level,rem,running:!paused,savedAt:now,pauseWall:pauseWallClock||0}));
+  }catch(e){}
+}
+function restoreGame(){
+  persistReady=true;
+  let s=null;
+  try{s=JSON.parse(localStorage.getItem(GAME_KEY));}catch(e){}
+  if(!s||s.v!==1)return;
+  const age=Date.now()-s.savedAt;
+  // Ignore anything stale (a previous game night) or malformed.
+  if(!(age>=0&&age<GAME_TTL)||!(s.level>=1&&s.level<=BLINDS.length)||!isFinite(s.rem))return;
+  // A game that was running when it died kept "running" in real life, so
+  // take the time away off the clock; a paused one stays exactly as left.
+  const rem=Math.max(0,Math.ceil(s.running?s.rem-age/1000:s.rem));
+  level=s.level;remSec=rem;pausedRemSec=rem;
+  running=true;
+  elMenuScreen.style.display='none';
+  elApp.classList.add('visible');
+  render();layoutFeltClip();
+  paused=true;pauseSecRTC=new Date().getSeconds();
+  pauseWallClock=s.running?s.savedAt:(s.pauseWall||Date.now());
+  updatePauseLabel();
+  elPauseOverlay.classList.add('visible');
+  elFeltSurface.classList.add('pause-flash');
+  startPauseAlarm();
+  updatePauseMenuItem();
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveGame();});
+window.addEventListener('pagehide',saveGame);
+
 function updateClocks(){
+  saveGame();
   elMbClock.textContent=fmtClock();
   elMenuClock.textContent=fmtClock();
   layoutMenuClip();
@@ -2729,6 +2782,7 @@ document.addEventListener('keydown',e=>{
 // Ensure audio is unlocked before showing the menu; only prompt if needed
 startSoundcheck();
 render();
+restoreGame();
 
 let swReg=null;
 if('serviceWorker' in navigator){
